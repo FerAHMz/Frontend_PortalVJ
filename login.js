@@ -18,7 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
         if (data.success) {
           alert('Inicio de sesión exitoso');
-          // Redirige o muestra contenido según tipo de usuario
+          const role = data.user.rol;
+          if (role === 'Padre') {
+            window.location.href = '/parents.html';
+          } else if (role === 'Maestro') {
+            window.location.href = '/teachers.html';
+          } else if (role === 'Administrativo') {
+            window.location.href = '/admin.html';
+          } else {
+            alert('Rol desconocido');
+          }
         } else {
           alert('Credenciales incorrectas');
         }
@@ -28,4 +37,3 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-  
