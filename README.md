@@ -1,62 +1,57 @@
-# Frontend_PortalVJ
-
-<br />
-
 <div align="center">
-  <h1>Portal de Gestión Escolar - Vanguardia Juvenil</h1> 
+  <h1>Portal Vanguardia Juvenil - Frontend</h1> 
 </div>
 
+
+## Objectives
+
+- Develop a modern, clear, and functional user interface for different school system roles: parents, teachers, and administrators.
+- Use **Vue.js** and **Vite** for a fast and efficient development experience.
+- Containerize the project to facilitate execution in any environment.
+
 ---
 
-## Objetivos
-
-- Desarrollar una interfaz de usuario moderna, clara y funcional para diferentes roles del sistema escolar: padres, maestros y administrativos.
-- Utilizar **Vue.js** y **Vite** para una experiencia de desarrollo rápida y eficiente.
-- Contenerizar el proyecto para facilitar su ejecución en cualquier entorno.
-
----
-
-## Tecnologías Utilizadas
+## Technologies Used
 
 - **Vue 3 + Vite**
-- **JavaScript moderno (ES6+)**
+- **Modern JavaScript (ES6+)**
 - **Docker**
-- **Lucide Icons** para íconos SVG
-- **CSS personalizado** (sin frameworks externos)
+- **Lucide Icons** for SVG icons
+- **Custom CSS** (no external frameworks)
 
 ---
 
-## Pasos de Construcción y Ejecución
+## Build and Execution Steps
 
-### 1. Construir la imagen Docker
+### 1. Build Docker Image
 
    ```
    docker build -t frontend_portalvj .
    ```
 
-### 2. Ejecutar el contenedor
+### 2. Run the Container
    ```
    docker run -p 5173:5173 frontend_portalvj
    ```
-El sistema quedará accesible en: http://localhost:5173
+The system will be accessible at: http://localhost:5173
 
-### 3. Detener y eliminar el contenedor
-* Para ver los contenedores en ejecución:
+### 3. Stop and Remove the Container
+* To view running containers:
    ```
    docker ps
    ```
-* Para detener el contenedor:
+* To stop the container:
    ```
    docker stop <CONTAINER_ID>
    ```
-* Para eliminar el contenedor:
+* To remove the container:
    ```
    docker rm <CONTAINER_ID>
    ```
    
 ---
 
-### Estructura del proyecto
+## Estructura del proyecto
 Frontend_PortalVJ/
 
 ├── public/
@@ -65,17 +60,17 @@ Frontend_PortalVJ/
 
 ├── src/
 
-│   ├── assets/              # Imágenes del sistema
+│   ├── assets/              # System images
 
-│   ├── components/          # Componentes Vue reutilizables (Sidebar, Cards, etc.)
+│   ├── components/          # Reusable Vue components (Sidebar, Cards, etc.)
 
-│   ├── router/              # Rutas de Vue Router
+│   ├── router/              # Vue Router routes
 
-│   ├── views/               # Vistas principales por rol (Login, Teacher, Admin, Parents)
+│   ├── views/               # Main views by role (Login, Teacher, Admin, Parents)
 
-│   ├── App.vue              # Componente raíz
+│   ├── App.vue              # Root component
 
-│   └── main.js              # Punto de entrada de Vue
+│   └── main.js              # Vue entry point
 
 ├── .editorconfig
 
@@ -108,23 +103,23 @@ Frontend_PortalVJ/
 
 ---
 
-### Archivos importantes
-* Dockerfile: Define cómo construir la imagen del contenedor.
-* docker-compose.yml: Ignorado por Git (configuración personalizada por equipo).
-* docker-compose.yml.example: Archivo base que debe copiarse como docker-compose.yml.
-* .gitignore: Evita subir node_modules y archivos específicos del entorno.
+## Important Files
+* Dockerfile: Defines how to build the container image.
+* docker-compose.yml: Ignored by Git (team-specific configuration).
+* docker-compose.yml.example: Base file that should be copied as docker-compose.yml.
+* .gitignore: Prevents uploading node_modules and environment-specific files.
 
 ---
 
-### Consideraciones
-* Al construir el contenedor por primera vez, se generará automáticamente node_modules dentro del contenedor gracias al Dockerfile.
-* El archivo .gitignore evita conflictos al no incluir node_modules ni docker-compose.yml personalizado.
+## Considerations
+* When building the container for the first time, node_modules will be automatically generated inside the container thanks to the Dockerfile.
+* The .gitignore file prevents conflicts by not including node_modules or personalized docker-compose.yml.
 
 ---
 
-### Contacto
-* Estudiantes:
-  - Felipe Aguilar - agu23195@uvg.edu.gt
-  - Fernando Hernández - her23645@uvg.edu.gt
-  - Fernando Rueda - rue23748@uvg.edu.gt
-  - Nadissa Vela - vel23764@uvg.edu.gt
+## Contact
+* Students:
+- Felipe Aguilar - agu23195@uvg.edu.gt
+- Fernando Hernández - her23645@uvg.edu.gt
+- Fernando Rueda - rue23748@uvg.edu.gt
+- Nadissa Vela - vel23764@uvg.edu.gt
