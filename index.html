@@ -1,35 +1,13 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<html lang="">
+  <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="/logo.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="styles.css">
-    <script src="login.js" defer></script>
-
-    <title>Vanguardia juvenil</title>
-</head>
-<body>    
-    <header>
-        <h1>Inicio de sesión</h1>
-    </header>
-    <main>
-        <img src="Logo.png" alt="logo del colegio" width="150" height="150">
-        <form action="javascript:void(0);">
-            <input type="text" id="email" placeholder="Ingrese su correo">
-            <input type="password" id="password" placeholder="Contraseña">
-            <input type="button" id="loginButton" value="Ingresar">
-        </form>
-        <!-- Add links to role-specific pages -->
-        <a href="./parents.html" style="display:none;">Página de Padres</a>
-        <a href="./teachers.html" style="display:none;">Página de Maestros</a>
-        <a href="./admin.html" style="display:none;">Página de Administrativos</a>
-    </main>
-</body>
+    <title>Portal Vanguardia Juvenil</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>

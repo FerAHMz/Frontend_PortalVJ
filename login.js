@@ -20,11 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('Inicio de sesión exitoso');
           const role = data.user.rol;
           if (role === 'Padre') {
-            window.location.href = './parents.html';
+            window.location.href = '/parent';
           } else if (role === 'Maestro') {
-            window.location.href = './teachers.html';
+            window.location.href = '/teacher';
           } else if (role === 'Administrativo') {
-            window.location.href = './admin.html';
+            window.location.href = '/admin';
           } else {
             alert('Rol desconocido');
           }
