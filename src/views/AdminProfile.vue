@@ -22,7 +22,7 @@
 
   const menuItems = [
     { label: 'Perfil', icon: User },
-    { label: 'Control de pagos', icon: CreditCard }
+    { label: 'Control de pagos', icon: CreditCard, route: '/control-de-pagos'}
   ]
   </script>
   
