@@ -36,8 +36,8 @@ import { ref, computed, onMounted } from 'vue'
 import { User, CreditCard } from 'lucide-vue-next'
 
 const menuItems = [
-  { label: 'Perfil', icon: User },
-  { label: 'Control de pagos', icon: CreditCard, route: '/control-de-pagos' }
+  { label: 'Perfil', icon: User, path: '/admin' },
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
 ]
 
 const dropdownVisible = ref(false)
