@@ -74,15 +74,11 @@
     }
   }
   
-  const processFile = async () => {
-    try {
-      await uploadPaymentFile(selectedFile.value)
-      showConfirmation.value = false
-    } catch (error) {
-      validationErrors.value = [error.message]
-      showError.value = true
-    }
-  }
+  const processFile = () => {
+  console.log('Procesando archivo:', selectedFile.value.name)
+  // API CALL
+  showConfirmation.value = false
+}
   
   const cancelUpload = () => {
     showConfirmation.value = false
