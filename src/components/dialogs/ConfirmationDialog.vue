@@ -59,7 +59,7 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .cancel-btn {
-  background: #6c757d;
+  background: rgba(255, 0, 0, 0.822);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
@@ -72,6 +72,6 @@ defineEmits(['confirm', 'cancel'])
 }
 
 .cancel-btn:hover {
-  background: #5a6268;
+  background: rgb(197, 0, 0);
 }
 </style>
