@@ -17,6 +17,17 @@
           </div>
         </div>
       </main>
+      <ErrorDialog 
+        :show="showError"
+        :errors="validationErrors"
+        @close="showError = false"
+      />
+      <ConfirmationDialog
+        :show="showConfirmation"
+        :fileName="selectedFile?.name"
+        @confirm="processFile"
+        @cancel="cancelUpload"
+      />
     </div>
   </template>
   
@@ -25,6 +36,10 @@
   import { useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
   import { User, CreditCard, FileUp } from 'lucide-vue-next'
+  import { validateExcelFile } from '@/utils/excelValidator'
+  import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
+  import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
+  import { uploadPaymentFile } from '@/services/paymentService'
   
   const router = useRouter()
   const file = ref(null)
@@ -40,12 +55,38 @@
     }
   }
   
+  const showError = ref(false)
+  const validationErrors = ref([])
+  const showConfirmation = ref(false)
+  const selectedFile = ref(null)
+  
   const handleFileUpload = (event) => {
     const uploadedFile = event.target.files[0]
     if (uploadedFile) {
-      console.log('Archivo subido:', uploadedFile.name)
-      // Aún falta agregar la lógica para procesar el archivo
+      const validation = validateExcelFile(uploadedFile)
+      if (!validation.isValid) {
+        validationErrors.value = validation.errors
+        showError.value = true
+        return
+      }
+      selectedFile.value = uploadedFile
+      showConfirmation.value = true
     }
+  }
+  
+  const processFile = async () => {
+    try {
+      await uploadPaymentFile(selectedFile.value)
+      showConfirmation.value = false
+    } catch (error) {
+      validationErrors.value = [error.message]
+      showError.value = true
+    }
+  }
+  
+  const cancelUpload = () => {
+    showConfirmation.value = false
+    selectedFile.value = null
   }
   </script>
   
