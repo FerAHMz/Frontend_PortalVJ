@@ -8,12 +8,20 @@
         
         <h2 class="section-title">Archivo de Excel</h2>
         
-        <div class="upload-box">
+        <div class="upload-box" 
+             :class="{ 'uploading': isUploading, 'dragging': isDragging }"
+             @dragover.prevent="isDragging = true"
+             @dragleave.prevent="isDragging = false"
+             @drop.prevent="handleDrop">
           <div class="upload-box-content">
-            <FileUp class="upload-icon" />
-            <p>Arrastra archivo o</p>
-            <label for="file-upload" class="file-upload-btn">Subir</label>
-            <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" @change="handleFileUpload" />
+            <FileUp class="upload-icon" v-if="!isUploading" />
+            <Loader2 class="upload-icon animate-spin" v-else />
+            <p>{{ isUploading ? 'Procesando archivo...' : 'Arrastra archivo o' }}</p>
+            <label for="file-upload" class="file-upload-btn" :class="{ 'disabled': isUploading }">
+              {{ isUploading ? 'Procesando...' : 'Subir' }}
+            </label>
+            <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" 
+              @change="handleFileUpload" :disabled="isUploading" />
           </div>
         </div>
       </main>
@@ -29,65 +37,101 @@
         @cancel="cancelUpload"
       />
     </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  import { useRouter } from 'vue-router'
-  import Sidebar from '@/components/Sidebar.vue'
-  import { User, CreditCard, FileUp } from 'lucide-vue-next'
-  import { validateExcelFile } from '@/utils/excelValidator'
-  import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
-  import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
-  import { uploadPaymentFile } from '@/services/paymentService'
-  
-  const router = useRouter()
-  const file = ref(null)
-  
-  const menuItems = [
-    { label: 'Perfil', icon: User, path: '/admin' },
-    { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
-  ]
-  
-  const handleItemClick = (item) => {
-    if (item.path) {
-      router.push(item.path)
-    }
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import Sidebar from '@/components/Sidebar.vue'
+import { User, CreditCard, FileUp, Loader2 } from 'lucide-vue-next'
+import { validateExcelFile } from '@/utils/excelValidator'
+import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
+import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
+import { uploadPaymentFile } from '@/services/paymentService'
+
+const router = useRouter()
+const file = ref(null)
+
+const menuItems = [
+  { label: 'Perfil', icon: User, path: '/admin' },
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
+]
+
+const handleItemClick = (item) => {
+  if (item.path) {
+    router.push(item.path)
   }
-  
-  const showError = ref(false)
-  const validationErrors = ref([])
-  const showConfirmation = ref(false)
-  const selectedFile = ref(null)
-  
-  const handleFileUpload = (event) => {
-    const uploadedFile = event.target.files[0]
-    if (uploadedFile) {
-      const validation = validateExcelFile(uploadedFile)
-      if (!validation.isValid) {
-        validationErrors.value = validation.errors
-        showError.value = true
-        return
-      }
-      selectedFile.value = uploadedFile
-      showConfirmation.value = true
-    }
-  }
-  
-  const processFile = () => {
-  console.log('Procesando archivo:', selectedFile.value.name)
-  // API CALL
-  showConfirmation.value = false
 }
-  
-  const cancelUpload = () => {
-    showConfirmation.value = false
-    selectedFile.value = null
+
+const showError = ref(false)
+const validationErrors = ref([])
+const showConfirmation = ref(false)
+const selectedFile = ref(null)
+const isUploading = ref(false)
+const isDragging = ref(false)
+
+const handleFileUpload = (event) => {
+  const uploadedFile = event.target.files[0]
+  if (uploadedFile) {
+    const validation = validateExcelFile(uploadedFile)
+    if (!validation.isValid) {
+      validationErrors.value = validation.errors
+      showError.value = true
+      return
+    }
+    selectedFile.value = uploadedFile
+    showConfirmation.value = true
   }
-  </script>
-  
-  <style scoped>
-  .layout {
+}
+
+const resetForm = () => {
+  selectedFile.value = null
+  showConfirmation.value = false
+  showError.value = false
+  validationErrors.value = []
+  isUploading.value = false
+  isDragging.value = false
+}
+
+const processFile = async () => {
+  try {
+    isUploading.value = true
+    showConfirmation.value = false  
+    const response = await uploadPaymentFile(selectedFile.value)
+    validationErrors.value = [`Se procesaron ${response.count} pagos exitosamente`]
+    showError.value = true
+    resetForm()
+  } catch (error) {
+    validationErrors.value = [error.message]
+    showError.value = true
+    isUploading.value = false
+    showConfirmation.value = false  
+  }
+}
+
+const cancelUpload = () => {
+  showConfirmation.value = false  
+  resetForm()
+}
+
+const handleDrop = (event) => {
+  isDragging.value = false
+  const droppedFile = event.dataTransfer.files[0]
+  if (droppedFile) {
+    const validation = validateExcelFile(droppedFile)
+    if (!validation.isValid) {
+      validationErrors.value = validation.errors
+      showError.value = true
+      return
+    }
+    selectedFile.value = droppedFile
+    showConfirmation.value = true
+  }
+}
+</script>
+
+<style scoped>
+.layout {
     display: flex;
     min-height: 100vh;
     width: 100%;
@@ -149,6 +193,12 @@
     width: 50px;
     height: 50px;
     margin-bottom: 1rem;
+    transition: opacity 0.3s ease;
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
+    opacity: 1;
   }
   
   .upload-box p {
@@ -174,5 +224,29 @@
   
   input[type="file"] {
     display: none;
+  }
+  
+  .uploading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  
+  .file-upload-btn.disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .dragging {
+    border-style: dashed;
+    background-color: #f5f5f5;
+  }
+  
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
   </style>

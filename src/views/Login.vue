@@ -35,6 +35,9 @@
       const data = await response.json()
   
       if (data.success) {
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token)
+        
         alert('Inicio de sesión exitoso')
         const role = data.user.rol
         if (role === 'Padre') {
@@ -53,7 +56,7 @@
       console.error('Error en login:', error)
       alert('Hubo un problema al conectarse al servidor.')
     }
-  }
+}
   </script>
   
   <style scoped>
