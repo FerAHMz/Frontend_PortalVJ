@@ -46,6 +46,8 @@
           router.push('/teacher')
         } else if (role === 'Administrativo') {
           router.push('/admin')
+        } else if (role === 'SUP') {
+          router.push('/superuser')
         } else {
           alert('Rol desconocido')
         }

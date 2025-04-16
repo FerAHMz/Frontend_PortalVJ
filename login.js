@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/teacher';
           } else if (role === 'Administrativo') {
             window.location.href = '/admin';
+          } else if (role === 'SUP') {
+            window.location.href = '/superuser';
           } else {
             alert('Rol desconocido');
           }
