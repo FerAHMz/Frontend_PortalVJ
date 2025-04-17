@@ -5,7 +5,7 @@
     <main class="payments-control">
       <h1 class="page-title">Control de pagos</h1>
       <div class="separator"></div>
-      
+
       <div class="options">
         <ul>
           <li>
@@ -101,5 +101,66 @@ const handleItemClick = (item) => {
 .payment-link:hover {
   color: #1b9963;
   text-decoration: none; 
+}
+
+.payments-table {
+  margin: 2rem 0;
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+tr:hover {
+  background-color: #f8f9fa;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-input,
+.grade-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.grade-select {
+  width: 150px;
+}
+
+.status-ok {
+  color: #1b9963;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #dc3545;
+  font-weight: 600;
 }
 </style>

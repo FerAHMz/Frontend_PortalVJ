@@ -1,166 +1,176 @@
 <template>
   <div class="layout">
     <Sidebar :items="menuItems" />
-    <div class="control-de-pagos">
-      <header>
-        <h1>Control de Pagos</h1>
-      </header>
-      <hr />
-      <div class="filtrado">
-        <input type="text" placeholder="Buscar..." v-model="searchQuery" />
-        <div class="dropdown">
-          <button @click="toggleDropdown" class="dropbtn">Grado</button>
-          <div v-show="dropdownVisible" class="dropdown-content">
-            <a href="#" @click.prevent="filterByGrade('Primero Básico')">Primero Básico</a>
-            <a href="#" @click.prevent="filterByGrade('Segundo Básico')">Segundo Básico</a>
-            <a href="#" @click.prevent="filterByGrade('Tercero Básico')">Tercero Básico</a>
-          </div>
-        </div>
-      </div>
-      <div class="students-list">
-        <Estudiante_PagoDetalle
-          v-for="student in filteredStudents"
-          :key="student.id"
-          :name="student.name"
-          :estado="student.estado"
+    <main class="control-de-pagos">
+      <h1 class="page-title">Control de Pagos</h1>
+      <div class="separator"></div>
+      
+      <div class="controls">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="Buscar..." 
+          class="search-input"
         />
+        <select v-model="selectedGrade" class="grade-select">
+          <option value="">Grado</option>
+          <option v-for="grade in grades" :key="grade" :value="grade">
+            {{ grade }}
+          </option>
+        </select>
       </div>
-    </div>
+
+      <div class="payments-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Carnet</th>
+              <th>Nombre</th>
+              <th>Estado</th>
+              <th>Grado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="student in filteredStudents" :key="student.id">
+              <td>{{ student.id }}</td>
+              <td>{{ student.name }}</td>
+              <td :class="{ 'status-ok': student.estado === 'Al día', 'status-pending': student.estado === 'Pendiente' }">
+                {{ student.estado }}
+              </td>
+              <td>{{ student.grade }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import Sidebar from '@/components/Sidebar.vue'
-import Estudiante_PagoDetalle from '@/components/Estudiante_PagoDetalle.vue'
 import { ref, computed, onMounted } from 'vue'
+import Sidebar from '@/components/Sidebar.vue'
 import { User, CreditCard } from 'lucide-vue-next'
+import axios from 'axios'
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
   { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
 ]
 
-const dropdownVisible = ref(false)
 const searchQuery = ref('')
-const selectedGrade = ref(null)
+const selectedGrade = ref('')
+const grades = ref([])
 const students = ref([])
 
-// Fetch students and their payment statuses from the backend
+const filteredStudents = computed(() => {
+  return students.value.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         student.id.toString().includes(searchQuery.value)
+    const matchesGrade = !selectedGrade.value || student.grade === selectedGrade.value
+    return matchesSearch && matchesGrade
+  })
+})
+
 const fetchStudents = async () => {
   try {
-    const response = await fetch('http://localhost:3000/students-payments')
-    const data = await response.json()
-    students.value = data
+    const response = await axios.get('http://localhost:3000/api/payments/students-payments')
+    students.value = response.data
+    grades.value = [...new Set(response.data.map(student => student.grade))].sort()
   } catch (error) {
     console.error('Error fetching students:', error)
   }
 }
 
-// Toggle dropdown visibility
-const toggleDropdown = () => {
-  dropdownVisible.value = !dropdownVisible.value
-}
-
-// Filter students by grade
-const filterByGrade = (grade) => {
-  selectedGrade.value = grade
-}
-
-// Computed property to filter students based on search query and selected grade
-const filteredStudents = computed(() => {
-  return students.value.filter((student) => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesGrade = selectedGrade.value ? student.grade === selectedGrade.value : true
-    return matchesSearch && matchesGrade
-  })
+onMounted(() => {
+  fetchStudents()
 })
-
-// Fetch students on component mount
-onMounted(fetchStudents)
 </script>
 
 <style scoped>
-header h1 {
-  font-size: 70px;
-  padding: 30px;
+.layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
 }
 
 .control-de-pagos {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
+  background: white;
+  overflow: auto;
 }
 
-.layout {
-  display: flex;
-  height: 100vh;
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
 }
 
-.filtrado {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
+.separator {
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
   width: 100%;
 }
 
-.filtrado > * {
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-input,
+.grade-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-input {
   flex: 1;
+  min-width: 200px;
 }
 
-input[type='text'] {
-  padding: 10px;
-  border-radius: 15px;
-  border: 1px solid #e9e9e9;
+.grade-select {
+  width: 150px;
 }
 
-/* Dropdown */
-.dropbtn {
-  background-color: #e5e5e5;
-  color: black;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 15px;
+.payments-table {
+  margin: 2rem 0;
   width: 100%;
+  overflow-x: auto;
 }
 
-.dropbtn:hover,
-.dropbtn:focus {
-  background-color: #b4b4b4;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.dropdown {
-  position: relative;
-  display: inline-block;
+th, td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f1f1f1;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 10px;
+th {
+  background-color: #f8f9fa;
+  font-weight: 600;
 }
 
-.dropdown-content a {
-  color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  border-radius: 10px;
+tr:hover {
+  background-color: #f8f9fa;
 }
 
-.dropdown-content a:hover {
-  background-color: #ddd;
+.status-ok {
+  color: #1b9963;
+  font-weight: 600;
 }
 
-.students-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.status-pending {
+  color: #dc3545;
+  font-weight: 600;
 }
 </style>
