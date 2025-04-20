@@ -1,176 +1,298 @@
 <template>
   <div class="layout">
     <Sidebar :items="menuItems" />
-    <main class="control-de-pagos">
-      <h1 class="page-title">Control de Pagos</h1>
-      <div class="separator"></div>
-      
-      <div class="controls">
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Buscar..." 
-          class="search-input"
-        />
-        <select v-model="selectedGrade" class="grade-select">
-          <option value="">Grado</option>
-          <option v-for="grade in grades" :key="grade" :value="grade">
-            {{ grade }}
-          </option>
-        </select>
+    <div class="control-de-pagos">
+      <header>
+        <h1>Control de Pagos</h1>
+        <button class="generate-pdf-btn" @click="generatePDF">Generar PDF</button>
+      </header>
+      <hr />
+      <div class="filtrado">
+        <input type="text" placeholder="Buscar..." v-model="searchQuery" />
+        <div class="dropdown">
+          <button @click="toggleDropdown" class="dropbtn">Grado</button>
+          <div v-show="dropdownVisible" class="dropdown-content">
+            <a href="#" @click.prevent="filterByGrade('Primero Básico')">Primero Básico</a>
+            <a href="#" @click.prevent="filterByGrade('Segundo Básico')">Segundo Básico</a>
+            <a href="#" @click.prevent="filterByGrade('Tercero Básico')">Tercero Básico</a>
+          </div>
+        </div>
       </div>
-
-      <div class="payments-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Carnet</th>
-              <th>Nombre</th>
-              <th>Estado</th>
-              <th>Grado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="student in filteredStudents" :key="student.id">
-              <td>{{ student.id }}</td>
-              <td>{{ student.name }}</td>
-              <td :class="{ 'status-ok': student.estado === 'Al día', 'status-pending': student.estado === 'Pendiente' }">
-                {{ student.estado }}
-              </td>
-              <td>{{ student.grade }}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="additional-filters">
+        <input type="text" placeholder="Carnet" />
+        <input type="date" placeholder="Fecha Inicio" />
+        <input type="date" placeholder="Fecha Fin" />
       </div>
-    </main>
+      <div class="students-list">
+        <div 
+          v-for="student in filteredStudents" 
+          :key="student.id" 
+          class="student-item"
+          :class="{ solvente: student.status === 'Solvente', noSolvente: student.status === 'No Solvente' }"
+        >
+          <p>{{ student.name }}</p>
+          <span>{{ student.status }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
+import { ref, computed, onMounted } from 'vue'
 import { User, CreditCard } from 'lucide-vue-next'
-import axios from 'axios'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
   { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
 ]
 
+const dropdownVisible = ref(false)
 const searchQuery = ref('')
-const selectedGrade = ref('')
-const grades = ref([])
+const selectedGrade = ref(null)
 const students = ref([])
-
-const filteredStudents = computed(() => {
-  return students.value.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         student.id.toString().includes(searchQuery.value)
-    const matchesGrade = !selectedGrade.value || student.grade === selectedGrade.value
-    return matchesSearch && matchesGrade
-  })
-})
 
 const fetchStudents = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/payments/students-payments')
-    students.value = response.data
-    grades.value = [...new Set(response.data.map(student => student.grade))].sort()
+    const response = await fetch('http://localhost:3000/api/payments/students')
+    students.value = await response.json()
   } catch (error) {
     console.error('Error fetching students:', error)
   }
 }
 
-onMounted(() => {
-  fetchStudents()
+const toggleDropdown = () => {
+  dropdownVisible.value = !dropdownVisible.value
+}
+
+const filterByGrade = (grade) => {
+  selectedGrade.value = grade
+}
+
+const filteredStudents = computed(() => {
+  return students.value.filter((student) => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesGrade = selectedGrade.value ? student.grade === selectedGrade.value : true
+    return matchesSearch && matchesGrade
+  })
 })
+
+const generatePDF = async () => {
+  try {
+    const params = {
+      searchQuery: searchQuery.value,
+      grade: selectedGrade.value,
+      startDate: document.querySelector('input[placeholder="Fecha Inicio"]').value,
+      endDate: document.querySelector('input[placeholder="Fecha Fin"]').value,
+    }
+
+    const response = await fetch('http://localhost:3000/api/payments/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al generar el reporte')
+    }
+
+    const doc = new jsPDF()
+    doc.text('Reporte de Pagos', 14, 10)
+
+    autoTable(doc, {
+      head: [['Estudiante', 'Grado', 'Pagos Totales', 'Pagos Pendientes']],
+      body: data.map((item) => [
+        item.student,
+        item.grade,
+        item.totalPayments,
+        item.pendingPayments,
+      ]),
+    })
+
+    doc.save('reporte_pagos.pdf')
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    alert('Error al generar el PDF')
+  }
+}
+
+onMounted(fetchStudents)
 </script>
 
 <style scoped>
-.layout {
+header {
   display: flex;
-  min-height: 100vh;
-  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  font-size: 70px;
+  padding: 30px;
+}
+
+.generate-pdf-btn {
+  background-color: #1b9963;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.generate-pdf-btn:hover {
+  background-color: #158a50;
 }
 
 .control-de-pagos {
   flex: 1;
-  padding: 2rem;
-  background: white;
-  overflow: auto;
+  padding: 20px;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-  width: 100%;
-}
-
-.controls {
+.layout {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  height: 100vh;
 }
 
-.search-input,
-.grade-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
+.filtrado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
-.search-input {
+.additional-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.additional-filters > input {
   flex: 1;
-  min-width: 200px;
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid #e9e9e9;
 }
 
-.grade-select {
-  width: 150px;
+.filtrado > * {
+  flex: 1;
 }
 
-.payments-table {
-  margin: 2rem 0;
+input[type='text'],
+input[type='date'] {
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid #e9e9e9;
+  background-color: #e5e5e5;
+}
+
+input[type='text'] {
+  padding: 16px;
+  border-radius: 15px;
+  border: 1px solid #e9e9e9;
+  background-color: #e5e5e5;
+  font-size: 16px;
+  height: auto;
+}
+
+/* Dropdown */
+.dropbtn {
+  background-color: #e5e5e5;
+  color: black;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 15px;
   width: 100%;
-  overflow-x: auto;
 }
 
-table {
+.dropbtn:hover,
+.dropbtn:focus {
+  background-color: #b4b4b4;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #f1f1f1;
   width: 100%;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 10px;
 }
 
-th, td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #eee;
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  border-radius: 10px;
 }
 
-th {
-  background-color: #f8f9fa;
-  font-weight: 600;
+.dropdown-content a:hover {
+  background-color: #ddd;
 }
 
-tr:hover {
-  background-color: #f8f9fa;
+.dropdown:hover .dropdown-content {
+  display: block;
 }
 
-.status-ok {
-  color: #1b9963;
-  font-weight: 600;
+.students-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.status-pending {
-  color: #dc3545;
-  font-weight: 600;
+.student-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background-color: #e5e5e5;
+  font-size: 25px;
+}
+
+.student-item p {
+  flex: 1;
+  margin: 0;
+}
+
+.student-item span {
+  margin-left: auto;
+  padding: 10px 30px;
+  border-radius: 50px;
+  color: white;
+}
+
+.student-item.solvente span {
+  background-color: #43cd5c;
+}
+
+.student-item.noSolvente span {
+  background-color: #e7484b;
 }
 </style>
