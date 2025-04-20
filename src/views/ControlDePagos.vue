@@ -30,7 +30,7 @@
           class="student-item"
           :class="{ solvente: student.status === 'Solvente', noSolvente: student.status === 'No Solvente' }"
         >
-          <p>{{ student.name }}</p>
+          <p>{{ student.name }} - {{ student.grade }}</p>
           <span>{{ student.status }}</span>
         </div>
       </div>
@@ -57,7 +57,7 @@ const students = ref([])
 
 const fetchStudents = async () => {
   try {
-    const response = await fetch('http://localhost:3000/api/payments/students')
+    const response = await fetch('http://localhost:3000/api/payments/students-status')
     students.value = await response.json()
   } catch (error) {
     console.error('Error fetching students:', error)
