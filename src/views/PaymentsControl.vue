@@ -12,6 +12,9 @@
             <router-link to="/admin/payments/control-de-pagos" class="payment-link">Control de pagos</router-link>
           </li>
           <li>
+            <router-link to="/admin/payments/registro-de-pagos" class="payment-link">Registro de pagos</router-link>
+          </li>
+          <li>
             <router-link to="/admin/payments/upload" class="payment-link">Subir información de los pagos</router-link>
           </li>
         </ul>
