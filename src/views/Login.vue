@@ -7,7 +7,21 @@
         <img src="@/assets/logo.png" alt="logo del colegio" width="150" height="150" />
         <form @submit.prevent="login">
           <input type="text" v-model="email" placeholder="Ingrese su correo" />
-          <input type="password" v-model="password" placeholder="Contraseña" />
+          <div class="password-container">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              v-model="password" 
+              placeholder="Contraseña" 
+            />
+            <button 
+              type="button" 
+              class="toggle-password"
+              @click="showPassword = !showPassword"
+            >
+              <Eye v-if="!showPassword" />
+              <EyeOff v-else />
+            </button>
+          </div>
           <input type="submit" value="Ingresar" />
         </form>
       </main>
@@ -17,9 +31,11 @@
   <script setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { Eye, EyeOff } from 'lucide-vue-next'
   
   const email = ref('')
   const password = ref('')
+  const showPassword = ref(false)
   const router = useRouter()
   
   const login = async () => {
@@ -122,6 +138,32 @@
     font-size: 25px;
     width: 100%;
     height: 40px;
+  }
+  
+  .password-container {
+    position: relative;
+    width: 70%;
+    display: flex;
+    align-items: center;
+  }
+  
+  .password-container input {
+    width: 100%;
+    padding-right: 40px;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 5px;
+  }
+  
+  .toggle-password:hover {
+    color: #333;
   }
   </style>
   
