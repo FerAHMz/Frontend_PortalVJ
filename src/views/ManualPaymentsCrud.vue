@@ -139,7 +139,9 @@ import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { Plus,  Edit, Trash, Search } from 'lucide-vue-next'
+import { useRoute } from 'vue-router';
 
+const route = useRoute();
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
@@ -213,7 +215,10 @@ const openCreateModal = () => {
 const fetchPayments = async () => {
   try {
     const response = await manualPaymentService.getStudentsWithPayments();
-    students.value = response;
+    const carnetFilter = route.query.carnet;
+    students.value = carnetFilter
+      ? response.filter(student => student.id.toString() === carnetFilter)
+      : response;
   } catch (error) {
     console.error('Error fetching students:', error);
   }
