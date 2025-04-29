@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" />
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick"/>
     <main class="profile-container">
       <h1 class="page-title">Perfil</h1>
       <ProfileCard
@@ -28,15 +28,25 @@ import {
 } from 'lucide-vue-next'
 
 import teacherImg from '@/assets/maestro.png'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const menuItems = [
-  { label: 'Perfil', icon: User },
+  { label: 'Perfil', icon: User, path: '/teacher' },
   { label: 'Tablero', icon: ClipboardList },
-  { label: 'Cursos', icon: BookOpen },
+  { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays },
   { label: 'Boleta de calificaciones', icon: FileText },
   { label: 'Comunicación', icon: MessageSquare }
 ]
+
+const handleItemClick = (item) => {
+  if (item.path) {
+    router.push(item.path)
+  }
+}
+
 </script>
 
 <style scoped>

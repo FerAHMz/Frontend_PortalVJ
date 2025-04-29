@@ -53,6 +53,7 @@
       if (data.success) {
         // Store the token in localStorage
         localStorage.setItem('token', data.token)
+        localStorage.setItem('userId', data.user.id)
         
         alert('Inicio de sesión exitoso')
         const role = data.user.rol
