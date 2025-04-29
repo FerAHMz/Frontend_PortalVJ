@@ -66,8 +66,12 @@ onMounted(() => {
   
   // Opciones 
   const courseOptions = [
-    { label: 'Asistencia', path: 'attendance' }, // Todavía no tiene ruta
-    { label: 'Calificaciones', path: 'grades' } // Todavía no tiene ruta
+  { label: 'Asistencia', path: 'attendance' },
+  { 
+    label: 'Calificaciones', 
+    path: 'grades',
+    description: 'Gestionar calificaciones y tareas'
+  }
   ]
   
   const handleItemClick = (item) => {
@@ -75,7 +79,17 @@ onMounted(() => {
   }
   
   const handleOptionClick = (option) => {
-    router.push(`/teacher/courses/${route.params.courseId}/${option.path}`)
+    if (option.path === 'grades') {
+      router.push({
+        name: 'CourseGrades',
+        params: { 
+          courseId: route.params.courseId
+        },
+        state: { courseData: courseData.value }
+      })
+    } else {
+      router.push(`/teacher/courses/${route.params.courseId}/${option.path}`)
+    }
   }
 
   </script>
