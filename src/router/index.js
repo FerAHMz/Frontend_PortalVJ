@@ -9,6 +9,7 @@ import UploadPayments from '@/views/UploadPayments.vue'
 import SuperUserCrud from '@/views/SuperUserCrud.vue'
 import ManualPaymentsCrud from '@/views/ManualPaymentsCrud.vue'
 import TeacherCourses from '@/views/TeacherCourses.vue'
+import CourseDetail from '@/views/CourseDetail.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -20,7 +21,8 @@ const routes = [
   { path: '/admin/payments', name: 'PaymentsControl', component: PaymentsControl },
   { path: '/admin/payments/upload', name: 'UploadPayments', component: UploadPayments },
   { path: '/superuser', name: 'SuperUserCrud', component: SuperUserCrud },
-  { path: '/teacher/courses', name: 'TeacherCourses', component: TeacherCourses }
+  { path: '/teacher/courses', name: 'TeacherCourses', component: TeacherCourses },
+  { path: '/teacher/courses/:courseId', name: 'CourseDetail', component: CourseDetail, meta: { requiresAuth: true }, props: true}
 ]
 
 const router = createRouter({

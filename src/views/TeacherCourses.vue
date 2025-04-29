@@ -89,7 +89,23 @@
   }
   
   const navigateToCourse = (course) => {
-    router.push(course.path)
+    const publicData = { 
+      materia: course.materia,
+      grado: course.grado,
+      seccion: course.seccion
+    };
+    sessionStorage.setItem('currentCourse', JSON.stringify(publicData));
+  
+    router.push({
+      path: `/teacher/courses/${course.id}`,
+      state: { 
+        courseData: {
+          materia: course.materia,
+          grado: course.grado,
+          seccion: course.seccion
+        }
+      }
+    })
   }
   
   onMounted(() => {
