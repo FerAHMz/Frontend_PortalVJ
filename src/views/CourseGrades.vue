@@ -25,6 +25,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import CardList from '@/components/CardList.vue'
+import CreateTaskForm from '@/views/CreateTaskForm.vue'
 import {
   User,
   ClipboardList,
@@ -49,6 +50,7 @@ const menuItems = [
 
 const gradeOptions = [
   { label: 'Crear tarea', path: 'create-task' },
+  { label: 'Ver tareas', path: 'view-task' },
   { label: 'Registrar nota', path: 'register-grade' },
   { label: 'Ver calificaciones', path: 'view-grades' },
   { label: 'Boleta de calificaciones', path: 'report' }
@@ -66,8 +68,14 @@ const handleItemClick = (item) => {
 }
 
 const handleOptionClick = (option) => {
-  console.log('Option clicked:', option)
-  // Agregar las opciones por cada boton
+  if (option.path === 'create-task') {
+    router.push(`/teacher/courses/${route.params.courseId}/create-task`)
+  }
+}
+
+const handleTaskCreated = (taskId) => {
+  console.log('Task created:', taskId)
+  showCreateTask.value = false
 }
 </script>
 
