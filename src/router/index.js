@@ -12,6 +12,7 @@ import TeacherCourses from '@/views/TeacherCourses.vue'
 import CourseDetail from '@/views/CourseDetail.vue'
 import CourseGrades from '@/views/CourseGrades.vue'  
 import CreateTaskForm from '@/views/CreateTaskForm.vue'
+import ViewTasks from '@/views/ViewTasks.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -33,6 +34,13 @@ const routes = [
     path: '/teacher/courses/:courseId/create-task', 
     name: 'CreateTaskForm', 
     component: CreateTaskForm,
+    meta: { requiresAuth: true },
+    props: true
+  },
+  { 
+    path: '/teacher/courses/:courseId/view-tasks', 
+    name: 'ViewTasks', 
+    component: ViewTasks,
     meta: { requiresAuth: true },
     props: true
   }

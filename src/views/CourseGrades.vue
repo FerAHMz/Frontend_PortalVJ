@@ -70,12 +70,9 @@ const handleItemClick = (item) => {
 const handleOptionClick = (option) => {
   if (option.path === 'create-task') {
     router.push(`/teacher/courses/${route.params.courseId}/create-task`)
+  } else if (option.path === 'view-task') {
+    router.push(`/teacher/courses/${route.params.courseId}/view-tasks`)
   }
-}
-
-const handleTaskCreated = (taskId) => {
-  console.log('Task created:', taskId)
-  showCreateTask.value = false
 }
 </script>
 
