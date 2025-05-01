@@ -28,6 +28,7 @@
             <thead>
               <tr>
                 <th>Título</th>
+                <th>Descripción</th>
                 <th>Fecha de Entrega</th>
                 <th>Valor</th>
                 <th>Trimestre</th>
@@ -37,6 +38,7 @@
             <tbody>
               <tr v-for="task in filteredTasks" :key="task.id">
                 <td>{{ task.titulo }}</td>
+                <td>{{ task.descripcion }}</td>
                 <td>{{ formatDate(task.fecha_entrega) }}</td>
                 <td>{{ task.valor }} pts</td>
                 <td>{{ task.nombre_trimestre || 'Sin asignar' }}</td>
@@ -152,6 +154,7 @@ const filteredTasks = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return tasks.value.filter(task => 
     task.titulo.toLowerCase().includes(query) || 
+    task.descripcion.toLowerCase().includes(query) ||
     task.valor.toString().includes(query)
   )
 })
