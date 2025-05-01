@@ -9,10 +9,19 @@
       </div>
       <div class="separator"></div>
 
+      <div class="search-container">
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="Buscar por título o valor..."
+          class="search-input"
+        >
+      </div>
+
       <div class="tasks-list">
         <div v-if="loading" class="loading">Cargando tareas...</div>
-        <div v-else-if="tasks.length === 0" class="no-tasks">
-          No hay tareas creadas para este curso
+        <div v-else-if="filteredTasks.length === 0" class="no-tasks">
+          No se encontraron tareas
         </div>
         <div v-else class="table-container">
           <table class="tasks-table">
@@ -26,7 +35,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="task in tasks" :key="task.id">
+              <tr v-for="task in filteredTasks" :key="task.id">
                 <td>{{ task.titulo }}</td>
                 <td>{{ formatDate(task.fecha_entrega) }}</td>
                 <td>{{ task.valor }} pts</td>
@@ -46,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import {
@@ -134,6 +143,18 @@ onMounted(() => {
   }
   fetchTasks()
 })
+
+const searchQuery = ref('')
+
+const filteredTasks = computed(() => {
+  if (!searchQuery.value) return tasks.value
+  
+  const query = searchQuery.value.toLowerCase()
+  return tasks.value.filter(task => 
+    task.titulo.toLowerCase().includes(query) || 
+    task.valor.toString().includes(query)
+  )
+})
 </script>
 
 <style scoped>
@@ -217,5 +238,24 @@ onMounted(() => {
   padding: 2rem;
   color: #666;
   font-size: 1.1rem;
+}
+
+.search-container {
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1b9963;
+  box-shadow: 0 0 0 2px rgba(27, 153, 99, 0.1);
 }
 </style>
