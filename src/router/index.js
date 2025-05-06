@@ -43,6 +43,13 @@ const routes = [
     component: ViewTasks,
     meta: { requiresAuth: true },
     props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/register-grade',
+    name: 'RegisterGrade',
+    component: () => import('@/views/RegisterGrade.vue'),
+    meta: { requiresAuth: true },
+    props: true
   }
 ]
 
