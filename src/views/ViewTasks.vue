@@ -131,7 +131,8 @@ const fetchTasks = async () => {
 }
 
 const viewTaskDetails = (task) => {
-  router.push(`/teacher/courses/${route.params.courseId}/tasks/${task.id}`)
+  sessionStorage.setItem('selectedTask', JSON.stringify(task))
+  router.push(`/teacher/courses/${route.params.courseId}/register-grade`)
 }
 
 const handleItemClick = (item) => {

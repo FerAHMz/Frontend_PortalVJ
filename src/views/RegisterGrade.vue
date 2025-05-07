@@ -261,13 +261,22 @@ const saveGrades = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const savedCourse = sessionStorage.getItem('currentCourse')
   if (savedCourse) {
     courseData.value = JSON.parse(savedCourse)
+    await Promise.all([fetchTasks(), fetchStudents()])
+    
+    const savedTask = sessionStorage.getItem('selectedTask')
+    const directSelection = sessionStorage.getItem('directTaskSelection')
+    
+    if (savedTask && directSelection) {
+      const task = JSON.parse(savedTask)
+      await selectTask(task)
+      sessionStorage.removeItem('directTaskSelection')
+      sessionStorage.removeItem('selectedTask')
+    }
   }
-  fetchTasks()
-  fetchStudents()
 })
 
 const handleItemClick = (path) => {

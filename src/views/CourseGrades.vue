@@ -74,6 +74,8 @@ const handleOptionClick = (option) => {
     router.push(`/teacher/courses/${route.params.courseId}/view-tasks`)
   } else if (option.path === 'register-grade') {
     router.push(`/teacher/courses/${route.params.courseId}/register-grade`)
+  } else if (option.path === 'view-grades') {
+    router.push(`/teacher/courses/${route.params.courseId}/view-grades`)
   }
 }
 </script>

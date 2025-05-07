@@ -13,6 +13,7 @@ import CourseDetail from '@/views/CourseDetail.vue'
 import CourseGrades from '@/views/CourseGrades.vue'  
 import CreateTaskForm from '@/views/CreateTaskForm.vue'
 import ViewTasks from '@/views/ViewTasks.vue'
+import ViewGrades from '@/views/ViewGrades.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -48,6 +49,13 @@ const routes = [
     path: '/teacher/courses/:courseId/register-grade',
     name: 'RegisterGrade',
     component: () => import('@/views/RegisterGrade.vue'),
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/view-grades',
+    name: 'ViewGrades',
+    component: ViewGrades,
     meta: { requiresAuth: true },
     props: true
   }

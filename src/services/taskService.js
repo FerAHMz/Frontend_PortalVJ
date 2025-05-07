@@ -40,6 +40,19 @@ export const taskService = {
       console.error('Error fetching tasks:', error)
       throw error
     }
+  },
+
+  async getTaskGrades(courseId, taskId) {
+    try {
+      const response = await axios.get(
+        `${API_URL}/courses/${courseId}/tasks/${taskId}/grades`,
+        getAuthHeaders()
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching task grades:', error)
+      throw error
+    }
   }
 }
 
