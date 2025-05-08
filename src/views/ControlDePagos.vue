@@ -47,16 +47,33 @@
         </div>
       </div>
     </div>
+    <ErrorDialog 
+      :show="showTokenAlert"
+      :errors="tokenErrors"
+      @close="showTokenAlert = false"
+    />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
+import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import { ref, computed, onMounted } from 'vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useRouter } from 'vue-router';
+
+const getAuthToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token  && !tokenAlertShown) {
+    tokenErrors.value = ['No está autenticado']
+    showTokenAlert.value = true
+    tokenAlertShown = true;
+    return null
+  }
+  return token;
+};
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
@@ -69,8 +86,15 @@ const selectedGrade = ref(null)
 const students = ref([])
 const grades = ref([])
 const carnetQuery = ref('')
+let tokenAlertShown = false;
+const showTokenAlert = ref(false)
+const tokenErrors = ref([])
+
 
 const fetchStudents = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
     const response = await fetch('http://localhost:3000/api/payments/students-status')
     students.value = await response.json()
@@ -80,6 +104,9 @@ const fetchStudents = async () => {
 }
 
 const fetchGrades = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
     const response = await fetch('http://localhost:3000/api/payments/grades');
     if (!response.ok) {
@@ -123,6 +150,9 @@ const filteredStudents = computed(() => {
 });
 
 const generatePDF = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
     const response = await fetch('http://localhost:3000/api/payments/full-report', {
       method: 'GET',

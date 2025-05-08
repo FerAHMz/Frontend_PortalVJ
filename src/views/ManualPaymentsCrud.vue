@@ -129,17 +129,33 @@
           @cancel="showConfirmModal = false"
       />
     </main>
+    <ErrorDialog 
+      :show="showTokenAlert"
+      :errors="tokenErrors"
+      @close="showTokenAlert = false"
+    />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import { manualPaymentService } from '@/services/manualPaymentService';
+import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { Plus,  Edit, Trash, Search } from 'lucide-vue-next'
 import { useRoute } from 'vue-router';
+
+const getAuthToken = () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    tokenErrors.value = ['No está autenticado']
+    showTokenAlert.value = true
+    return null;
+  }
+  return token;
+};
 
 const route = useRoute();
 
@@ -179,7 +195,8 @@ const itemToDelete = ref(null)
 const formData = ref({})
 const showConfirmModal = ref(false)
 const deleting = ref(false)
-const grades = ref([]);
+const showTokenAlert = ref(false)
+const tokenErrors = ref([])
 
 const filteredStudents = computed(() => {
   if (!Array.isArray(students.value)) {
@@ -213,6 +230,9 @@ const openCreateModal = () => {
 };
 
 const fetchPayments = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
     const response = await manualPaymentService.getStudentsWithPayments();
     const carnetFilter = route.query.carnet;
@@ -235,6 +255,9 @@ const validateForm = () => {
 }
 
 const saveItem = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
 
     validateForm();
@@ -266,6 +289,8 @@ const saveItem = async () => {
 };
 
 const editPayment = (student) => {
+  const token = getAuthToken();
+  if (!token) return;
   
   formData.value = {
     nombre_padre: student.nombre_padre || '',
@@ -282,6 +307,9 @@ const editPayment = (student) => {
 }
 
 const deleteItem = async () => {
+  const token = getAuthToken();
+  if (!token) return;
+
   try {
     deleting.value = true;
 
@@ -315,7 +343,6 @@ onMounted(() => {
   fetchPayments()
 })
 
-onMounted(fetchPayments)
 </script>
 
 <style scoped>
