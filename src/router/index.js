@@ -14,6 +14,7 @@ import CourseGrades from '@/views/CourseGrades.vue'
 import CreateTaskForm from '@/views/CreateTaskForm.vue'
 import ViewTasks from '@/views/ViewTasks.vue'
 import ViewGrades from '@/views/ViewGrades.vue'
+import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -58,6 +59,12 @@ const routes = [
     component: ViewGrades,
     meta: { requiresAuth: true },
     props: true
+  },
+  { 
+    path: '/teacher/calendar', 
+    name: 'HomeworkCalendar', 
+    component: HomeworkCalendar, 
+    meta: { requiresAuth: true } 
   }
 ]
 

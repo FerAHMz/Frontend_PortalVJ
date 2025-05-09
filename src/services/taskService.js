@@ -53,6 +53,19 @@ export const taskService = {
       console.error('Error fetching task grades:', error)
       throw error
     }
+  },
+
+  async getAllHomework(teacherId) {
+    try {
+      const response = await axios.get(
+        `${API_URL}/${teacherId}/homework`,
+        getAuthHeaders()
+      )
+      return response.data
+    } catch (error) {
+      console.error('Error fetching all homework:', error)
+      throw error
+    }
   }
 }
 
