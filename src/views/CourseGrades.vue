@@ -53,6 +53,7 @@ const gradeOptions = [
   { label: 'Ver tareas', path: 'view-task' },
   { label: 'Registrar nota', path: 'register-grade' },
   { label: 'Ver calificaciones', path: 'view-grades' },
+  { label: 'Registrar observaciones', path: 'observations' },
   { label: 'Boleta de calificaciones', path: 'report' }
 ]
 
@@ -76,7 +77,9 @@ const handleOptionClick = (option) => {
     router.push(`/teacher/courses/${route.params.courseId}/register-grade`)
   } else if (option.path === 'view-grades') {
     router.push(`/teacher/courses/${route.params.courseId}/view-grades`)
-  }
+  } else if (option.path === 'observations') {
+    router.push(`/teacher/courses/${route.params.courseId}/observations`)
+  } 
 }
 </script>
 
