@@ -15,6 +15,8 @@ import CreateTaskForm from '@/views/CreateTaskForm.vue'
 import ViewTasks from '@/views/ViewTasks.vue'
 import ViewGrades from '@/views/ViewGrades.vue'
 import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
+import StudentsObservations from '@/views/StudentsObservations.vue'
+import AddObservations from '@/views/AddObservations.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -65,6 +67,20 @@ const routes = [
     name: 'HomeworkCalendar', 
     component: HomeworkCalendar, 
     meta: { requiresAuth: true } 
+  },
+  {
+    path: '/teacher/courses/:courseId/observations',
+    name: 'StudentsObservations',
+    component: StudentsObservations,
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/observations/:carnet_estudiante/add',
+    name: 'AddObservations',
+    component: AddObservations,
+    meta: { requiresAuth: true },
+    props: true
   }
 ]
 
