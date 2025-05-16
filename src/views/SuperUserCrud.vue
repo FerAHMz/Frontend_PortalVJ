@@ -60,12 +60,13 @@
         <div class="modal-content">
           <h2>{{ editingItem ? 'Editar Registro' : 'Nuevo Registro' }}</h2>
           <form @submit.prevent="saveItem">
-            <div v-if="!editingItem" class="form-group">
+            <div class="form-group">
               <label for="rol">Rol</label>
               <select 
                 v-model="formData.rol" 
                 id="rol"
                 class="form-input"
+                required
               >
                 <option v-for="role in roles" :key="role.value" :value="role.value">
                   {{ role.label }}
@@ -194,14 +195,24 @@ const fetchUsers = async () => {
 }
 
 const validateForm = () => {
-  if (!formData.value.nombre?.trim()) throw new Error('El nombre es requerido');
-  if (!formData.value.apellido?.trim()) throw new Error('El apellido es requerido');
-  if (!formData.value.email?.trim()) throw new Error('El email es requerido');
-  if (!formData.value.telefono?.trim()) throw new Error('El teléfono es requerido');
-  if (!editingItem.value && !formData.value.password?.trim()) {
-    throw new Error('La contraseña es requerida');
+  if (!formData.value.nombre || !formData.value.apellido || !formData.value.email || !formData.value.telefono) {
+    throw new Error('Todos los campos son obligatorios');
   }
-}
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.value.email)) {
+    throw new Error('El formato del email no es válido');
+  }
+
+  const phoneRegex = /^\d{8}$/;
+  if (!phoneRegex.test(formData.value.telefono)) {
+    throw new Error('El teléfono debe contener exactamente 8 dígitos');
+  }
+
+  if (!editingItem.value && (!formData.value.password || formData.value.password.length < 8)) {
+    throw new Error('La contraseña debe tener al menos 8 caracteres');
+  }
+};
 
 const deleteItem = async () => {
   try {
@@ -271,12 +282,14 @@ const saveItem = async () => {
       email: formData.value.email.trim().toLowerCase(),
       telefono: formData.value.telefono.trim(),
       password: formData.value.password?.trim(),
-      rol: formData.value.rol
+      rol: formData.value.rol,
+      rolAnterior: editingItem.value?.rol
     };
 
-    console.log('Sending data:', userData); // For debugging
+    console.log('Sending data:', userData);
 
     if (editingItem.value) {
+      userData.rolAnterior = editingItem.value.rol;
       await userService.updateUser(editingItem.value.id, userData);
       alert('Usuario actualizado exitosamente');
     } else {
@@ -287,7 +300,19 @@ const saveItem = async () => {
     closeModal();
   } catch (error) {
     console.error('Error saving user:', error);
-    alert(error.message || 'Error al guardar el usuario');
+    let errorMessage = 'Error al guardar el usuario';
+    
+    if (error.message.includes('duplicate key')) {
+      if (error.message.includes('telefono_key')) {
+        errorMessage = 'El número de teléfono ya está registrado';
+      } else if (error.message.includes('maestros_pkey')) {
+        errorMessage = 'Ya existe un maestro con este identificador';
+      }
+    } else if (error.message.includes('not-null constraint')) {
+      errorMessage = 'Todos los campos requeridos deben ser completados';
+    }
+    
+    alert(errorMessage);
   }
 };
 
