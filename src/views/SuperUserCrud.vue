@@ -33,7 +33,14 @@
           <tbody>
             <tr v-for="item in filteredItems" :key="item.id">
               <td v-for="header in headers" :key="header.key">
-                {{ item[header.key] }}
+                <template v-if="header.key === 'activo'">
+                  <span :class="['status-badge', item[header.key] ? 'active' : 'inactive']">
+                    {{ item[header.key] ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </template>
+                <template v-else>
+                  {{ item[header.key] }}
+                </template>
               </td>
               <td class="actions">
                 <button @click="editItem(item)" class="action-btn edit">
@@ -113,9 +120,9 @@
       <ModalConfirmacion
           v-if="showConfirmModal"
           :visible="showConfirmModal"
-          title="Confirmar Eliminación"
-          message="¿Estás seguro de eliminar este registro?"
-          confirm-text="Eliminar"
+          title="Confirmar Desactivación"
+          message="¿Estás seguro de desactivar este usuario?"
+          confirm-text="Desactivar"
           cancel-text="Cancelar"
           confirm-button-class="delete"
           :loading="deleting"
@@ -143,7 +150,8 @@ const headers = [
   { key: 'apellido', title: 'Apellido' },
   { key: 'email', title: 'Email' },
   { key: 'telefono', title: 'Teléfono' },
-  { key: 'rol', title: 'Rol' }
+  { key: 'rol', title: 'Rol' },
+  { key: 'activo', title: 'Estado' }
 ]
 
 const items = ref([])
@@ -171,7 +179,10 @@ const fetchUsers = async () => {
       return;
     }
     const data = await userService.getAllUsers();
-    items.value = data;
+    items.value = data.map(user => ({
+      ...user,
+      activo: user.activo === undefined ? true : user.activo
+    }));
   } catch (error) {
     console.error('Error fetching users:', error.message)
     if (error.response?.status === 401) {
@@ -202,16 +213,16 @@ const deleteItem = async () => {
     deleting.value = true;
 
     if (!itemToDelete.value?.id || !itemToDelete.value?.rol) {
-      throw new Error('Datos de usuario incompletos para eliminar');
+      throw new Error('Datos de usuario incompletos para desactivar');
     }
 
     await userService.deleteUser(itemToDelete.value.id, itemToDelete.value.rol);
-    alert('Usuario eliminado exitosamente');
+    alert('Usuario desactivado exitosamente');
     await fetchUsers();
     showConfirmModal.value = false;
   } catch (error) {
-    console.error('Error deleting user:', error);
-    alert(error.message || 'Error al eliminar el usuario');
+    console.error('Error desactivando usuario:', error);
+    alert(error.message || 'Error al desactivar el usuario');
   } finally {
     deleting.value = false;
   }
@@ -561,5 +572,22 @@ onMounted(() => {
 
 .form-input:required {
   border-left: 3px solid #1b9963;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 </style>
