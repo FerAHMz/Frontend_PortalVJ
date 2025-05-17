@@ -87,6 +87,14 @@ onMounted(() => {
         },
         state: { courseData: courseData.value }
       })
+    } else if (option.path === 'attendance') {
+    router.push({
+      name: 'CourseAttendance',
+      params: { 
+        courseId: route.params.courseId
+      },
+      state: { courseData: courseData.value }
+    })
     } else {
       router.push(`/teacher/courses/${route.params.courseId}/${option.path}`)
     }

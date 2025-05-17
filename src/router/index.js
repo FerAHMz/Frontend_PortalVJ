@@ -17,6 +17,7 @@ import ViewGrades from '@/views/ViewGrades.vue'
 import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
 import StudentsObservations from '@/views/StudentsObservations.vue'
 import AddObservations from '@/views/AddObservations.vue'
+import AttendanceForm from '@/views/AttendanceForm.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -79,6 +80,13 @@ const routes = [
     path: '/teacher/courses/:courseId/observations/:carnet_estudiante/add',
     name: 'AddObservations',
     component: AddObservations,
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/attendance',
+    name: 'CourseAttendance',
+    component: AttendanceForm,
     meta: { requiresAuth: true },
     props: true
   }
