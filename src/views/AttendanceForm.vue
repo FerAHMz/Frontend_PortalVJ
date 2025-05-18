@@ -3,6 +3,12 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
   
       <main class="attendance-container">
+  
+        <!-- Banner fijo para historial -->
+        <div class="history-info">
+          📅 Cambia la fecha para ver o editar registros históricos de asistencia.
+        </div>
+  
         <!-- Encabezado -->
         <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
         <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
@@ -47,8 +53,7 @@
             </div>
           </div>
   
-          <!-- Si hay alumnos tras filtrar -->
-          <div v-if="filteredStudents.length > 0" class="student-cards">
+          <div v-if="filteredStudents.length" class="student-cards">
             <div
               v-for="student in filteredStudents"
               :key="student.carnet"
@@ -72,17 +77,24 @@
                 />
               </div>
               <div class="student-info">
-                <div class="student-name">{{ student.nombre }} {{ student.apellido }}</div>
-                <div class="student-class">Matemática 1: 1ro Primaria</div>
+                <div class="student-name">
+                  {{ student.nombre }} {{ student.apellido }}
+                </div>
+                <div class="student-class">
+                  Materia: {{ courseData.materia }}, Grado: {{ courseData.grado }}, Sección: {{ courseData.seccion }}
+                </div>
               </div>
             </div>
   
-            <button class="save-button" @click="submitAttendance">
-              Guardar Asistencia
+            <button 
+              class="save-button" 
+              :class="{ 'update-mode': saved }" 
+              @click="submitAttendance"
+            >
+              {{ saved ? 'Actualizar Asistencia' : 'Guardar Asistencia' }}
             </button>
           </div>
   
-          <!-- Si no hay coincidencias -->
           <div v-else class="empty-state">
             <p>No hay estudiantes que coincidan con los filtros.</p>
           </div>
@@ -92,7 +104,7 @@
   </template>
   
   <script setup>
-  import { ref, onMounted, computed } from 'vue'
+  import { ref, onMounted, watch, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
   import {
@@ -106,62 +118,89 @@
     CircleCheck,
     CircleX
   } from 'lucide-vue-next'
+  import attendanceService from '@/services/attendanceService'
   
+  const route = useRoute()
   const router = useRouter()
   
-  const courseData = ref({
-    materia: 'Matemáticas',
-    grado: '8',
-    seccion: 'A'
-  })
-  
-  const students = ref([
-    { carnet: 1001, nombre: 'Juan', apellido: 'Pérez' },
-    { carnet: 1002, nombre: 'María', apellido: 'Gómez' }
-  ])
-  
+  function getLocalDateISO() {
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000; 
+    return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 10);
+  }
+
+  const courseData = ref({ materia: '', grado: '', seccion: '' })
+  const students = ref([])
   const attendanceStatus = ref({})
-  
-  const currentDate = ref(new Date().toISOString().split('T')[0])
-  const todayDate   = ref(new Date().toISOString().split('T')[0])
-  
+  const currentDate = ref(getLocalDateISO())
+  const todayDate = ref(getLocalDateISO())
   const filterStudent = ref('')
-  const filterStatus  = ref('all')
+  const filterStatus = ref('all')
+  const saved = ref(false)
   
   onMounted(() => {
-    students.value.forEach(s => {
-      attendanceStatus.value[s.carnet] = ''
-    })
+    if (route.state?.courseData) {
+      courseData.value = route.state.courseData
+    } else {
+      const savedCourse = sessionStorage.getItem('currentCourse')
+      if (savedCourse) courseData.value = JSON.parse(savedCourse)
+      else router.push('/teacher/courses')
+    }
+    fetchData()
   })
   
-  //Computed que aplica los filtros
-  const filteredStudents = computed(() => {
-    return students.value.filter(s => {
+  watch(currentDate, () => {
+    saved.value = false
+    fetchData()
+  })
+  
+  const filteredStudents = computed(() =>
+    students.value.filter(s => {
       const name = `${s.nombre} ${s.apellido}`.toLowerCase()
       const textMatch = name.includes(filterStudent.value.toLowerCase())
-      const statusMatch = filterStatus.value === 'all'
-        ? true
-        : attendanceStatus.value[s.carnet] === filterStatus.value
+      const statusMatch =
+        filterStatus.value === 'all'
+          ? true
+          : attendanceStatus.value[s.carnet] === filterStatus.value
       return textMatch && statusMatch
     })
-  })
+  )
   
-  const setStatus = (carnet, status) => {
+  function setStatus(carnet, status) {
     attendanceStatus.value[carnet] = status
   }
   
-  const submitAttendance = () => {
-    console.log({
-      date: currentDate.value,
-      attendance: attendanceStatus.value,
-      filters: {
-        name: filterStudent.value,
-        status: filterStatus.value
-      }
-    })
-    alert('Asistencia guardada (simulación)')
+  async function fetchData() {
+    try {
+      const { students: s, attendanceStatus: a } = await attendanceService.fetchAttendance(
+        route.params.courseId,
+        currentDate.value
+      )
+      students.value = s
+      s.forEach(st => {
+        attendanceStatus.value[st.carnet] = a[st.carnet] || ''
+      })
+      saved.value = Object.values(a).some(v => v === 'present' || v === 'absent')
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Error cargando asistencia')
+    }
   }
-  r
+  
+  async function submitAttendance() {
+    try {
+      await attendanceService.saveAttendance(
+        route.params.courseId,
+        currentDate.value,
+        attendanceStatus.value
+      )
+      saved.value = true
+      alert('Asistencia guardada correctamente')
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Error al guardar asistencia')
+    }
+  }
+  
   const menuItems = [
     { label: 'Perfil', icon: User, path: '/teacher' },
     { label: 'Tablero', icon: ClipboardList },
@@ -170,84 +209,67 @@
     { label: 'Boleta de calificaciones', icon: FileText },
     { label: 'Comunicación', icon: MessageSquare }
   ]
-  
-  const handleItemClick = item => {
-    if (item.path) router.push(item.path)
+  const handleItemClick = item => { 
+    if (item.path) router.push(item.path) 
   }
   </script>
-
+  
   <style scoped>
   .layout {
     display: flex;
     min-height: 100vh;
   }
-  
   .attendance-container {
     flex: 1;
     padding: 2rem;
     background: white;
   }
-  
   .page-title {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
     color: #2c3e50;
   }
-  
   .course-subtitle {
     color: #555;
     font-size: 1.1rem;
     margin-bottom: 1rem;
   }
-  
   .separator {
     border-bottom: 2px solid #ddd;
     margin: 1.5rem 0;
   }
-  
   .filters-section {
     background: #f8f9fa;
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 2rem;
   }
-  
-  .filters-section h3 {
-    margin-top: 0;
-    color: #333;
-  }
-  
   .filter-controls {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
   }
-  
   .filter-group {
     display: flex;
     flex-direction: column;
     min-width: 200px;
   }
-  
   .filter-group label {
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
     color: #555;
   }
-  
   .filter-group input,
   .filter-group select {
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
   .attendance-form {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  
   .form-header {
     display: flex;
     justify-content: space-between;
@@ -255,26 +277,34 @@
     padding: 1rem;
     border-bottom: 1px solid #eee;
   }
-  
   .date-selector {
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
-  
   .date-selector input {
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
+  .history-info {
+    background-color: #d9edf7;
+    color: #31708f;
+    padding: 0.75rem 1rem;
+    border: 1px solid #bce8f1;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .student-cards {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
   }
-  
   .student-card {
     display: flex;
     align-items: center;
@@ -283,7 +313,6 @@
     padding: 0.75rem 1rem;
     border-radius: 8px;
   }
-  
   .student-icon {
     width: 48px;
     height: 48px;
@@ -300,11 +329,6 @@
     display: block;
   }
 
-  .attendance-status {
-    display: flex;
-    gap: 1rem;
-  }
-  
   .status-icon {
     width: 28px;
     height: 28px;
@@ -315,41 +339,27 @@
     stroke: currentColor;
     fill: transparent;
   }
-  
-  .status-icon:hover {
-    opacity: 0.7;
-  }
-  
+  .status-icon:hover { opacity: 0.7; }
   .status-icon.active {
     opacity: 1;
     stroke-width: 3;
-    fill: transparent; 
+    fill: transparent;
   }
-  
-  .status-icon.active:nth-child(1) {
-    color: #c0392b; 
-  }
-  
-  .status-icon.active:nth-child(2) {
-    color: #1a5e40; 
-  }
-  
+  .status-icon.active:nth-child(1) { color: #c0392b; }
+  .status-icon.active:nth-child(2) { color: #1a5e40; }
   .student-info {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
   }
-  
   .student-name {
     font-weight: 600;
     font-size: 1.1rem;
   }
-  
   .student-class {
     font-size: 0.9rem;
     color: #555;
   }
-  
   .save-button {
     margin-top: 1rem;
     background-color: #4caf50;
@@ -362,11 +372,15 @@
     cursor: pointer;
     transition: background-color 0.3s;
   }
-  
   .save-button:hover {
     background-color: #45a049;
   }
-  
+  .save-button.update-mode {
+    background-color: #f0ad4e;
+  }
+  .save-button.update-mode:hover {
+    background-color: #ec971f;
+  }
   .empty-state {
     text-align: center;
     padding: 2rem;
