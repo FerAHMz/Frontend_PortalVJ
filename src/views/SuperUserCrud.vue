@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" />
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick"/>
     <main class="crud-container">
       <h1 class="page-title">Panel de Super Usuario</h1>
       <div class="separator"></div>
@@ -137,12 +137,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 
 const menuItems = [
-  { label: 'Super Usuario', icon: Settings, path: '/superuser' }
+    { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
+    { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' }
 ]
 
 const headers = [
@@ -335,6 +336,12 @@ const closeModal = () => {
 onMounted(() => {
   fetchUsers()
 })
+
+const handleItemClick = (item) => {
+  if (item.path) {
+    router.push(item.path)
+  }
+}
 </script>
 
 <style scoped>

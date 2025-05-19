@@ -9,6 +9,7 @@ import UploadPayments from '@/views/UploadPayments.vue'
 import SuperUserCrud from '@/views/SuperUserCrud.vue'
 import ManualPaymentsCrud from '@/views/ManualPaymentsCrud.vue'
 import TeacherCourses from '@/views/TeacherCourses.vue'
+import TeacherCoursesCrud from '@/views/TeacherCoursesCrud.vue'
 import CourseDetail from '@/views/CourseDetail.vue'
 import CourseGrades from '@/views/CourseGrades.vue'  
 import CreateTaskForm from '@/views/CreateTaskForm.vue'
@@ -29,6 +30,12 @@ const routes = [
   { path: '/admin/payments', name: 'PaymentsControl', component: PaymentsControl },
   { path: '/admin/payments/upload', name: 'UploadPayments', component: UploadPayments },
   { path: '/superuser', name: 'SuperUserCrud', component: SuperUserCrud },
+  { 
+    path: '/superuser/teacher-courses', 
+    name: 'TeacherCoursesCrud', 
+    component: TeacherCoursesCrud,
+    meta: { requiresAuth: true }
+  },
   { path: '/teacher/courses', name: 'TeacherCourses', component: TeacherCourses },
   { path: '/teacher/courses/:courseId', name: 'CourseDetail', component: CourseDetail, meta: { requiresAuth: true }, props: true},
   { path: '/teacher/courses/:courseId/grades', name: 'CourseGrades', component: CourseGrades,
