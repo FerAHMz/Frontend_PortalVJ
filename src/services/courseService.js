@@ -41,5 +41,17 @@ export const courseService = {
 
   deleteCourse(id) {
     return axios.delete(`${API_URL}/${id}`, getAuthHeaders()); // DELETE /api/courses/:id
-  }
+  },
+
+  async createGradoSeccion(data) {
+    try {
+      const response = await axios.post(`${API_URL}/grado-seccion`, data, getAuthHeaders())
+      return response
+    } catch (error) {
+      if (error.response?.status === 404) {
+        throw new Error('La ruta para crear grado-sección no está disponible en el servidor');
+      }
+      throw error;
+    }
+}
 };

@@ -178,18 +178,22 @@
     id_maestro: '',
     id_materia: '',
     id_grado: '',
-    id_seccion: ''
+    id_seccion: '',
+    id_grado_seccion: ''
   })
   const deleting = ref(false)
   
   const filteredItems = computed(() => {
-    if (!searchQuery.value) return items.value
-    const query = searchQuery.value.toLowerCase()
-    return items.value.filter(item => 
-      Object.values(item).some(val => 
-        String(val).toLowerCase().includes(query)
-      )
-    )
+    let result = items.value;
+    if (searchQuery.value) {
+      const query = searchQuery.value.toLowerCase();
+      result = items.value.filter(item => 
+        Object.values(item).some(val => 
+          String(val).toLowerCase().includes(query)
+        )
+      );
+    }
+    return result.sort((a, b) => a.id - b.id);
   })
   
   const fetchCourses = async () => {
@@ -254,7 +258,23 @@
   
   const saveItem = async () => {
     try {
-      await courseService.createCourse(formData.value)
+      // Primero crear el registro en grado_seccion
+      const gradoSeccionData = {
+        id_grado: formData.value.id_grado,
+        id_seccion: formData.value.id_seccion
+      }
+      
+      // Hacer la petición para crear o obtener el id_grado_seccion
+      const gradoSeccionResponse = await courseService.createGradoSeccion(gradoSeccionData)
+      
+      // Crear el objeto de datos para el curso
+      const courseData = {
+        id_maestro: formData.value.id_maestro,
+        id_materia: formData.value.id_materia,
+        id_grado_seccion: gradoSeccionResponse.data.id // Usar el ID obtenido
+      }
+      
+      await courseService.createCourse(courseData)
       await fetchCourses()
       closeModal()
       alert('Curso asignado exitosamente')
