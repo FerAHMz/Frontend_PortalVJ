@@ -19,6 +19,7 @@ import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
 import StudentsObservations from '@/views/StudentsObservations.vue'
 import AddObservations from '@/views/AddObservations.vue'
 import AttendanceForm from '@/views/AttendanceForm.vue'
+import MessageView from '@/views/MessageView.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -96,6 +97,12 @@ const routes = [
     component: AttendanceForm,
     meta: { requiresAuth: true },
     props: true
+  },
+  {
+    path: '/teacher/messages',
+    name: 'TeacherMessages',
+    component: MessageView,
+    meta: { requiresAuth: true }
   }
 ]
 

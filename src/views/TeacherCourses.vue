@@ -37,9 +37,9 @@
     { label: 'Perfil', icon: User, path: '/teacher' },
     { label: 'Tablero', icon: ClipboardList },
     { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
-    { label: 'Calendario', icon: CalendarDays },
+    { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
     { label: 'Boleta de calificaciones', icon: FileText },
-    { label: 'Comunicación', icon: MessageSquare }
+    { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
   ]
   
   // Función para obtener los cursos del maestro

@@ -38,7 +38,7 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText },
-  { label: 'Comunicación', icon: MessageSquare }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
 ]
 
 const handleItemClick = (item) => {
