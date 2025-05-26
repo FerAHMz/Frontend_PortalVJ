@@ -67,14 +67,16 @@ export const manualPaymentService = {
     }
   },
 
-  async deletePayment(id) {
+  async invalidatePayment(id, { razon, usuarioId, tipoUsuario }) {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No se encontró token de autenticación');
       }
 
-      const response = await axios.delete(`${API_URL}/${id}`, {
+      const response = await axios.put(`${API_URL}/invalidate/${id}`, 
+        { razon, usuarioId, tipoUsuario }, 
+        {
         headers: {
           'Authorization': `Bearer ${token}`
         }

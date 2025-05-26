@@ -47,7 +47,7 @@
                 <button @click="editPayment(student)" class="action-btn edit">
                   <Edit class="action-icon" />
                 </button>
-                <button @click="confirmDeletePayment(student)" class="action-btn delete">
+                <button @click="confirmInvalidatePayment(student)" class="action-btn delete">
                   <Trash class="action-icon" />
                 </button>
               </td>
@@ -116,18 +116,30 @@
         </div>
       </div>
       
-      <ModalConfirmacion
-          v-if="showConfirmModal"
-          :visible="showConfirmModal"
-          title="Confirmar Eliminación"
-          message="¿Estás seguro de eliminar este pago?"
-          confirm-text="Eliminar"
-          cancel-text="Cancelar"
-          confirm-button-class="delete"
-          :loading="deleting"
-          @confirm="deleteItem"
-          @cancel="showConfirmModal = false"
-      />
+      <ConfirmationDialogInput
+        v-if="showConfirmModal"
+        :title="'Confirmar Invalidación'"
+        :message="'¿Está seguro de invalidar este pago?'"
+        :confirm-text="'Invalidar'"
+        :cancel-text="'Cancelar'"
+        :confirm-button-class="'delete'"
+        :loading="deleting"
+        @confirm="invalidateItem"
+        @cancel="showConfirmModal = false"
+      >
+        <div class="form-group">
+          <label for="razon">Razón de invalidación:</label>
+          <textarea
+            id="razon"
+            v-model="razonInvalidacion"
+            placeholder="Ingrese la razón"
+            rows="3"
+            class="form-input"
+            required
+          ></textarea>
+        </div>
+      </ConfirmationDialogInput>
+
     </main>
     <ErrorDialog 
       :show="showTokenAlert"
@@ -141,7 +153,7 @@
 import Sidebar from '@/components/Sidebar.vue'
 import { manualPaymentService } from '@/services/manualPaymentService';
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
-import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
+import ConfirmationDialogInput from '@/components/dialogs/ConfirmationDialogInput.vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { Plus,  Edit, Trash, Search } from 'lucide-vue-next'
@@ -197,6 +209,7 @@ const showConfirmModal = ref(false)
 const deleting = ref(false)
 const showTokenAlert = ref(false)
 const tokenErrors = ref([])
+const razonInvalidacion = ref('');
 
 const filteredStudents = computed(() => {
   if (!Array.isArray(students.value)) {
@@ -306,7 +319,7 @@ const editPayment = (student) => {
   showModal.value = true;
 }
 
-const deleteItem = async () => {
+const invalidateItem = async () => {
   const token = getAuthToken();
   if (!token) return;
 
@@ -314,23 +327,40 @@ const deleteItem = async () => {
     deleting.value = true;
 
     if (!itemToDelete.value?.id) {
-      throw new Error('Datos de pago incompletos para eliminar');
+      throw new Error('Datos de pago incompletos para invalidar');
     }
 
-    await manualPaymentService.deletePayment(itemToDelete.value.id);
-    alert('Pago eliminado exitosamente');
+    if (!razonInvalidacion.value.trim()) {
+      alert('Debe ingresar una razón de invalidación');
+      return;
+    }
+
+    // actualizar para jalar los reales
+    const usuarioId = 1; 
+    const tipoUsuario = 'Administrativo'; 
+
+    //const usuarioId = store.getters.userId; 
+    //const tipoUsuario = store.getters.userRole; 
+
+    await manualPaymentService.invalidatePayment(itemToDelete.value.id, {
+      razon: razonInvalidacion.value,
+      usuarioId,
+      tipoUsuario,
+    });
+
+    alert('Pago invalidado exitosamente');
     await fetchPayments();
     showConfirmModal.value = false;
-
+    razonInvalidacion.value = ''; 
   } catch (error) {
-    console.error('Error deleting payment:', error);
-    alert(error.message || 'Error al eliminar el pago');
+    console.error('Error invalidando el pago:', error);
+    alert(error.message || 'Error al invalidar el pago');
   } finally {
     deleting.value = false;
   }
 };
 
-const confirmDeletePayment = (student) => {
+const confirmInvalidatePayment = (student) => {
   itemToDelete.value = { id: student.id_pago }; 
   showConfirmModal.value = true;
 }
