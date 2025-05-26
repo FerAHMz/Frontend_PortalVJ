@@ -18,6 +18,7 @@ import ViewGrades from '@/views/ViewGrades.vue'
 import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
 import StudentsObservations from '@/views/StudentsObservations.vue'
 import AddObservations from '@/views/AddObservations.vue'
+import ViewObservations from '@/views/ViewObservations.vue'
 import AttendanceForm from '@/views/AttendanceForm.vue'
 import MessageView from '@/views/MessageView.vue'
 
@@ -102,6 +103,12 @@ const routes = [
     path: '/teacher/messages',
     name: 'TeacherMessages',
     component: MessageView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/teacher/courses/:courseId/students/:carnet_estudiante/observations',
+    name: 'ViewObservations',
+    component: () => ViewObservations,
     meta: { requiresAuth: true }
   }
 ]
