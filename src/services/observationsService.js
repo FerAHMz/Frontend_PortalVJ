@@ -12,7 +12,6 @@ const getAuthHeaders = () => {
       'Authorization': `Bearer ${token}`
     }
   }
-  console.log(token);
 }
 
 export const observationsService = {
