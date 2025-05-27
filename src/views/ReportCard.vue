@@ -13,23 +13,30 @@
           </button>
         </div>
         <div ref="boletaRef">
-            <div class="subtitle" v-if="studentData  && gradeData">
-              Alumno (a): {{  studentData.carnet }} - {{  studentData.nombre }} {{ studentData.apellido }}  <br> 
-              Grado: {{ gradeData.grado }} {{ gradeData.seccion }} <br>
-              Maestro guía: Jorge Herrera  <br>
-            </div>
-
+            <div class="subtitle-grid" v-if="studentData && gradeData">
+            <div class="subtitle-label">Alumno (a):</div>
+            <div>{{ studentData.carnet }} - {{ studentData.nombre }} {{ studentData.apellido }}</div>
+            
+            <div class="subtitle-label">Grado:</div>
+            <div>{{ gradeData.grado }} {{ gradeData.seccion }}</div>
+            
+            <div class="subtitle-label">Maestro guía:</div>
+            <div>Jorge Herrera</div>
+          </div>
             
             <div v-if="boleta">
               <table class="materias-table">
-                <thead>
+                 <thead>
                   <tr class="materias-header">
-                    <th>Asignatura</th>
+                    <th rowspan="2">Asignatura</th> 
+                    <th colspan="4">Periodo</th> 
+                    <th rowspan="2">Nota final</th> 
+                  </tr>
+                  <tr class="materias-subheader">
                     <th>I</th>
                     <th>II</th>
                     <th>III</th>
                     <th>IV</th>
-                    <th>Nota final</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,13 +243,29 @@ const exportarPDF = () => {
 .page-title {
   font-size: 2rem;
   font-weight: bold;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  color: #000;
+  margin-bottom: 0.5rem;
+  width: 100%; 
+  text-align: left;
 }
 
-.subtitle {
-  text-align: center;
+.subtitle-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr; 
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: 2rem;
+  font-size: 1.24rem;
+  color: #374151;
 }
+
+.subtitle-label {
+  font-weight: 500;
+  white-space: nowrap;
+  padding-right: 1rem; 
+  margin-left: 22px;
+}
+
 
 .materias-table,
 .observations-table {
@@ -251,22 +274,14 @@ const exportarPDF = () => {
 }
 
 .separator {
-  height: 2px;
-  background-color: #1f2937;
+  width: 100%;
+  border-bottom: 2px solid #000;
   margin-bottom: 1.5rem;
-}
-
-.subtitle {
-  font-size: 1.24rem;
-  white-space: pre-line;
-  padding: 0.75rem 0;
-  margin-bottom: 2rem;
-  color: #374151;
 }
 
 .btn-pdf-container {
   display: flex;
-  align-items: flex-end;
+  justify-content: flex-end;
   margin-bottom: 1.5rem;
   width: 100%; 
   max-width: 900px;
@@ -315,6 +330,18 @@ const exportarPDF = () => {
 
 .materias-table tbody tr:hover {
   background-color: #f9f9f9;
+}
+
+css
+.materias-header th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  text-align: center;
+}
+
+.materias-subheader th {
+  background-color: #f5f5f5; 
+  font-weight: 500;
 }
 
 /* Promedio general */
