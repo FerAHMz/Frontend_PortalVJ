@@ -21,6 +21,8 @@ import AddObservations from '@/views/AddObservations.vue'
 import ViewObservations from '@/views/ViewObservations.vue'
 import AttendanceForm from '@/views/AttendanceForm.vue'
 import MessageView from '@/views/MessageView.vue'
+import ReportCardStudents from '@/views/ReportCardStudents.vue'
+import ReportCard from '@/views/ReportCard.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -109,6 +111,18 @@ const routes = [
     path: '/teacher/courses/:courseId/students/:carnet_estudiante/observations',
     name: 'ViewObservations',
     component: () => ViewObservations,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/teacher/report-card/',
+    name: 'ReportCardStudents',
+    component: ReportCardStudents,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/teacher/report-card/:carnet_estudiante',
+    name: 'ReportCard',
+    component: ReportCard,
     meta: { requiresAuth: true }
   }
 ]

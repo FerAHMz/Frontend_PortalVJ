@@ -38,7 +38,7 @@
     { label: 'Tablero', icon: ClipboardList },
     { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
     { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
-    { label: 'Boleta de calificaciones', icon: FileText },
+    { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
     { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
   ]
   
