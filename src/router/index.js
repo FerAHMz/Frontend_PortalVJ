@@ -23,6 +23,7 @@ import AttendanceForm from '@/views/AttendanceForm.vue'
 import MessageView from '@/views/MessageView.vue'
 import ReportCardStudents from '@/views/ReportCardStudents.vue'
 import ReportCard from '@/views/ReportCard.vue'
+import DirectorProfile from '@/views/DirectorProfile.vue'
 
 const routes = [
   { path: '/', name: 'Login', component: Login }, 
@@ -124,6 +125,12 @@ const routes = [
     name: 'ReportCard',
     component: ReportCard,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/director',
+    name: 'DirectorProfile',
+    component: DirectorProfile,
+    meta: { requiresAuth: true, roles: ['Director'] }
   }
 ]
 

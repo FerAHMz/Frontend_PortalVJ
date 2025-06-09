@@ -63,6 +63,8 @@
           router.push('/teacher')
         } else if (role === 'Administrativo') {
           router.push('/admin')
+        } else if (role === 'Director') {
+          router.push('/director')
         } else if (role === 'SUP') {
           router.push('/superuser')
         } else {

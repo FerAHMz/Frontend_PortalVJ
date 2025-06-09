@@ -168,6 +168,7 @@ const showPassword = ref(false)
 
 const roles = [
   { value: 'SUP', label: 'Super Usuario' },
+  { value: 'Director', label: 'Director' },
   { value: 'Administrativo', label: 'Administrativo' },
   { value: 'Maestro', label: 'Maestro' },
   { value: 'Padre', label: 'Padre' }
