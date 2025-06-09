@@ -16,9 +16,7 @@ defineProps({
   errors: Array
 })
 
-defineEmits([
-    close
-])
+defineEmits(['close'])
 </script>
 
 <style scoped>

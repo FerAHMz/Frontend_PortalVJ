@@ -3,7 +3,6 @@ export const uploadPaymentFile = async (file) => {
     formData.append('file', file)
 
     const token = localStorage.getItem('token')
-    console.log('Token:', token) // Debug log
     
     if (!token) {
         throw new Error('No está autenticado')
@@ -18,16 +17,21 @@ export const uploadPaymentFile = async (file) => {
         body: formData
       })
       
-      console.log('Response status:', response.status) // Debug log
       const data = await response.json()
       
       if (!response.ok) {
-        throw new Error(data.errors?.join('\n') || data.error || 'Error al procesar el archivo')
+        if (Array.isArray(data.errors)) {
+          throw new Error(data.errors.join('\n'))
+        } else if (data.error) {
+          throw new Error(data.error)
+        } else {
+          throw new Error('Error al procesar el archivo')
+        }
       }
   
       return data
     } catch (error) {
-      console.error('Upload error:', error) // Debug log
+      console.error('Upload error:', error)
       if (error.name === 'TypeError') {
         throw new Error('Error de conexión con el servidor')
       }

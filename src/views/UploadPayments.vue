@@ -70,7 +70,54 @@ const selectedFile = ref(null)
 const isUploading = ref(false)
 const isDragging = ref(false)
 
+const processFile = async () => {
+  try {
+    isUploading.value = true
+    showConfirmation.value = false  
+    const response = await uploadPaymentFile(selectedFile.value)
+    
+    if (response.duplicatesCount > 0) {
+      validationErrors.value = [
+        `Se procesaron ${response.insertedCount} pagos nuevos exitosamente.`,
+        `Se encontraron ${response.duplicatesCount} pagos duplicados que fueron omitidos.`
+      ]
+    } else {
+      validationErrors.value = [`Se procesaron ${response.insertedCount || response.count} pagos exitosamente`]
+    }
+    
+    showError.value = true
+    resetForm()
+  } catch (error) {
+    // Mejorar el manejo de errores
+    let errorMessages = []
+    
+    if (error.message.includes('columna')) {
+      errorMessages = error.message.split('\n')
+    } else if (error.message.includes('duplicado')) {
+      errorMessages = ['El archivo contiene pagos que ya han sido procesados anteriormente.']
+    } else if (error.message.includes('No se encontraron datos')) {
+      errorMessages = ['El archivo está vacío o no contiene datos válidos.']
+    } else {
+      errorMessages = [error.message]
+    }
+    
+    validationErrors.value = errorMessages
+    showError.value = true
+    isUploading.value = false
+  }
+}
+
+const resetForm = () => {
+  selectedFile.value = null
+  showConfirmation.value = false
+  isUploading.value = false
+  isDragging.value = false
+}
+
 const handleFileUpload = (event) => {
+  showError.value = false
+  validationErrors.value = []
+  
   const uploadedFile = event.target.files[0]
   if (uploadedFile) {
     const validation = validateExcelFile(uploadedFile)
@@ -81,31 +128,6 @@ const handleFileUpload = (event) => {
     }
     selectedFile.value = uploadedFile
     showConfirmation.value = true
-  }
-}
-
-const resetForm = () => {
-  selectedFile.value = null
-  showConfirmation.value = false
-  showError.value = false
-  validationErrors.value = []
-  isUploading.value = false
-  isDragging.value = false
-}
-
-const processFile = async () => {
-  try {
-    isUploading.value = true
-    showConfirmation.value = false  
-    const response = await uploadPaymentFile(selectedFile.value)
-    validationErrors.value = [`Se procesaron ${response.count} pagos exitosamente`]
-    showError.value = true
-    resetForm()
-  } catch (error) {
-    validationErrors.value = [error.message]
-    showError.value = true
-    isUploading.value = false
-    showConfirmation.value = false  
   }
 }
 
