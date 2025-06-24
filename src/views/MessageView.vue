@@ -3,6 +3,26 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="messages-container">
       <h1 class="page-title">Comunicación</h1>
+      <div class="search-and-results">
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="searchUsers"
+          placeholder="Ingrese el nombre del usuario..."
+          class="search-input"
+        />
+        <div v-if="searchResults.length > 0" class="search-results">
+          <div
+            v-for="user in searchResults"
+            :key="user.id"
+            class="search-result-item"
+            @click="selectUser(user)"
+          >
+            {{ user.nombre }} {{ user.apellido }} ({{ user.rol }})
+          </div>
+        </div>
+      </div>
+
       <div class="messages-layout">
         <!-- Conversations List -->
         <div class="conversations-list">
@@ -49,38 +69,33 @@
           <h2>Nueva Conversación</h2>
           <form @submit.prevent="createNewConversation">
             <div class="form-group">
-              <label for="userType">Tipo de Usuario</label>
-              <select
-                id="userType"
-                v-model="newConversation.userType"
-                class="form-input"
-                required
-              >
-                <option value="" disabled>Seleccione un tipo de usuario</option>
-                <option value="maestro">Maestro</option>
-                <option value="padre">Padre</option>
-              </select>
+              <label for="searchUser">Buscar Usuario</label>
+              <div class="search-user-container">
+                <input
+                  type="text"
+                  id="searchUser"
+                  v-model="searchQuery"
+                  @input="searchUsers"
+                  class="form-input"
+                  placeholder="Escriba el nombre del usuario..."
+                />
+                <div v-if="searchResults.length > 0" class="search-results">
+                  <div
+                    v-for="user in searchResults"
+                    :key="user.id"
+                    class="search-result-item"
+                    @click="selectUser(user)"
+                  >
+                    {{ user.nombre }} {{ user.apellido }} ({{ user.rol }})
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-              <label for="userId">ID del Usuario</label>
-              <input
-                type="text"
-                id="userId"
-                v-model="newConversation.userId"
-                class="form-input"
-                placeholder="Ingrese el ID del usuario"
-              />
+
+            <div v-if="selectedUser" class="selected-user">
+              Usuario seleccionado: {{ selectedUser.nombre }} {{ selectedUser.apellido }}
             </div>
-            <div class="form-group">
-              <label for="userName">Nombre del Usuario</label>
-              <input
-                type="text"
-                id="userName"
-                v-model="newConversation.userName"
-                class="form-input"
-                placeholder="Ingrese el nombre del usuario"
-              />
-            </div>
+
             <div class="form-group">
               <label for="subject">Asunto</label>
               <input
@@ -116,8 +131,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
-import axios from 'axios';
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
+import { messageService } from '@/services/messageService';
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -139,18 +154,14 @@ const newConversation = ref({
   content: '',
 });
 const newMessageContent = ref('');
-
-const getAuthToken = () => {
-  return localStorage.getItem('token'); // Ensure the token is stored in localStorage after login
-};
+const searchQuery = ref('')
+const searchResults = ref([])
+const selectedUser = ref(null)
 
 const fetchConversations = async () => {
   try {
-    const token = getAuthToken();
-    const response = await axios.get('http://localhost:3000/api/messages', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const groupedConversations = response.data.conversations.reduce((acc, message) => {
+    const conversationsData = await messageService.getConversations();
+    const groupedConversations = conversationsData.reduce((acc, message) => {
       acc[message.subject] = message; // Keep only the latest message for each subject
       return acc;
     }, {});
@@ -162,12 +173,8 @@ const fetchConversations = async () => {
 
 const selectConversation = async (subject) => {
   try {
-    const token = getAuthToken();
-    const response = await axios.get('http://localhost:3000/api/messages/conversation', {
-      headers: { Authorization: `Bearer ${token}` },
-      params: { subject },
-    });
-    selectedConversation.value = response.data.conversation;
+    const conversationData = await messageService.getConversationMessages(subject);
+    selectedConversation.value = conversationData;
   } catch (error) {
     console.error('Error fetching conversation:', error);
   }
@@ -194,51 +201,91 @@ const closeNewConversationModal = () => {
 
 const createNewConversation = async () => {
   try {
-    const token = getAuthToken();
+    if (!selectedUser.value) {
+      alert('Por favor seleccione un usuario para enviar el mensaje');
+      return;
+    }
+
+    if (!newConversation.value.subject || !newConversation.value.content) {
+      alert('Por favor complete todos los campos requeridos');
+      return;
+    }
+
     const payload = {
-      userType: newConversation.value.userType,
-      userId: newConversation.value.userId,
-      userName: newConversation.value.userName,
+      recipient_id: selectedUser.value.id,
+      recipient_role: selectedUser.value.rol,
       subject: newConversation.value.subject,
-      content: newConversation.value.content,
+      content: newConversation.value.content
     };
 
-    const response = await axios.post('http://localhost:3000/api/messages', payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await messageService.sendMessage(payload);
+    await fetchConversations();
     alert('Conversación creada exitosamente');
     closeNewConversationModal();
-    fetchConversations();
   } catch (error) {
     console.error('Error creating conversation:', error);
-    alert('Error al crear la conversación');
+    alert('Error al crear la conversación: ' + error.message);
   }
 };
 
 const sendMessage = async () => {
-  if (!newMessageContent.value.trim()) return;
+  if (!selectedConversation.value || !selectedConversation.value[0]) {
+    alert('No hay una conversación seleccionada');
+    return;
+  }
+
+  if (!newMessageContent.value.trim()) {
+    alert('Por favor escriba un mensaje');
+    return;
+  }
 
   try {
-    const token = getAuthToken();
+    const currentConversation = selectedConversation.value[0];
     const payload = {
-      subject: selectedConversation.value[0].subject,
-      content: newMessageContent.value,
+      subject: currentConversation.subject,
+      content: newMessageContent.value.trim()
     };
 
-    const response = await axios.post('http://localhost:3000/api/messages/conversation', payload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    alert('Mensaje enviado exitosamente');
-    selectedConversation.value.push({
-      content: newMessageContent.value,
-      created_at: new Date().toISOString(),
-    });
+    await messageService.sendConversationMessage(payload);
+    await selectConversation(currentConversation.subject);
     newMessageContent.value = '';
   } catch (error) {
     console.error('Error sending message:', error);
-    alert('Error al enviar el mensaje');
+    alert('Error al enviar el mensaje: ' + error.message);
   }
 };
+
+const searchUsers = async () => {
+  if (searchQuery.value.length < 2) {
+    searchResults.value = [];
+    return;
+  }
+
+  try {
+    const users = await messageService.searchUsers(searchQuery.value);
+    searchResults.value = users;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    searchResults.value = [];
+  }
+}
+
+const selectUser = (user) => {
+  if (!user || !user.id || !user.rol) {
+    console.error('Invalid user data:', user);
+    return;
+  }
+  
+  selectedUser.value = user
+  searchResults.value = []
+  searchQuery.value = ''
+  newConversation.value = {
+    ...newConversation.value,
+    userType: user.rol,
+    userId: user.id,
+    userName: `${user.nombre} ${user.apellido}`
+  }
+}
 
 onMounted(() => {
   fetchConversations();
@@ -261,6 +308,46 @@ onMounted(() => {
 .page-title {
   font-size: 2rem;
   margin-bottom: 1rem;
+}
+
+.search-and-results {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 1rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5;
 }
 
 .messages-layout {
@@ -448,5 +535,18 @@ textarea.form-input {
   background-color: #1b9963;
   color: white;
   border: none;
+}
+
+.search-user-container {
+  position: relative;
+  z-index: 1002; /* Ensure it displays above other elements */
+}
+
+.selected-user {
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: #e8f5e9;
+  border-radius: 4px;
+  color: #2e7d32;
 }
 </style>
