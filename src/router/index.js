@@ -1,136 +1,319 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Login from '@/views/Login.vue'
-import ParentsProfile from '@/views/Parents.vue'
-import TeacherProfile from '@/views/TeacherProfile.vue'
-import AdminProfile from '@/views/AdminProfile.vue'
-import ControlDePagos from '@/views/ControlDePagos.vue'
-import PaymentsControl from '@/views/PaymentsControl.vue'
-import UploadPayments from '@/views/UploadPayments.vue'
-import SuperUserCrud from '@/views/SuperUserCrud.vue'
-import ManualPaymentsCrud from '@/views/ManualPaymentsCrud.vue'
-import TeacherCourses from '@/views/TeacherCourses.vue'
-import TeacherCoursesCrud from '@/views/TeacherCoursesCrud.vue'
-import CourseDetail from '@/views/CourseDetail.vue'
-import CourseGrades from '@/views/CourseGrades.vue'  
-import CreateTaskForm from '@/views/CreateTaskForm.vue'
-import ViewTasks from '@/views/ViewTasks.vue'
-import ViewGrades from '@/views/ViewGrades.vue'
-import HomeworkCalendar from '@/views/HomeworkCalendar.vue'
-import StudentsObservations from '@/views/StudentsObservations.vue'
-import AddObservations from '@/views/AddObservations.vue'
-import ViewObservations from '@/views/ViewObservations.vue'
-import AttendanceForm from '@/views/AttendanceForm.vue'
-import MessageView from '@/views/MessageView.vue'
-import ReportCardStudents from '@/views/ReportCardStudents.vue'
-import ReportCard from '@/views/ReportCard.vue'
-import DirectorProfile from '@/views/DirectorProfile.vue'
+import { authMiddleware } from '@/middleware/auth.js'
+import { USER_ROLES } from '@/utils/constants.js'
+
+// Auth
+import Login from '@/views/auth/Login.vue'
+
+// Parent
+import ParentsProfile from '@/views/parent/Parents.vue'
+
+// Teacher
+import TeacherProfile from '@/views/teacher/TeacherProfile.vue'
+import TeacherCourses from '@/views/teacher/TeacherCourses.vue'
+import CourseDetail from '@/views/teacher/CourseDetail.vue'
+import CourseGrades from '@/views/teacher/CourseGrades.vue'
+import CreateTaskForm from '@/views/teacher/CreateTaskForm.vue'
+import ViewTasks from '@/views/teacher/ViewTasks.vue'
+import ViewGrades from '@/views/teacher/ViewGrades.vue'
+import Calendar from '@/views/teacher/Calendar.vue'
+import Observations from '@/views/teacher/Observations.vue'
+import AddObservations from '@/views/teacher/AddObservations.vue'
+import ViewObservations from '@/views/teacher/ViewObservations.vue'
+import AttendanceForm from '@/views/teacher/AttendanceForm.vue'
+import Messages from '@/views/teacher/Messages.vue'
+import ReportCardStudents from '@/views/teacher/ReportCardStudents.vue'
+import ReportCard from '@/views/teacher/ReportCard.vue'
+
+// Admin
+import AdminProfile from '@/views/admin/AdminProfile.vue'
+import PaymentsDashboard from '@/views/admin/PaymentsDashboard.vue'
+import PaymentsControl from '@/views/admin/PaymentsControl.vue'
+import UploadPayments from '@/views/admin/UploadPayments.vue'
+import ManualPayments from '@/views/admin/ManualPayments.vue'
+
+// SuperUser
+import SuperUserCrud from '@/views/superuser/SuperUserCrud.vue'
+import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
+
+// Director
+import DirectorProfile from '@/views/director/DirectorProfile.vue'
 
 const routes = [
-  { path: '/', name: 'Login', component: Login }, 
-  { path: '/teacher', name: 'TeacherProfile', component: TeacherProfile },
-  { path: '/admin', name: 'AdminProfile', component: AdminProfile },
-  { path: '/parent', name: 'Parents', component: ParentsProfile },
-  { path: '/admin/payments/control-de-pagos', name: 'ControlDePagos', component: ControlDePagos },
-  { path: '/admin/payments/registro-de-pagos', name: 'ManualPayments', component: ManualPaymentsCrud },
-  { path: '/admin/payments', name: 'PaymentsControl', component: PaymentsControl },
-  { path: '/admin/payments/upload', name: 'UploadPayments', component: UploadPayments },
-  { path: '/superuser', name: 'SuperUserCrud', component: SuperUserCrud },
-  { 
-    path: '/superuser/teacher-courses', 
-    name: 'TeacherCoursesCrud', 
-    component: TeacherCoursesCrud,
-    meta: { requiresAuth: true }
+  // Rutas públicas
+  {
+    path: '/',
+    name: 'Login',
+    component: Login,
+    meta: { requiresAuth: false }
   },
-  { path: '/teacher/courses', name: 'TeacherCourses', component: TeacherCourses },
-  { path: '/teacher/courses/:courseId', name: 'CourseDetail', component: CourseDetail, meta: { requiresAuth: true }, props: true},
-  { path: '/teacher/courses/:courseId/grades', name: 'CourseGrades', component: CourseGrades,
-  meta: { requiresAuth: true },
-  props: true
+
+  // Rutas protegidas por rol
+
+  // TEACHER ROUTES
+  {
+    path: '/teacher',
+    name: 'TeacherProfile',
+    component: TeacherProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
   },
-  { 
-    path: '/teacher/courses/:courseId/create-task', 
-    name: 'CreateTaskForm', 
-    component: CreateTaskForm,
-    meta: { requiresAuth: true },
+  {
+    path: '/teacher/courses',
+    name: 'TeacherCourses',
+    component: TeacherCourses,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
+  },
+  {
+    path: '/teacher/courses/:courseId',
+    name: 'CourseDetail',
+    component: CourseDetail,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
-  { 
-    path: '/teacher/courses/:courseId/view-tasks', 
-    name: 'ViewTasks', 
+  {
+    path: '/teacher/courses/:courseId/grades',
+    name: 'CourseGrades',
+    component: CourseGrades,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/create-task',
+    name: 'CreateTaskForm',
+    component: CreateTaskForm,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/view-tasks',
+    name: 'ViewTasks',
     component: ViewTasks,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
   {
     path: '/teacher/courses/:courseId/register-grade',
     name: 'RegisterGrade',
-    component: () => import('@/views/RegisterGrade.vue'),
-    meta: { requiresAuth: true },
+    component: () => import('@/views/teacher/RegisterGrade.vue'),
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
   {
     path: '/teacher/courses/:courseId/view-grades',
     name: 'ViewGrades',
     component: ViewGrades,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
-  { 
-    path: '/teacher/calendar', 
-    name: 'HomeworkCalendar', 
-    component: HomeworkCalendar, 
-    meta: { requiresAuth: true } 
+  {
+    path: '/teacher/calendar',
+    name: 'Calendar',
+    component: Calendar,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
   },
   {
     path: '/teacher/courses/:courseId/observations',
-    name: 'StudentsObservations',
-    component: StudentsObservations,
-    meta: { requiresAuth: true },
+    name: 'Observations',
+    component: Observations,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
   {
     path: '/teacher/courses/:courseId/observations/:carnet_estudiante/add',
     name: 'AddObservations',
     component: AddObservations,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
   {
     path: '/teacher/courses/:courseId/attendance',
     name: 'CourseAttendance',
     component: AttendanceForm,
-    meta: { requiresAuth: true },
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
     props: true
   },
   {
     path: '/teacher/messages',
-    name: 'TeacherMessages',
-    component: MessageView,
-    meta: { requiresAuth: true }
+    name: 'Messages',
+    component: Messages,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
   },
   {
     path: '/teacher/courses/:courseId/students/:carnet_estudiante/observations',
     name: 'ViewObservations',
-    component: () => ViewObservations,
-    meta: { requiresAuth: true }
+    component: ViewObservations,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
   },
   {
     path: '/teacher/report-card/',
     name: 'ReportCardStudents',
     component: ReportCardStudents,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
   },
   {
     path: '/teacher/report-card/:carnet_estudiante',
     name: 'ReportCard',
     component: ReportCard,
-    meta: { requiresAuth: true }
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
   },
+
+  // ADMIN ROUTES
+  {
+    path: '/admin',
+    name: 'AdminProfile',
+    component: AdminProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.ADMIN]
+    }
+  },
+  {
+    path: '/admin/payments/dashboard',
+    name: 'PaymentsDashboard',
+    component: PaymentsDashboard,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.ADMIN]
+    }
+  },
+  {
+    path: '/admin/payments/manual',
+    name: 'ManualPayments',
+    component: ManualPayments,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.ADMIN]
+    }
+  },
+  {
+    path: '/admin/payments',
+    name: 'PaymentsControl',
+    component: PaymentsControl,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.ADMIN]
+    }
+  },
+  {
+    path: '/admin/payments/upload',
+    name: 'UploadPayments',
+    component: UploadPayments,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.ADMIN]
+    }
+  },
+
+  // SUPERUSER ROUTES
+  {
+    path: '/superuser',
+    name: 'SuperUserCrud',
+    component: SuperUserCrud,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.SUPER_USER]
+    }
+  },
+  {
+    path: '/superuser/teacher-courses',
+    name: 'TeacherCoursesCrud',
+    component: TeacherCoursesCrud,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.SUPER_USER]
+    }
+  },
+
+  // DIRECTOR ROUTES
   {
     path: '/director',
     name: 'DirectorProfile',
     component: DirectorProfile,
-    meta: { requiresAuth: true, roles: ['Director'] }
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+
+  // PARENT ROUTES
+  {
+    path: '/parent',
+    name: 'Parents',
+    component: ParentsProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+
+  // Backward compatibility routes (redirects)
+  {
+    path: '/admin/payments/control-de-pagos',
+    redirect: '/admin/payments/dashboard'
+  },
+  {
+    path: '/admin/payments/registro-de-pagos',
+    redirect: '/admin/payments/manual'
+  },
+  {
+    path: '/teacher/calendar',
+    redirect: '/teacher/calendar'
+  },
+
+  // Ruta de captura para rutas no encontradas
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
@@ -138,5 +321,8 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// Aplicar middleware de autenticación a todas las rutas
+router.beforeEach(authMiddleware)
 
 export default router
