@@ -1,18 +1,17 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" @item-clicked="handleItemClick"/>
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Perfil del Maestro</h1>
+      <h1 class="page-title">Perfil de Super Usuario</h1>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
       <ProfileCard
         v-else
         :name="(userProfile.nombre || '') + ' ' + (userProfile.apellido || '')"
-        role="Maestro"
+        role="Super Usuario"
         :phone="userProfile.telefono || ''"
         :email="userProfile.email || ''"
-        :image="teacherImg"
-        :courses="teacherCourses"
+        :image="adminImg"
       />
     </main>
   </div>
@@ -21,20 +20,11 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import {
-  User,
-  ClipboardList,
-  BookOpen,
-  CalendarDays,
-  FileText,
-  MessageSquare
-} from 'lucide-vue-next'
-
-import teacherImg from '@/assets/maestro.png'
+import { User, Settings, BookOpen, Users, BarChart3, Shield } from 'lucide-vue-next'
+import adminImg from '@/assets/maestro.png' // Usando la misma imagen por ahora
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { profileService } from '@/services/profileService.js'
-import { getCurrentUser } from '@/utils/auth.js'
 
 const router = useRouter()
 const userProfile = ref({
@@ -43,17 +33,16 @@ const userProfile = ref({
   telefono: '',
   email: ''
 })
-const teacherCourses = ref([])
 const loading = ref(true)
 const error = ref(null)
 
 const menuItems = [
-  { label: 'Perfil', icon: User, path: '/teacher' },
-  { label: 'Tablero', icon: ClipboardList },
-  { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
-  { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
-  { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Perfil', icon: User, path: '/superuser/profile' },
+  { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
+  { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
+  { label: 'Administración', icon: Shield, path: '/superuser/admin' },
+  { label: 'Personal', icon: Users, path: '/superuser/staff' },
+  { label: 'Reportes del Sistema', icon: BarChart3, path: '/superuser/reports' }
 ]
 
 const handleItemClick = (item) => {
@@ -77,37 +66,11 @@ const fetchUserProfile = async () => {
       console.log('Response format issue:', response)
       throw new Error('Invalid response format')
     }
-
-    // Fetch teacher courses
-    await fetchTeacherCourses()
   } catch (err) {
     console.error('Error fetching profile:', err)
     error.value = 'Error al cargar la información del perfil'
   } finally {
     loading.value = false
-  }
-}
-
-const fetchTeacherCourses = async () => {
-  try {
-    const user = getCurrentUser()
-    if (user?.id) {
-      const response = await fetch(`http://localhost:3000/api/teacher/${user.id}/courses`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      })
-
-      if (response.ok) {
-        const courses = await response.json()
-        teacherCourses.value = courses.map(course =>
-          `${course.materia} - ${course.grado} ${course.seccion}`
-        )
-      }
-    }
-  } catch (err) {
-    console.error('Error fetching teacher courses:', err)
-    // No hacer que falle todo el perfil si no se pueden cargar los cursos
   }
 }
 

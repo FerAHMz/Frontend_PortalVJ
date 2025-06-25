@@ -2,12 +2,15 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Perfil</h1>
+      <h1 class="page-title">Perfil Administrativo</h1>
+      <div v-if="loading" class="loading">Cargando información...</div>
+      <div v-else-if="error" class="error">{{ error }}</div>
       <ProfileCard
-        name="Elisabeth García"
-        role="Secretaria"
-        phone="2234-5586"
-        email="elisagar23@gmail.com"
+        v-else
+        :name="(userProfile.nombre || '') + ' ' + (userProfile.apellido || '')"
+        role="Administrativo"
+        :phone="userProfile.telefono || ''"
+        :email="userProfile.email || ''"
         :image="secretariaImg"
       />
     </main>
@@ -17,15 +20,27 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, CreditCard } from 'lucide-vue-next'
+import { User, CreditCard, FileText, Users } from 'lucide-vue-next'
 import secretariaImg from '@/assets/secretaria.jpg'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { profileService } from '@/services/profileService.js'
 
 const router = useRouter()
+const userProfile = ref({
+  nombre: '',
+  apellido: '',
+  telefono: '',
+  email: ''
+})
+const loading = ref(true)
+const error = ref(null)
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
-  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' },
+  { label: 'Reportes', icon: FileText, path: '/admin/reports' },
+  { label: 'Estudiantes', icon: Users, path: '/admin/students' }
 ]
 
 const handleItemClick = (item) => {
@@ -33,6 +48,33 @@ const handleItemClick = (item) => {
     router.push(item.path)
   }
 }
+
+const fetchUserProfile = async () => {
+  try {
+    loading.value = true
+    error.value = null
+    const response = await profileService.getCurrentUserProfile()
+    console.log('Profile response:', response) // Debug log
+
+    // El backend devuelve { success: true, user: userProfile }
+    if (response.success && response.user) {
+      userProfile.value = response.user
+      console.log('User profile set:', userProfile.value) // Debug log
+    } else {
+      console.log('Response format issue:', response)
+      throw new Error('Invalid response format')
+    }
+  } catch (err) {
+    console.error('Error fetching profile:', err)
+    error.value = 'Error al cargar la información del perfil'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchUserProfile()
+})
 </script>
 
 <style scoped>
@@ -40,10 +82,13 @@ const handleItemClick = (item) => {
   display: flex;
   height: 100vh;
 }
+
 .profile-container {
   flex: 1;
   padding: 20px;
+  background-color: white;
 }
+
 .page-title {
   font-size: 2rem;
   font-weight: bold;
@@ -51,5 +96,22 @@ const handleItemClick = (item) => {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid #000000;
   padding-bottom: 0.5rem;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.loading {
+  color: #1b9963;
+}
+
+.error {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
 }
 </style>

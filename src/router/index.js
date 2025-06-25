@@ -34,6 +34,7 @@ import ManualPayments from '@/views/admin/ManualPayments.vue'
 
 // SuperUser
 import SuperUserCrud from '@/views/superuser/SuperUserCrud.vue'
+import SuperUserProfile from '@/views/superuser/SuperUserProfile.vue'
 import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
 
 // Director
@@ -259,6 +260,15 @@ const routes = [
     path: '/superuser',
     name: 'SuperUserCrud',
     component: SuperUserCrud,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.SUPER_USER]
+    }
+  },
+  {
+    path: '/superuser/profile',
+    name: 'SuperUserProfile',
+    component: SuperUserProfile,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.SUPER_USER]
