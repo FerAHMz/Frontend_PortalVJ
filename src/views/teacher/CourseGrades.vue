@@ -25,7 +25,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import CardList from '@/components/CardList.vue'
-import CreateTaskForm from '@/views/CreateTaskForm.vue'
+import CreateTaskForm from '@/views/teacher/CreateTaskForm.vue'
 import {
   User,
   ClipboardList,

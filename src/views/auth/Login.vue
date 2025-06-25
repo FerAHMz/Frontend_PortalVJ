@@ -8,13 +8,13 @@
         <form @submit.prevent="login">
           <input type="text" v-model="email" placeholder="Ingrese su correo" />
           <div class="password-container">
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              v-model="password" 
-              placeholder="Contraseña" 
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              v-model="password"
+              placeholder="Contraseña"
             />
-            <button 
-              type="button" 
+            <button
+              type="button"
               class="toggle-password"
               @click="showPassword = !showPassword"
             >
@@ -25,19 +25,59 @@
           <input type="submit" value="Ingresar" />
         </form>
       </main>
+
+      <!-- Notification Dialog -->
+      <NotificationDialog
+        :show="notification.show"
+        :type="notification.type"
+        :title="notification.title"
+        :message="notification.message"
+        :auto-close="notification.type === 'success'"
+        :auto-close-delay="2000"
+        @close="closeNotification"
+      />
     </div>
   </template>
-  
+
   <script setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { Eye, EyeOff } from 'lucide-vue-next'
-  
+  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+  import { setAuthData, getHomeRouteForRole } from '@/utils/auth.js'
+
   const email = ref('')
   const password = ref('')
   const showPassword = ref(false)
   const router = useRouter()
-  
+
+  const notification = ref({
+    show: false,
+    type: 'info',
+    title: '',
+    message: ''
+  })
+
+  const showNotification = (type, title, message) => {
+    notification.value = {
+      show: true,
+      type,
+      title,
+      message
+    }
+  }
+
+  const closeNotification = () => {
+    notification.value.show = false
+    // Si es un login exitoso, redirigir después de cerrar la notificación
+    if (notification.value.type === 'success') {
+      const role = localStorage.getItem('userRole')
+      if (role) {
+        router.push(getHomeRouteForRole(role))
+      }
+    }
+  }
+
   const login = async () => {
     try {
       const response = await fetch('http://localhost:3000/login', {
@@ -47,39 +87,33 @@
         },
         body: JSON.stringify({ email: email.value, password: password.value })
       })
-  
+
       const data = await response.json()
-  
+      console.log('Login response:', data) // Debug log
+
       if (data.success) {
-        // Store the token in localStorage
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userId', data.user.id)
-        
-        alert('Inicio de sesión exitoso')
-        const role = data.user.rol
-        if (role === 'Padre') {
-          router.push('/parent')
-        } else if (role === 'Maestro') {
-          router.push('/teacher')
-        } else if (role === 'Administrativo') {
-          router.push('/admin')
-        } else if (role === 'Director') {
-          router.push('/director')
-        } else if (role === 'SUP') {
-          router.push('/superuser')
-        } else {
-          alert('Rol desconocido')
-        }
+        // Store authentication data using the utility function
+        setAuthData(data.token, data.user.id, data.user.rol)
+
+        console.log('Auth data stored:', {
+          token: data.token ? 'exists' : 'missing',
+          userId: data.user.id,
+          userRole: data.user.rol
+        }) // Debug log
+
+        showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al sistema')
+
+        // The redirect will happen when the notification closes
       } else {
-        alert('Credenciales incorrectas')
+        showNotification('error', 'Error de autenticación', 'Credenciales incorrectas')
       }
     } catch (error) {
       console.error('Error en login:', error)
-      alert('Hubo un problema al conectarse al servidor.')
+      showNotification('error', 'Error de conexión', 'Hubo un problema al conectarse al servidor.')
     }
-}
+  }
   </script>
-  
+
   <style scoped>
   .login-container {
     height: 100vh;
@@ -87,7 +121,7 @@
     flex-direction: column;
     margin: 0;
   }
-  
+
   header {
     width: 100%;
     height: 30%;
@@ -104,7 +138,7 @@
     justify-content: center;
     align-items: center;
   }
-  
+
   main {
     position: relative;
     font-family: 'Inter', sans-serif;
@@ -117,7 +151,7 @@
     height: 100%;
     flex: 1;
   }
-  
+
   form {
     display: flex;
     flex-direction: column;
@@ -127,14 +161,14 @@
     gap: 15px;
     width: 35%;
   }
-  
+
   input {
     border-radius: 7px;
     border: 1px solid #ccc;
     width: 70%;
     height: 30px;
   }
-  
+
   input[type='submit'] {
     background: #008c1a;
     color: white;
@@ -142,19 +176,19 @@
     width: 100%;
     height: 40px;
   }
-  
+
   .password-container {
     position: relative;
     width: 70%;
     display: flex;
     align-items: center;
   }
-  
+
   .password-container input {
     width: 100%;
     padding-right: 40px;
   }
-  
+
   .toggle-password {
     position: absolute;
     right: 10px;
@@ -164,9 +198,8 @@
     color: #666;
     padding: 5px;
   }
-  
+
   .toggle-password:hover {
     color: #333;
   }
   </style>
-  
