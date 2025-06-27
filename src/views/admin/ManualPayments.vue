@@ -4,16 +4,16 @@
     <main class="control-de-pagos">
       <h1 class="page-title">Registro de Pagos</h1>
       <div class="separator"></div>
-      
+
       <div class="crud-actions">
         <button @click="openCreateModal" class="action-btn create">
           <Plus class="action-icon" /> Nuevo Pago
         </button>
         <div class="search-container">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="Buscar..." 
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Buscar..."
             class="search-input"
           />
           <Search class="search-icon" />
@@ -60,12 +60,12 @@
         <div class="modal-content">
           <h2>{{ editingItem ? 'Editar Pago' : 'Nuevo Pago' }}</h2>
           <form @submit.prevent="saveItem">
-            
+
             <div v-for="header in editableHeaders" :key="header.key" class="form-group">
               <label :for="header.key">{{ header.title }}</label>
-              <input 
-                :type="header.type || 'text'" 
-                v-model="formData[header.key]" 
+              <input
+                :type="header.type || 'text'"
+                v-model="formData[header.key]"
                 :id="header.key"
                 class="form-input"
                 :required="true"
@@ -93,8 +93,8 @@
 
             <div class="form-group">
               <label for="metodo_pago">Metodo de Pago</label>
-              <select 
-                v-model="formData.id_metodo_pago" 
+              <select
+                v-model="formData.id_metodo_pago"
                 id="metodo_pago"
                 class="form-input"
               >
@@ -103,7 +103,7 @@
                 </option>
               </select>
             </div>
-     
+
             <div class="modal-actions">
               <button type="button" @click="closeModal" class="modal-btn cancel">
                 Cancelar
@@ -115,7 +115,7 @@
           </form>
         </div>
       </div>
-      
+
       <ConfirmationDialogInput
         v-if="showConfirmModal"
         :title="'Confirmar Invalidación'"
@@ -141,7 +141,7 @@
       </ConfirmationDialogInput>
 
     </main>
-    <ErrorDialog 
+    <ErrorDialog
       :show="showTokenAlert"
       :errors="tokenErrors"
       @close="showTokenAlert = false"
@@ -154,10 +154,14 @@ import Sidebar from '@/components/Sidebar.vue'
 import { manualPaymentService } from '@/services/manualPaymentService';
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import ConfirmationDialogInput from '@/components/dialogs/ConfirmationDialogInput.vue'
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import { ref, computed, onMounted } from 'vue'
 import { Plus,  Edit, Trash, Search } from 'lucide-vue-next'
 import { useRoute } from 'vue-router';
+import { useNotifications } from '@/utils/useNotifications.js'
+
+const { showNotification } = useNotifications();
 
 const getAuthToken = () => {
   const token = localStorage.getItem('token');
@@ -288,23 +292,23 @@ const saveItem = async () => {
 
     if (editingItem.value) {
       await manualPaymentService.editPayment(editingItem.value.id, paymentData);
-      alert('Pago actualizado exitosamente');
+      showNotification('success', 'Éxito', 'Pago actualizado exitosamente');
     } else {
       await manualPaymentService.addPayment(paymentData);
-      alert('Pago agregado exitosamente');
+      showNotification('success', 'Éxito', 'Pago agregado exitosamente');
     }
     await fetchPayments();
     closeModal();
   } catch (error) {
     console.error('Error saving payment:', error);
-    alert(error.message || 'Error al guardar el pago');
+    showNotification('error', 'Error', error.message || 'Error al guardar el pago');
   }
 };
 
 const editPayment = (student) => {
   const token = getAuthToken();
   if (!token) return;
-  
+
   formData.value = {
     nombre_padre: student.nombre_padre || '',
     apellido_padre: student.apellido_padre || '',
@@ -331,16 +335,16 @@ const invalidateItem = async () => {
     }
 
     if (!razonInvalidacion.value.trim()) {
-      alert('Debe ingresar una razón de invalidación');
+      showNotification('warning', 'Atención', 'Debe ingresar una razón de invalidación');
       return;
     }
 
     // actualizar para jalar los reales
-    const usuarioId = 1; 
-    const tipoUsuario = 'Administrativo'; 
+    const usuarioId = 1;
+    const tipoUsuario = 'Administrativo';
 
-    //const usuarioId = store.getters.userId; 
-    //const tipoUsuario = store.getters.userRole; 
+    //const usuarioId = store.getters.userId;
+    //const tipoUsuario = store.getters.userRole;
 
     await manualPaymentService.invalidatePayment(itemToDelete.value.id, {
       razon: razonInvalidacion.value,
@@ -348,20 +352,20 @@ const invalidateItem = async () => {
       tipoUsuario,
     });
 
-    alert('Pago invalidado exitosamente');
+    showNotification('success', 'Éxito', 'Pago invalidado exitosamente');
     await fetchPayments();
     showConfirmModal.value = false;
-    razonInvalidacion.value = ''; 
+    razonInvalidacion.value = '';
   } catch (error) {
     console.error('Error invalidando el pago:', error);
-    alert(error.message || 'Error al invalidar el pago');
+    showNotification('error', 'Error', error.message || 'Error al invalidar el pago');
   } finally {
     deleting.value = false;
   }
 };
 
 const confirmInvalidatePayment = (student) => {
-  itemToDelete.value = { id: student.id_pago }; 
+  itemToDelete.value = { id: student.id_pago };
   showConfirmModal.value = true;
 }
 
@@ -482,7 +486,7 @@ header h1 {
   border-collapse: collapse;
 }
 
-.payments-table th, 
+.payments-table th,
 .payments-table td {
   border: 1px solid #e5e7eb;
   padding: 0.75rem;
@@ -765,15 +769,15 @@ input[type='text'] {
     padding: 1rem;
     margin-left: 0;
   }
-  
+
   .sidebar {
     display: none;
   }
-  
+
   .crud-actions {
     flex-direction: column;
   }
-  
+
   .data-table th, .data-table td {
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;

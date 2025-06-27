@@ -1,7 +1,7 @@
 <template>
     <div class="layout">
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
-      
+
       <main class="register-observation-container">
         <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
         <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
@@ -10,14 +10,14 @@
         <div class="separator"></div>
 
           <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
+            <input
+              type="text"
+              v-model="searchQuery"
               placeholder="Ingrese el nombre del estudiante..."
               class="search-input"
             >
           </div>
-  
+
           <div class="students-list">
             <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
               <div class="student-info">
@@ -34,23 +34,28 @@
               </div>
             </div>
           </div>
+
+          <NotificationDialog />
       </main>
     </div>
   </template>
-  
+
   <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
+  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
-  
+  import { useNotifications } from '@/utils/useNotifications'
+
+  const { showNotification } = useNotifications()
   const route = useRoute()
   const router = useRouter()
   const courseData = ref(null)
   const students = ref([])
   const searchQuery = ref('')
   const saving = ref(false)
-  
+
   const menuItems = [
     { label: 'Perfil', icon: User, path: '/teacher' },
     { label: 'Tablero', icon: ClipboardList },
@@ -59,16 +64,16 @@
     { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
     { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
   ]
-  
+
   const filteredStudents = computed(() => {
     if (!searchQuery.value) return students.value
     const query = searchQuery.value.toLowerCase()
-    return students.value.filter(student => 
+    return students.value.filter(student =>
       `${student.nombre} ${student.apellido}`.toLowerCase().includes(query) ||
       student.carnet.toString().includes(query)
     )
   })
-  
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('es-GT', {
       year: 'numeric',
@@ -97,7 +102,7 @@
       }
     })
   }
-  
+
   const fetchStudents = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -115,11 +120,11 @@
       }))
     } catch (error) {
       console.error('Error fetching students:', error)
-      alert('Error al cargar los estudiantes')
+      showNotification('Error al cargar los estudiantes', 'error')
     }
   }
-  
-  
+
+
   onMounted(async () => {
     const savedCourse = sessionStorage.getItem('currentCourse')
     if (savedCourse) {
@@ -127,44 +132,44 @@
       await fetchStudents()
     }
   })
-  
+
   const handleItemClick = (path) => {
     if (path) {
       router.push(path)
     }
   }
   </script>
-  
+
   <style scoped>
   .layout {
     display: flex;
     min-height: 100vh;
   }
-  
+
   .register-observation-container {
     flex: 1;
     padding: 2rem;
     margin-left: 130px;
   }
-  
+
   .page-title {
     font-size: 2rem;
     font-weight: bold;
     color: #000;
     margin-bottom: 0.5rem;
   }
-  
+
   .course-subtitle {
     color: #555;
     font-size: 1.1rem;
     margin-bottom: 1rem;
   }
-  
+
   .separator {
     border-bottom: 2px solid #000;
     margin-bottom: 1.5rem;
   }
-  
+
   .observation-form {
     max-width: 600px;
     margin: 0 auto;
@@ -190,11 +195,11 @@
     gap: 1rem;
     margin-top: 2rem;
   }
-  
+
   .search-container {
     margin-bottom: 2rem;
   }
-  
+
   .search-input {
     width: 100%;
     max-width: 400px;
@@ -203,13 +208,13 @@
     border-radius: 4px;
     font-size: 1rem;
   }
-  
+
   .students-list {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  
+
   .student-row {
     display: flex;
     justify-content: space-between;
@@ -217,22 +222,22 @@
     padding: 1rem;
     border-bottom: 1px solid #eee;
   }
-  
+
   .student-info {
     display: flex;
     flex-direction: column;
   }
-  
+
   .student-name {
     font-weight: 500;
   }
-  
+
   .student-id {
     color: #666;
     font-size: 0.9rem;
   }
 
-  
+
   .actions {
     margin-top: 2rem;
     display: flex;
@@ -243,7 +248,7 @@
     display: flex;
     gap: 1rem;
   }
-  
+
   .save-btn {
     background: #1b9963;
     color: white;
@@ -253,14 +258,14 @@
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.2s ease;
-    white-space: nowrap; 
+    white-space: nowrap;
   }
 
   .save-btn:active {
     transform: translateY(0);
     box-shadow: none;
   }
-  
+
   .save-btn:disabled {
     background: #ccc;
     cursor: not-allowed;

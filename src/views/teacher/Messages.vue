@@ -125,14 +125,21 @@
         </div>
       </div>
     </main>
+
+    <!-- Notificaciones -->
+    <NotificationDialog />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
 import { messageService } from '@/services/messageService';
+import { useNotifications } from '@/utils/useNotifications.js';
+
+const { showNotification } = useNotifications();
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -202,12 +209,12 @@ const closeNewConversationModal = () => {
 const createNewConversation = async () => {
   try {
     if (!selectedUser.value) {
-      alert('Por favor seleccione un usuario para enviar el mensaje');
+      showNotification('warning', 'Atención', 'Por favor seleccione un usuario para enviar el mensaje');
       return;
     }
 
     if (!newConversation.value.subject || !newConversation.value.content) {
-      alert('Por favor complete todos los campos requeridos');
+      showNotification('warning', 'Atención', 'Por favor complete todos los campos requeridos');
       return;
     }
 
@@ -220,22 +227,22 @@ const createNewConversation = async () => {
 
     await messageService.sendMessage(payload);
     await fetchConversations();
-    alert('Conversación creada exitosamente');
+    showNotification('success', 'Éxito', 'Conversación creada exitosamente');
     closeNewConversationModal();
   } catch (error) {
     console.error('Error creating conversation:', error);
-    alert('Error al crear la conversación: ' + error.message);
+    showNotification('error', 'Error', 'Error al crear la conversación: ' + error.message);
   }
 };
 
 const sendMessage = async () => {
   if (!selectedConversation.value || !selectedConversation.value[0]) {
-    alert('No hay una conversación seleccionada');
+    showNotification('warning', 'Atención', 'No hay una conversación seleccionada');
     return;
   }
 
   if (!newMessageContent.value.trim()) {
-    alert('Por favor escriba un mensaje');
+    showNotification('warning', 'Atención', 'Por favor escriba un mensaje');
     return;
   }
 
@@ -251,7 +258,7 @@ const sendMessage = async () => {
     newMessageContent.value = '';
   } catch (error) {
     console.error('Error sending message:', error);
-    alert('Error al enviar el mensaje: ' + error.message);
+    showNotification('error', 'Error', 'Error al enviar el mensaje: ' + error.message);
   }
 };
 
@@ -275,7 +282,7 @@ const selectUser = (user) => {
     console.error('Invalid user data:', user);
     return;
   }
-  
+
   selectedUser.value = user
   searchResults.value = []
   searchQuery.value = ''

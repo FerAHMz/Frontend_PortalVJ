@@ -20,7 +20,7 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, Settings, BookOpen, Users, BarChart3, Shield } from 'lucide-vue-next'
+import { User, Settings, BookOpen } from 'lucide-vue-next'
 import adminImg from '@/assets/maestro.png' // Usando la misma imagen por ahora
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -39,10 +39,7 @@ const error = ref(null)
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/superuser/profile' },
   { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
-  { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
-  { label: 'Administración', icon: Shield, path: '/superuser/admin' },
-  { label: 'Personal', icon: Users, path: '/superuser/staff' },
-  { label: 'Reportes del Sistema', icon: BarChart3, path: '/superuser/reports' }
+  { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' }
 ]
 
 const handleItemClick = (item) => {

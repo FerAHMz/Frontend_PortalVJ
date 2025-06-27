@@ -5,11 +5,11 @@
       <h1 class="page-title"> Boleta de calificaciones</h1>
       <div class="separator"></div>
 
-      
+
         <div class="search-container">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
+          <input
+            type="text"
+            v-model="searchQuery"
             placeholder="Ingrese el nombre del estudiante..."
             class="search-input"
           >
@@ -61,6 +61,8 @@
           </div>
         </div>
       </div>
+
+      <NotificationDialog />
     </main>
   </div>
 </template>
@@ -69,9 +71,12 @@
   import { ref, computed, onMounted, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
+  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
   import reportCardService from '@/services/reportCardService'
+  import { useNotifications } from '@/utils/useNotifications'
 
+  const { showNotification } = useNotifications()
   const route = useRoute()
   const router = useRouter()
   const students = ref([])
@@ -87,7 +92,7 @@
     { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
     { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
   ]
-  
+
 
 //aca busqueda por nombre, apellido o carnet
   const filteredStudents = computed(() => {
@@ -104,8 +109,8 @@
   });
 
   const searchGradeYear = ref({
-    gradeSectionId: '', 
-    year: ''  
+    gradeSectionId: '',
+    year: ''
   })
 
   const formatDate = (date) => {
@@ -118,11 +123,11 @@
 
   const viewReportCard = (student) => {
     sessionStorage.setItem('studentData', JSON.stringify(student))
-  
-    router.push({ 
-      name: 'ReportCard', 
-      params: { 
-        carnet_estudiante: student.carnet 
+
+    router.push({
+      name: 'ReportCard',
+      params: {
+        carnet_estudiante: student.carnet
       },
       query: {
         gradeSectionId: parseInt(searchGradeYear.value.gradeSectionId),
@@ -139,7 +144,7 @@
       const token = localStorage.getItem('token');
       const response = await reportCardService.fetchStudentsGradeSection(
         searchGradeYear.value.gradeSectionId,
-        selectedTrimester.value, 
+        selectedTrimester.value,
         parseInt(searchGradeYear.value.year)
       );
 
@@ -147,7 +152,7 @@
       console.log('Estudiantes cargados en Report Card:', students.value);
     } catch (error) {
       console.error('Error fetching students in report card:', error);
-      alert('Error al cargar los estudiantes');
+      showNotification('Error al cargar los estudiantes', 'error');
     }
   };
 
@@ -164,7 +169,7 @@
       const currentYear = new Date().getFullYear();
       searchGradeYear.value.year = currentYear;
 
-      fetchStudents(); 
+      fetchStudents();
     } catch (error) {
       console.error('Error al cargar grados y secciones:', error);
     }
@@ -183,31 +188,31 @@
     display: flex;
     min-height: 100vh;
   }
-  
+
   .report-card-container {
     flex: 1;
     padding: 2rem;
     margin-left: 130px;
   }
-  
+
   .page-title {
     font-size: 2rem;
     font-weight: bold;
     color: #000;
     margin-bottom: 0.5rem;
   }
-  
+
   .course-subtitle {
     color: #555;
     font-size: 1.1rem;
     margin-bottom: 1rem;
   }
-  
+
   .separator {
     border-bottom: 2px solid #000;
     margin-bottom: 1.5rem;
   }
-  
+
   .search-container {
     margin-bottom: 2rem;
   }
@@ -222,7 +227,7 @@
 
   .filter-item {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     gap: 0.5rem;
   }
 
@@ -230,15 +235,15 @@
   .input-year {
     padding: 0.5rem;
     font-size: 1rem;
-    width: 220px; 
+    width: 220px;
   }
 
   .filter-item label {
-    display: block;       
-    margin-bottom: 0.5rem; 
+    display: block;
+    margin-bottom: 0.5rem;
   }
 
-  
+
   .search-input {
     width: 100%;
     max-width: 400px;
@@ -263,13 +268,13 @@
     border-radius: 4px;
     font-size: 1rem;
   }
-  
+
   .students-list {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
-  
+
   .student-row {
     display: flex;
     justify-content: space-between;
@@ -277,16 +282,16 @@
     padding: 1rem;
     border-bottom: 1px solid #eee;
   }
-  
+
   .student-info {
     display: flex;
     flex-direction: column;
   }
-  
+
   .student-name {
     font-weight: 500;
   }
-  
+
   .student-id {
     color: #666;
     font-size: 0.9rem;
@@ -308,7 +313,7 @@
     display: flex;
     gap: 1rem;
   }
-  
+
   .save-btn {
     background: #1b9963;
     color: white;
@@ -318,14 +323,14 @@
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.2s ease;
-    white-space: nowrap; 
+    white-space: nowrap;
   }
 
   .save-btn:active {
     transform: translateY(0);
     box-shadow: none;
   }
-  
+
   .save-btn:disabled {
     background: #ccc;
     cursor: not-allowed;

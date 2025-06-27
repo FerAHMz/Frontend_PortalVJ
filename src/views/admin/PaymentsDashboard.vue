@@ -13,10 +13,10 @@
           <button @click="toggleDropdown" class="dropbtn">Grado</button>
           <div v-show="dropdownVisible" class="dropdown-content">
             <a href="#" @click.prevent="filterByGrade(null)">Todos los Grados</a>
-            <a 
-              v-for="grade in grades" 
-              :key="grade.id" 
-              href="#" 
+            <a
+              v-for="grade in grades"
+              :key="grade.id"
+              href="#"
               @click.prevent="filterByGrade(grade.grado)"
             >
               {{ grade.grado }}
@@ -25,19 +25,19 @@
         </div>
       </div>
       <div class="additional-filters">
-        <input 
-          type="text" 
-          placeholder="Carnet" 
-          v-model="carnetQuery" 
-          @input="filterByCarnet" 
+        <input
+          type="text"
+          placeholder="Carnet"
+          v-model="carnetQuery"
+          @input="filterByCarnet"
         />
         <input type="date" placeholder="Fecha Inicio" aria-label="Fecha Inicio" />
         <input type="date" placeholder="Fecha Fin" aria-label="Fecha Fin" />
       </div>
       <div class="students-list">
-        <div 
-          v-for="student in filteredStudents" 
-          :key="student.id" 
+        <div
+          v-for="student in filteredStudents"
+          :key="student.id"
           class="student-item"
           :class="{ solvente: student.status === 'Solvente', noSolvente: student.status === 'No Solvente' }"
           @click="navigateToStudentPayments(student.id)"
@@ -47,22 +47,28 @@
         </div>
       </div>
     </div>
-    <ErrorDialog 
+    <ErrorDialog
       :show="showTokenAlert"
       :errors="tokenErrors"
       @close="showTokenAlert = false"
     />
+
+    <NotificationDialog />
   </div>
 </template>
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { ref, computed, onMounted } from 'vue'
 import { User, CreditCard } from 'lucide-vue-next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
+import { useNotifications } from '@/utils/useNotifications'
+
+const { showNotification } = useNotifications()
 
 const getAuthToken = () => {
   const token = localStorage.getItem('token');
@@ -196,16 +202,16 @@ const generatePDF = async () => {
     doc.save('reporte_completo_pagos.pdf');
   } catch (error) {
     console.error('Error generating PDF:', error);
-    alert('Error al generar el PDF');
+    showNotification('Error al generar el PDF', 'error');
   }
 };
 
 const router = useRouter();
 
 const navigateToStudentPayments = (studentId) => {
-  router.push({ 
-    path: '/admin/payments/registro-de-pagos', 
-    query: { carnet: studentId } 
+  router.push({
+    path: '/admin/payments/registro-de-pagos',
+    query: { carnet: studentId }
   });
 };
 

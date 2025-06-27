@@ -1,7 +1,7 @@
 <template>
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
-    
+
     <main class="register-grade-container">
       <h1 class="page-title">{{ courseData?.materia }} - Registrar Notas</h1>
       <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
@@ -13,8 +13,8 @@
       <div v-if="!selectedTask" class="tasks-section">
         <h2>Seleccionar Tarea</h2>
         <div class="tasks-list">
-          <div v-for="task in tasks" :key="task.id" 
-               class="task-item" 
+          <div v-for="task in tasks" :key="task.id"
+               class="task-item"
                @click="selectTask(task)">
             <h3>{{ task.titulo }}</h3>
             <div class="task-details">
@@ -35,9 +35,9 @@
         </div>
 
         <div class="search-container">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
+          <input
+            type="text"
+            v-model="searchQuery"
             placeholder="Ingrese el nombre del estudiante..."
             class="search-input"
           >
@@ -50,16 +50,16 @@
               <span class="student-id">Carnet: {{ student.carnet }}</span>
             </div>
             <div class="grade-input">
-              <input 
-                type="number" 
-                v-model="student.grade" 
+              <input
+                type="number"
+                v-model="student.grade"
                 :max="selectedTask.valor"
                 min="0"
                 step="0.01"
                 placeholder="Nota"
               >
               <span class="max-points">/ {{ selectedTask.valor }}</span>
-              <button 
+              <button
                 @click="handleGradeAction(student)"
                 :class="['grade-action-btn', student.hasExistingGrade ? 'update' : 'create']"
               >
@@ -75,6 +75,8 @@
           </button>
         </div>
       </div>
+
+      <NotificationDialog />
     </main>
   </div>
 </template>
@@ -83,8 +85,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { useNotifications } from '@/utils/useNotifications'
 
+const { showNotification } = useNotifications()
 const route = useRoute()
 const router = useRouter()
 const courseData = ref(null)
@@ -106,7 +111,7 @@ const menuItems = [
 const filteredStudents = computed(() => {
   if (!searchQuery.value) return students.value
   const query = searchQuery.value.toLowerCase()
-  return students.value.filter(student => 
+  return students.value.filter(student =>
     `${student.nombre} ${student.apellido}`.toLowerCase().includes(query) ||
     student.carnet.toString().includes(query)
   )
@@ -168,10 +173,10 @@ const fetchTaskGrades = async (taskId) => {
 const selectTask = async (task) => {
   selectedTask.value = task
   const existingGrades = await fetchTaskGrades(task.id)
-  
+
   students.value = students.value.map(student => {
-    const studentGrade = existingGrades.find(g => 
-      g.carnet_estudiante === student.carnet && 
+    const studentGrade = existingGrades.find(g =>
+      g.carnet_estudiante === student.carnet &&
       g.id_tarea === task.id
     )
     return {
@@ -186,7 +191,7 @@ const handleGradeAction = async (student) => {
   try {
     const token = localStorage.getItem('token')
     const baseUrl = `http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks/${selectedTask.value.id}/grades`
-    
+
     if (student.hasExistingGrade) {
       const response = await fetch(`${baseUrl}/${student.carnet}`, {
         method: 'PUT',
@@ -197,7 +202,7 @@ const handleGradeAction = async (student) => {
         body: JSON.stringify({ nota: parseFloat(student.grade) })
       })
       if (!response.ok) throw new Error('Error al actualizar la calificación')
-      alert('Calificación actualizada exitosamente')
+      showNotification('Calificación actualizada exitosamente', 'success')
     } else {
       const response = await fetch(baseUrl, {
         method: 'POST',
@@ -205,7 +210,7 @@ const handleGradeAction = async (student) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           grades: [{
             carnet_estudiante: student.carnet,
             id_curso: parseInt(route.params.courseId),
@@ -216,11 +221,11 @@ const handleGradeAction = async (student) => {
       })
       if (!response.ok) throw new Error('Error al guardar la calificación')
       student.hasExistingGrade = true
-      alert('Calificación guardada exitosamente')
+      showNotification('Calificación guardada exitosamente', 'success')
     }
   } catch (error) {
     console.error('Error handling grade:', error)
-    alert(error.message)
+    showNotification(error.message, 'error')
   }
 }
 
@@ -250,12 +255,12 @@ const saveGrades = async () => {
       throw new Error('Error al guardar las calificaciones')
     }
 
-    alert('Calificaciones guardadas exitosamente')
+    showNotification('Calificaciones guardadas exitosamente', 'success')
     selectedTask.value = null
-    await fetchTasks() 
+    await fetchTasks()
   } catch (error) {
     console.error('Error saving grades:', error)
-    alert('Error al guardar las calificaciones')
+    showNotification('Error al guardar las calificaciones', 'error')
   } finally {
     saving.value = false
   }
@@ -266,10 +271,10 @@ onMounted(async () => {
   if (savedCourse) {
     courseData.value = JSON.parse(savedCourse)
     await Promise.all([fetchTasks(), fetchStudents()])
-    
+
     const savedTask = sessionStorage.getItem('selectedTask')
     const directSelection = sessionStorage.getItem('directTaskSelection')
-    
+
     if (savedTask && directSelection) {
       const task = JSON.parse(savedTask)
       await selectTask(task)

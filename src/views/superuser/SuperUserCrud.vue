@@ -4,22 +4,22 @@
     <main class="crud-container">
       <h1 class="page-title">Panel de Super Usuario</h1>
       <div class="separator"></div>
-      
+
       <div class="crud-actions">
         <button @click="openCreateModal" class="action-btn create">
           <Plus class="action-icon" /> Nuevo Registro
         </button>
         <div class="search-container">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="Buscar..." 
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Buscar..."
             class="search-input"
           >
           <Search class="search-icon" />
         </div>
       </div>
-      
+
       <div class="table-container">
         <table class="data-table">
           <thead>
@@ -54,7 +54,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <!-- Modal para crear/editar -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
@@ -62,8 +62,8 @@
           <form @submit.prevent="saveItem">
             <div class="form-group">
               <label for="rol">Rol</label>
-              <select 
-                v-model="formData.rol" 
+              <select
+                v-model="formData.rol"
                 id="rol"
                 class="form-input"
                 required
@@ -73,31 +73,31 @@
                 </option>
               </select>
             </div>
-            
+
             <div v-for="header in editableHeaders" :key="header.key" class="form-group">
               <label :for="header.key">{{ header.title }}</label>
-              <input 
-                :type="header.type || 'text'" 
-                v-model="formData[header.key]" 
+              <input
+                :type="header.type || 'text'"
+                v-model="formData[header.key]"
                 :id="header.key"
                 class="form-input"
                 :required="true"
               />
             </div>
-            
+
             <div v-if="!editingItem" class="form-group">
               <label for="password">Contraseña</label>
               <div class="password-input-container">
-                <input 
-                  :type="showPassword ? 'text' : 'password'" 
-                  v-model="formData.password" 
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="formData.password"
                   id="password"
                   class="form-input"
                   required
                 />
-                <button 
-                  type="button" 
-                  class="password-toggle" 
+                <button
+                  type="button"
+                  class="password-toggle"
                   @click="showPassword = !showPassword"
                 >
                   <Eye v-if="!showPassword" class="action-icon" />
@@ -117,7 +117,7 @@
           </form>
         </div>
       </div>
-      
+
       <ModalConfirmacion
           v-if="showConfirmModal"
           :visible="showConfirmModal"
@@ -131,17 +131,27 @@
           @cancel="showConfirmModal = false"
       />
     </main>
+
+    <!-- Notificaciones -->
+    <NotificationDialog />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen } from 'lucide-vue-next'
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
+import { useNotifications } from '@/utils/useNotifications.js'
+import { useRouter } from 'vue-router'
+
+const { showNotification } = useNotifications();
+const router = useRouter()
 
 const menuItems = [
+    { label: 'Perfil', icon: User, path: '/superuser/profile' },
     { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
     { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' }
 ]
@@ -220,7 +230,7 @@ const deleteItem = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('No se encontró token de autenticación');
+      showNotification('error', 'Error', 'No se encontró token de autenticación');
       return;
     }
     deleting.value = true;
@@ -230,26 +240,26 @@ const deleteItem = async () => {
     }
 
     await userService.deleteUser(itemToDelete.value.id, itemToDelete.value.rol);
-    alert('Usuario desactivado exitosamente');
+    showNotification('success', 'Éxito', 'Usuario desactivado exitosamente');
     await fetchUsers();
     showConfirmModal.value = false;
   } catch (error) {
     console.error('Error desactivando usuario:', error);
-    alert(error.message || 'Error al desactivar el usuario');
+    showNotification('error', 'Error', error.message || 'Error al desactivar el usuario');
   } finally {
     deleting.value = false;
   }
 };
 
-const editableHeaders = computed(() => headers.filter(h => 
+const editableHeaders = computed(() => headers.filter(h =>
   !['id', 'rol'].includes(h.key)
 ))
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) return items.value
   const query = searchQuery.value.toLowerCase()
-  return items.value.filter(item => 
-    Object.values(item).some(val => 
+  return items.value.filter(item =>
+    Object.values(item).some(val =>
       String(val).toLowerCase().includes(query)
     )
   )
@@ -272,7 +282,7 @@ const saveItem = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('No se encontró token de autenticación');
+      showNotification('error', 'Error', 'No se encontró token de autenticación');
       return;
     }
 
@@ -293,17 +303,17 @@ const saveItem = async () => {
     if (editingItem.value) {
       userData.rolAnterior = editingItem.value.rol;
       await userService.updateUser(editingItem.value.id, userData);
-      alert('Usuario actualizado exitosamente');
+      showNotification('success', 'Éxito', 'Usuario actualizado exitosamente');
     } else {
       await userService.createUser(userData);
-      alert('Usuario creado exitosamente');
+      showNotification('success', 'Éxito', 'Usuario creado exitosamente');
     }
     await fetchUsers();
     closeModal();
   } catch (error) {
     console.error('Error saving user:', error);
     let errorMessage = 'Error al guardar el usuario';
-    
+
     if (error.message.includes('duplicate key')) {
       if (error.message.includes('telefono_key')) {
         errorMessage = 'El número de teléfono ya está registrado';
@@ -313,8 +323,8 @@ const saveItem = async () => {
     } else if (error.message.includes('not-null constraint')) {
       errorMessage = 'Todos los campos requeridos deben ser completados';
     }
-    
-    alert(errorMessage);
+
+    showNotification('error', 'Error', errorMessage);
   }
 };
 
@@ -565,19 +575,19 @@ const handleItemClick = (item) => {
     padding: 1rem;
     margin-left: 0;
   }
-  
+
   .sidebar {
     display: none;
   }
-  
+
   .crud-actions {
     flex-direction: column;
   }
-  
+
   .search-container {
     max-width: 100%;
   }
-  
+
   .data-table th, .data-table td {
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;

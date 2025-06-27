@@ -20,7 +20,7 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, CreditCard, FileText, Users } from 'lucide-vue-next'
+import { User, CreditCard } from 'lucide-vue-next'
 import secretariaImg from '@/assets/secretaria.jpg'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -38,9 +38,7 @@ const error = ref(null)
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
-  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' },
-  { label: 'Reportes', icon: FileText, path: '/admin/reports' },
-  { label: 'Estudiantes', icon: Users, path: '/admin/students' }
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
 ]
 
 const handleItemClick = (item) => {

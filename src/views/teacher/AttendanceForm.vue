@@ -99,6 +99,8 @@
             <p>No hay estudiantes que coincidan con los filtros.</p>
           </div>
         </div>
+        
+        <NotificationDialog />
       </main>
     </div>
   </template>
@@ -107,6 +109,7 @@
   import { ref, onMounted, watch, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
+  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import {
     User,
     ClipboardList,
@@ -119,7 +122,9 @@
     CircleX
   } from 'lucide-vue-next'
   import attendanceService from '@/services/attendanceService'
+  import { useNotifications } from '@/utils/useNotifications'
   
+  const { showNotification } = useNotifications()
   const route = useRoute()
   const router = useRouter()
   
@@ -182,7 +187,7 @@
       saved.value = Object.values(a).some(v => v === 'present' || v === 'absent')
     } catch (err) {
       console.error(err)
-      alert(err.message || 'Error cargando asistencia')
+      showNotification(err.message || 'Error cargando asistencia', 'error')
     }
   }
   
@@ -194,10 +199,10 @@
         attendanceStatus.value
       )
       saved.value = true
-      alert('Asistencia guardada correctamente')
+      showNotification('Asistencia guardada correctamente', 'success')
     } catch (err) {
       console.error(err)
-      alert(err.message || 'Error al guardar asistencia')
+      showNotification(err.message || 'Error al guardar asistencia', 'error')
     }
   }
   

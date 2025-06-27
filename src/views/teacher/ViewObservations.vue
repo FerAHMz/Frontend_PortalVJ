@@ -51,6 +51,9 @@
         </tbody>
       </table>
     </main>
+    
+    <!-- Notificaciones -->
+    <NotificationDialog />
   </div>
 </template>
 
@@ -58,14 +61,17 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import observationsService from '@/services/observationsService'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { useNotifications } from '@/utils/useNotifications.js'
 
 const route = useRoute()
 const router = useRouter()
 const courseData = ref(null)
 const studentData = ref(null)
 const observations = ref([])
+const { showNotification } = useNotifications()
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -107,7 +113,7 @@ const fetchObservations = async () => {
       response: error.response?.data
     })
     observations.value = []
-    alert('Error al obtener las observaciones')
+    showNotification('error', 'Error', 'Error al obtener las observaciones')
   }
 }
 
@@ -131,9 +137,9 @@ const saveObservation = async (obs) => {
     
     await fetchObservations();
     
-    alert('Observación actualizada correctamente')
+    showNotification('success', 'Éxito', 'Observación actualizada correctamente')
   } catch (error) {
-    alert('Error al actualizar la observación')
+    showNotification('error', 'Error', 'Error al actualizar la observación')
     console.error(error)
   }
 }
@@ -144,9 +150,9 @@ const deleteObservation = async (id) => {
   try {
     await observationsService.deleteObservation(id)
     observations.value = observations.value.filter(obs => obs.id !== id)
-    alert('Observación eliminada correctamente')
+    showNotification('success', 'Éxito', 'Observación eliminada correctamente')
   } catch (error) {
-    alert('Error al eliminar observación')
+    showNotification('error', 'Error', 'Error al eliminar observación')
     console.error(error)
   }
 }

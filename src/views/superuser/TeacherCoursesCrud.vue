@@ -4,22 +4,22 @@
       <main class="crud-container">
         <h1 class="page-title">Gestión de Cursos - Profesores</h1>
         <div class="separator"></div>
-        
+
         <div class="crud-actions">
           <button @click="openCreateModal" class="action-btn create">
             <Plus class="action-icon" /> Asignar Curso
           </button>
           <div class="search-container">
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Buscar..." 
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Buscar..."
               class="search-input"
             >
             <Search class="search-icon" />
           </div>
         </div>
-        
+
         <div class="table-container">
           <table class="data-table">
             <thead>
@@ -46,7 +46,7 @@
             </tbody>
           </table>
         </div>
-        
+
         <!-- Modal para asignar curso -->
         <div v-if="showModal" class="modal-overlay">
           <div class="modal-content">
@@ -54,8 +54,8 @@
             <form @submit.prevent="saveItem">
               <div class="form-group">
                 <label for="maestro">Profesor</label>
-                <select 
-                  v-model="formData.id_maestro" 
+                <select
+                  v-model="formData.id_maestro"
                   id="maestro"
                   class="form-input"
                   required
@@ -65,11 +65,11 @@
                   </option>
                 </select>
               </div>
-  
+
               <div class="form-group">
                 <label for="materia">Materia</label>
-                <select 
-                  v-model="formData.id_materia" 
+                <select
+                  v-model="formData.id_materia"
                   id="materia"
                   class="form-input"
                   required
@@ -79,11 +79,11 @@
                   </option>
                 </select>
               </div>
-  
+
               <div class="form-group">
                 <label for="grado">Grado</label>
-                <select 
-                  v-model="formData.id_grado" 
+                <select
+                  v-model="formData.id_grado"
                   id="grado"
                   class="form-input"
                   required
@@ -93,11 +93,11 @@
                   </option>
                 </select>
               </div>
-  
+
               <div class="form-group">
                 <label for="seccion">Sección</label>
-                <select 
-                  v-model="formData.id_seccion" 
+                <select
+                  v-model="formData.id_seccion"
                   id="seccion"
                   class="form-input"
                   required
@@ -107,7 +107,7 @@
                   </option>
                 </select>
               </div>
-  
+
               <div class="modal-actions">
                 <button type="button" @click="closeModal" class="modal-btn cancel">
                   Cancelar
@@ -119,7 +119,7 @@
             </form>
           </div>
         </div>
-        
+
         <ModalConfirmacion
             v-if="showConfirmModal"
             :visible="showConfirmModal"
@@ -132,31 +132,37 @@
             @confirm="deleteItem"
             @cancel="showConfirmModal = false"
         />
+
+        <NotificationDialog />
       </main>
     </div>
   </template>
-  
+
   <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
-  import { Settings, Plus, Search, Trash, BookOpen } from 'lucide-vue-next'
+  import { Settings, Plus, Search, Trash, BookOpen, User } from 'lucide-vue-next'
   import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
+  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import { courseService } from '@/services/courseService'
-  
+  import { useNotifications } from '@/utils/useNotifications'
+
+  const { showNotification } = useNotifications()
   const router = useRouter()
-  
+
   const handleItemClick = (item) => {
     if (item.path) {
       router.push(item.path)
     }
   }
-  
+
   const menuItems = [
+    { label: 'Perfil', icon: User, path: '/superuser/profile' },
     { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
     { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' }
     ]
-  
+
   const headers = [
     { key: 'id', title: 'ID' },
     { key: 'maestro', title: 'Profesor' },
@@ -164,7 +170,7 @@
     { key: 'grado', title: 'Grado' },
     { key: 'seccion', title: 'Sección' }
   ]
-  
+
   const items = ref([])
   const teachers = ref([])
   const subjects = ref([])
@@ -182,30 +188,30 @@
     id_grado_seccion: ''
   })
   const deleting = ref(false)
-  
+
   const filteredItems = computed(() => {
     let result = items.value;
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase();
-      result = items.value.filter(item => 
-        Object.values(item).some(val => 
+      result = items.value.filter(item =>
+        Object.values(item).some(val =>
           String(val).toLowerCase().includes(query)
         )
       );
     }
     return result.sort((a, b) => a.id - b.id);
   })
-  
+
   const fetchCourses = async () => {
     try {
       const response = await courseService.getCourses()
       items.value = response.data
     } catch (error) {
       console.error('Error al obtener cursos:', error)
-      alert('Error al cargar los cursos')
+      showNotification('Error al cargar los cursos', 'error')
     }
   }
-  
+
   const fetchTeachers = async () => {
     try {
       const response = await courseService.getTeachers()
@@ -214,7 +220,7 @@
       console.error('Error al obtener profesores:', error)
     }
   }
-  
+
   const fetchSubjects = async () => {
     try {
       const response = await courseService.getSubjects()
@@ -223,7 +229,7 @@
       console.error('Error al obtener materias:', error)
     }
   }
-  
+
   const fetchGrades = async () => {
     try {
       const response = await courseService.getGrades()
@@ -232,7 +238,7 @@
       console.error('Error al obtener grados:', error)
     }
   }
-  
+
   const fetchSections = async () => {
     try {
       const response = await courseService.getSections()
@@ -241,7 +247,7 @@
       console.error('Error al obtener secciones:', error)
     }
   }
-  
+
   const openCreateModal = () => {
     formData.value = {
       id_maestro: '',
@@ -251,11 +257,11 @@
     }
     showModal.value = true
   }
-  
+
   const closeModal = () => {
     showModal.value = false
   }
-  
+
   const saveItem = async () => {
     try {
       // Primero crear el registro en grado_seccion
@@ -263,47 +269,47 @@
         id_grado: formData.value.id_grado,
         id_seccion: formData.value.id_seccion
       }
-      
+
       // Hacer la petición para crear o obtener el id_grado_seccion
       const gradoSeccionResponse = await courseService.createGradoSeccion(gradoSeccionData)
-      
+
       // Crear el objeto de datos para el curso
       const courseData = {
         id_maestro: formData.value.id_maestro,
         id_materia: formData.value.id_materia,
         id_grado_seccion: gradoSeccionResponse.data.id // Usar el ID obtenido
       }
-      
+
       await courseService.createCourse(courseData)
       await fetchCourses()
       closeModal()
-      alert('Curso asignado exitosamente')
+      showNotification('Curso asignado exitosamente', 'success')
     } catch (error) {
       console.error('Error al guardar curso:', error)
-      alert('Error al asignar el curso')
+      showNotification('Error al asignar el curso', 'error')
     }
   }
-  
+
   const confirmDelete = (item) => {
     itemToDelete.value = item
     showConfirmModal.value = true
   }
-  
+
   const deleteItem = async () => {
     try {
       deleting.value = true
       await courseService.deleteCourse(itemToDelete.value.id)
       await fetchCourses()
       showConfirmModal.value = false
-      alert('Curso eliminado exitosamente')
+      showNotification('Curso eliminado exitosamente', 'success')
     } catch (error) {
       console.error('Error eliminando curso:', error)
-      alert('Error al eliminar el curso')
+      showNotification('Error al eliminar el curso', 'error')
     } finally {
       deleting.value = false
     }
   }
-  
+
   onMounted(() => {
     fetchCourses()
     fetchTeachers()
@@ -312,31 +318,31 @@
     fetchSections()
   })
   </script>
-  
+
   <style scoped>
   .layout {
     display: flex;
     min-height: 100vh;
   }
-  
+
   .crud-container {
     flex: 1;
     padding: 2rem;
     margin-left: 130px;
   }
-  
+
   .page-title {
     font-size: 2rem;
     font-weight: bold;
     color: #000;
     margin-bottom: 1rem;
   }
-  
+
   .separator {
     border-bottom: 2px solid #000;
     margin-bottom: 1.5rem;
   }
-  
+
   .crud-actions {
     display: flex;
     justify-content: space-between;
@@ -344,7 +350,7 @@
     gap: 1rem;
     flex-wrap: wrap;
   }
-  
+
   .action-btn {
     display: flex;
     align-items: center;
@@ -355,28 +361,28 @@
     cursor: pointer;
     transition: all 0.3s ease;
   }
-  
+
   .action-btn.create {
     background-color: #1b9963;
     color: white;
     border: none;
   }
-  
+
   .action-btn.create:hover {
     background-color: #158a50;
   }
-  
+
   .action-icon {
     width: 18px;
     height: 18px;
   }
-  
+
   .search-container {
     position: relative;
     flex: 1;
     max-width: 400px;
   }
-  
+
   .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
@@ -384,7 +390,7 @@
     border-radius: 8px;
     font-size: 1rem;
   }
-  
+
   .search-icon {
     position: absolute;
     left: 0.75rem;
@@ -394,39 +400,39 @@
     height: 18px;
     color: #666;
   }
-  
+
   .table-container {
     overflow-x: auto;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
-  
+
   .data-table {
     width: 100%;
     border-collapse: collapse;
   }
-  
+
   .data-table th, .data-table td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #eee;
   }
-  
+
   .data-table th {
     background-color: #f5f5f5;
     font-weight: 600;
   }
-  
+
   .data-table tr:hover {
     background-color: #f9f9f9;
   }
-  
+
   .actions {
     display: flex;
     gap: 0.5rem;
   }
-  
+
   .action-btn.delete {
     background-color: #d9534f;
     color: white;
@@ -434,7 +440,7 @@
     padding: 0.5rem;
     border-radius: 6px;
   }
-  
+
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -447,7 +453,7 @@
     align-items: center;
     z-index: 1000;
   }
-  
+
   .modal-content {
     background: white;
     padding: 2rem;
@@ -457,17 +463,17 @@
     max-height: 90vh;
     overflow-y: auto;
   }
-  
+
   .form-group {
     margin-bottom: 1.5rem;
   }
-  
+
   .form-group label {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
   }
-  
+
   .form-input {
     width: 100%;
     padding: 0.75rem;
@@ -475,14 +481,14 @@
     border-radius: 6px;
     font-size: 1rem;
   }
-  
+
   .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 2rem;
   }
-  
+
   .modal-btn {
     padding: 0.75rem 1.5rem;
     border-radius: 6px;
@@ -490,32 +496,32 @@
     cursor: pointer;
     transition: all 0.3s ease;
   }
-  
+
   .modal-btn.cancel {
     background-color: #f5f5f5;
     border: 1px solid #ddd;
   }
-  
+
   .modal-btn.save {
     background-color: #1b9963;
     color: white;
     border: none;
   }
-  
+
   @media (max-width: 768px) {
     .crud-container {
       padding: 1rem;
       margin-left: 0;
     }
-    
+
     .crud-actions {
       flex-direction: column;
     }
-    
+
     .search-container {
       max-width: 100%;
     }
-    
+
     .data-table th, .data-table td {
       padding: 0.75rem 0.5rem;
       font-size: 0.9rem;
