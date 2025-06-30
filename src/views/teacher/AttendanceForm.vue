@@ -34,6 +34,7 @@
                 <option value="all">Todos</option>
                 <option value="present">Presente</option>
                 <option value="absent">Ausente</option>
+                <option value="late">Llegada tarde</option>
               </select>
             </div>
           </div>
@@ -68,6 +69,12 @@
                   :class="{ active: attendanceStatus[student.carnet] === 'absent' }"
                   @click="setStatus(student.carnet, 'absent')"
                   title="Ausente"
+                />
+                <ClockAlert
+                  class="status-icon"
+                  :class="{ active: attendanceStatus[student.carnet] === 'late' }"
+                  @click="setStatus(student.carnet, 'late')"
+                  title="Llegada tarde"
                 />
                 <CircleCheck
                   class="status-icon"
@@ -119,7 +126,8 @@
     MessageSquare,
     CircleUser,
     CircleCheck,
-    CircleX
+    CircleX,
+    ClockAlert
   } from 'lucide-vue-next'
   import attendanceService from '@/services/attendanceService'
   import { useNotifications } from '@/utils/useNotifications'
@@ -184,7 +192,7 @@
       s.forEach(st => {
         attendanceStatus.value[st.carnet] = a[st.carnet] || ''
       })
-      saved.value = Object.values(a).some(v => v === 'present' || v === 'absent')
+      saved.value = Object.values(a).some(v => v === 'present' || v === 'absent' || v === 'late')
     } catch (err) {
       console.error(err)
       showNotification(err.message || 'Error cargando asistencia', 'error')
@@ -351,7 +359,8 @@
     fill: transparent;
   }
   .status-icon.active:nth-child(1) { color: #c0392b; }
-  .status-icon.active:nth-child(2) { color: #1a5e40; }
+  .status-icon.active:nth-child(2) { color: #e67e22; }
+  .status-icon.active:nth-child(3) { color: #1a5e40; }
   .student-info {
     display: flex;
     flex-direction: column;
