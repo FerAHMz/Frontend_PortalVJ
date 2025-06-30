@@ -106,7 +106,51 @@
             <p>No hay estudiantes que coincidan con los filtros.</p>
           </div>
         </div>
+
+        <!-- Sección de reportes -->
+        <div class="report-section">
+          <h3>Generar Reporte de Asistencia</h3>
+          <div class="report-controls">
+            <div class="date-range">
+              <label>Desde:</label>
+              <input type="date" v-model="reportStartDate" :max="todayDate">
         
+              <label>Hasta:</label>
+              <input type="date" v-model="reportEndDate" :max="todayDate">
+        
+              <button @click="generateReport" class="generate-button">
+                Generar Reporte
+              </button>
+            </div>
+          </div>
+
+          <div v-if="reportData.length" class="report-results">
+            <table>
+              <thead>
+                <tr>
+                  <th>Estudiante</th>
+                  <th>Días escolares</th>
+                  <th>Presente</th>
+                  <th>Llegadas tarde</th>
+                  <th>Ausente</th>
+                  <th>% Asistencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="student in reportData" :key="student.carnet">
+                  <td>{{ student.nombre }} {{ student.apellido }}</td>
+                  <td>{{ student.total_school_days }}</td>
+                  <td>{{ student.present_count }}</td>
+                  <td>{{ student.late_count }}</td>
+                  <td>{{ student.absent_count }}</td>
+                  <td>
+                    {{ calculateAttendancePercentage(student) }}%
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         <NotificationDialog />
       </main>
     </div>
@@ -150,6 +194,10 @@
   const filterStatus = ref('all')
   const saved = ref(false)
   
+  const reportStartDate = ref('');
+  const reportEndDate = ref('');
+  const reportData = ref([]);
+
   onMounted(() => {
     if (route.state?.courseData) {
       courseData.value = route.state.courseData
@@ -214,6 +262,44 @@
     }
   }
   
+  function calculateAttendancePercentage(student) {
+    if (student.total_school_days === 0) return '0.0';
+    
+    const weights = {
+      present: 1,
+      late: 0.5,   
+      absent: 0
+    };
+
+    const total = (student.present_count * weights.present) +
+                (student.late_count * weights.late) +
+                (student.absent_count * weights.absent);
+                
+    const percentage = (total / student.total_school_days) * 100;
+    
+    return Math.min(100, Math.max(0, percentage)).toFixed(1);
+  }
+
+  async function generateReport() {
+    if (!reportStartDate.value || !reportEndDate.value) {
+      showNotification('Debes seleccionar un rango de fechas válido', 'error');
+      return;
+    }
+
+    try {
+      const { report } = await attendanceService.getAttendanceReport(
+        route.params.courseId,
+        reportStartDate.value,
+        reportEndDate.value
+      );
+      reportData.value = report;
+      showNotification('Reporte generado correctamente', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.message || 'Error al generar el reporte', 'error');
+    }
+  }
+
   const menuItems = [
     { label: 'Perfil', icon: User, path: '/teacher' },
     { label: 'Tablero', icon: ClipboardList },
@@ -399,5 +485,82 @@
     text-align: center;
     padding: 2rem;
     color: #666;
+  }
+
+  .report-section {
+    margin-top: 2rem;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .report-controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .date-range {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .date-range label {
+    font-weight: 500;
+  }
+
+  .generate-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .generate-button:hover {
+    background-color: #2980b9;
+  }
+
+  .report-results {
+    margin-top: 1.5rem;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+
+  tr:hover {
+    background-color: #f5f5f5;
+  }
+
+  .export-button {
+    margin-top: 1rem;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .export-button:hover {
+    background-color: #27ae60;
   }
   </style>

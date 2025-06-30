@@ -50,5 +50,25 @@ export default {
         'Error al guardar asistencia'
       )
     }
+  },
+
+  async getAttendanceReport(courseId, startDate, endDate) {
+    try {
+      const response = await axios.get(
+        `${API_URL}/courses/${courseId}/attendance/report`,
+        { 
+          params: { startDate, endDate },
+          ...getAuthHeaders() 
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error en getAttendanceReport:', error);
+      throw new Error(
+        error.response?.data?.error ||
+        error.message ||
+        'Error al obtener el reporte de asistencia'
+      );
+    }
   }
 }
