@@ -47,12 +47,18 @@
             <td>{{ plan.mes }}</td>
             <td>{{ plan.ciclo_escolar }}</td>
             <td>
-              <span class="badge" :class="plan.estado">{{ plan.estado }}</span>
+              <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
             </td>
             <td>
-              <button class="btn primary" @click="goToTasks(plan.id)">Agregar tareas</button>
-              <button class="btn warning" @click="editPlanning(plan)">Editar</button>
-              <button class="btn danger" @click="deletePlanning(plan.id)">Eliminar</button>
+               <div class="action-group">
+                  <button class="action-btn add" @click="goToTasks(plan.id)">Agregar tareas</button>
+                  <button @click="editPlanning(plan)" class="action-btn edit">
+                    <Edit class="action-icon" />
+                  </button>
+                  <button @click="deletePlanning(plan.id)" class="action-btn delete">
+                    <Trash class="action-icon" />
+                  </button>
+                </div>
             </td>
           </tr>
         </tbody>
@@ -71,6 +77,7 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { Edit, Trash } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -96,6 +103,10 @@ const menuItems = [
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
   { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
 ]
+
+const formatEstadoClass = (estado) => {
+  return estado.toLowerCase().replace(/\s/g, '-');
+}
 
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
@@ -204,22 +215,30 @@ onMounted(async () => {
 
 .planning-form {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+  width: 250px;
+  padding-top: 0.5rem;
 }
 
 .form-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
   font-family: inherit;
-  min-width: 200px;
+}
+
+.form-actions {
+  align-self: flex-end; 
 }
 
 .planning-table {
@@ -239,38 +258,43 @@ onMounted(async () => {
 }
 
 .badge {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 999px; 
+  font-size: 0.85rem;
+  font-weight: 500;
   text-transform: capitalize;
+  display: inline-block;
+  line-height: 1;
 }
 
-.badge.en\ revision {
-  background-color: #ffe58f;
-  color: #8c6d1f;
+.badge.en-revision {
+  background-color: #efe85dd3;
+  color: black;
 }
 
 .badge.aceptada {
   background-color: #b7eb8f;
-  color: #389e0d;
+  color: #6edf18;
 }
 
 .badge.rechazada {
-  background-color: #ffa39e;
-  color: #a8071a;
+  background-color: #f26868;
+  color: #f00b0b;
 }
 
 .btn {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
+  border-radius: 8px;
+  font-size: 0.9rem;
   margin-right: 8px;
+  cursor: pointer;
 }
 
 .btn.primary {
-  background-color: #4CAF50;
+  background-color: #1b9963;
+  margin-top: 20px;
+  height: 40px;
   color: white;
 }
 
@@ -278,4 +302,65 @@ onMounted(async () => {
   background-color: #f44336;
   color: white;
 }
+
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.action-btn.add {
+  background-color:  #70c873;; 
+  color: white;
+  border: none;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  height: 35px;
+}
+
+.action-btn.mustard:hover {
+  background-color: #469e49;
+}
+
+.action-btn.edit {
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+}
+
+.action-btn.edit:hover {
+  background-color: #e96b00;
+}
+
+.action-btn.delete {
+  background-color: #dc3545;
+  color: white;
+  margin-left: 0.5rem;
+  border: none;
+}
+
+.action-btn.delete:hover {
+  background-color: #bb2d3b;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap; 
+}
+
 </style>

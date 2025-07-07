@@ -43,6 +43,7 @@ import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
 import DirectorProfile from '@/views/director/DirectorProfile.vue'
 import PlanningCourseDir from '@/views/director/PlanningCourse.vue'
 import PlanningTasksDir from '@/views/director/PlanningTasks.vue'
+import AcademicManagement from '@/views/director/AcademicManagement.vue'
 
 const routes = [
   // Rutas públicas
@@ -319,7 +320,16 @@ const routes = [
     }
   },
   {
-    path: '/director/planning',
+    path: '/director/academic',
+    name: 'AcademicManagement',
+    component: AcademicManagement,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/planning/:courseId',
     name: 'PlanningCourseDir',
     component: PlanningCourseDir,
     meta: {
@@ -328,7 +338,7 @@ const routes = [
     }
   },
   {
-    path: '/director/planning/tasks',
+    path: '/director/planning/:courseId/tasks/:planId',
     name: 'PlanningTasksDir',
     component: PlanningTasksDir,
     meta: {

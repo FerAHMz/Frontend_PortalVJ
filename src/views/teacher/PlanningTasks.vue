@@ -15,7 +15,9 @@
       <form @submit.prevent="handleSubmit" class="task-form" v-if="planificacion?.estado === 'en revision'">
         <input v-model="tema" placeholder="Tema de la tarea" class="form-input" required />
         <input v-model.number="puntos" type="number" min="0" step="0.5" placeholder="Puntaje" class="form-input" required />
-        <button type="submit" class="btn primary">Agregar tarea</button>
+        <button type="submit" class="btn primary">
+          {{ isEditing ? 'Actualizar tarea' : 'Agregar tarea' }}
+        </button> 
         <button v-if="isEditing" type="button" class="btn warning" @click="cancelEdit">Cancelar</button>
       </form>
 
@@ -35,8 +37,12 @@
             <td>{{ tarea.tema_tarea }}</td>
             <td>{{ tarea.puntos_tarea }}</td>
             <td v-if="planificacion.estado === 'en revision'">
-                <button class="btn secondary small" @click="editTask(tarea)"> Editar</button>
-                <button class="btn danger small" @click="deleteTask(tarea.id)">Eliminar</button>
+                <button @click="editItem(item)" class="action-btn edit">
+                  <Edit class="action-icon" />
+                </button>
+                <button @click="confirmDeleteItem(item)" class="action-btn delete">
+                  <Trash class="action-icon" />
+                </button>
             </td>
             </tr>
         </tbody>
@@ -46,13 +52,25 @@
 
 
       <!-- Observaciones del director -->
-        <div v-if="observaciones.length" class="observations-section">
-        <h2>📋 Observaciones del Director</h2>
-        <div v-for="obs in observaciones" :key="obs.id" class="observation-card">
-            <p class="obs-text">🗒️ <strong>{{ obs.observaciones }}</strong></p>
-            <p class="obs-meta">📅 <em>{{ formatDate(obs.fecha) }}</em></p>
+      <div class="observations-section">
+        <h2 class="observations-title"> Observaciones del director</h2>
+
+        <div v-if="observaciones.length">
+          <div
+            v-for="obs in observaciones"
+            :key="obs.id"
+            class="observation-card"
+          >
+            <p class="obs-text"> <strong>{{ obs.observaciones }}</strong></p>
+            <p class="obs-meta"> <em>{{ formatDate(obs.fecha) }}</em></p>
+          </div>
         </div>
+
+        <div v-else class="no-observations">
+          No hay retroalimentación registrada para esta planificación.
         </div>
+      </div>
+
 
     </main>
 
@@ -68,6 +86,7 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
 import { useNotifications } from '@/utils/useNotifications.js'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { Edit, Trash } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -114,7 +133,7 @@ const handleSubmit = async () => {
   try {
     if (isEditing.value && taskBeingEdited.value) {
       // EDITAR
-      await planningService.updateTask(courseId, taskBeingEdited.value.id, planId, {
+      await planningService.updateTask(courseId, planId, taskBeingEdited.value.id, {
         tema_tarea: tema.value,
         puntos_tarea: puntos.value
       })
@@ -122,7 +141,6 @@ const handleSubmit = async () => {
     } else {
       // CREAR NUEVA
       await planningService.createTask(courseId, planId, {
-        planId: planId,
         tema_tarea: tema.value,
         puntos_tarea: puntos.value
       })
@@ -259,7 +277,7 @@ onMounted(() => {
 }
 
 .btn.primary {
-  background-color: #4CAF50;
+  background-color: #1b9963;
   color: white;
 }
 
@@ -279,9 +297,9 @@ onMounted(() => {
   font-size: 0.8rem;
   text-transform: capitalize;
 }
-.badge.en\ revision { background: #fff3cd; color: #856404; }
-.badge.aceptada { background: #d4edda; color: #155724; }
-.badge.rechazada { background: #f8d7da; color: #721c24; }
+.badge.en\ revision { background: #856404; color: white; }
+.badge.aceptada { background: #155724; color: white; }
+.badge.rechazada { background: #721c24; color: white; }
 
 .no-tasks {
   text-align: center;
@@ -306,6 +324,10 @@ onMounted(() => {
   color: #444;
 }
 
+.observations-title {
+  padding-bottom: 1rem;
+}
+
 .obs-meta {
   font-size: 0.85rem;
   color: #666;
@@ -320,13 +342,14 @@ onMounted(() => {
 
 .task-table th,
 .task-table td {
-  border: 1px solid #ccc;
-  padding: 8px 12px;
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
   text-align: left;
 }
 
 .task-table th {
   background-color: #f5f5f5;
+  font-weight: 600;
 }
 
 .btn.small {
@@ -338,27 +361,75 @@ onMounted(() => {
 .observations-section {
   margin-top: 2rem;
   background: #fdfdfd;
-  padding: 1rem;
+  padding: 1.3rem 1rem;
   border-left: 5px solid #4a90e2;
   border-radius: 6px;
 }
 
 .observation-card {
   margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
+  padding: 1rem 1rem;
   background-color: #eef6fc;
   border-left: 4px solid #2c82c9;
   border-radius: 4px;
 }
 
+.no-observations {
+  font-style: italic;
+  color: #777;
+  padding: 0.75rem;
+}
+
 .obs-text {
   font-size: 1rem;
   margin: 0;
+  padding-block: 0.3rem;
 }
 
 .obs-meta {
   font-size: 0.85rem;
   color: #555;
+  padding-block: 0.3rem;
 }
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.action-btn.edit {
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+}
+
+.action-btn.edit:hover {
+  background-color: #e96b00;
+}
+
+.action-btn.delete {
+  background-color: #dc3545;
+  color: white;
+  margin-left: 0.5rem;
+  border: none;
+}
+
+.action-btn.delete:hover {
+  background-color: #bb2d3b;
+}
+
 
 </style>

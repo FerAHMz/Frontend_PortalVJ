@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const API_URL = 'http://localhost:3000/api/teacher';
+const API_URL_D = 'http://localhost:3000/api/director';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token')
@@ -115,7 +116,7 @@ const planningService = {
   // ➕ Crear observación
   async createObservation(courseId, planId, { id_director, observaciones }) {
     const response = await axios.post(
-      `${API_URL}/courses/${courseId}/planning/${planId}/observations`,
+      `${API_URL_D}/courses/${courseId}/planning/${planId}/observations`,
       { id_director, observaciones },
       getAuthHeaders()
     )
@@ -125,7 +126,7 @@ const planningService = {
   // ✏️ Actualizar observación
   async updateObservation(courseId, planId, obsId, { observaciones }) {
     const response = await axios.put(
-      `${API_URL}/courses/${courseId}/planning/${planId}/observations/${obsId}`,
+      `${API_URL_D}/courses/${courseId}/planning/${planId}/observations/${obsId}`,
       { observaciones },
       getAuthHeaders()
     )
@@ -135,7 +136,16 @@ const planningService = {
   // 🗑️ Eliminar observación
   async deleteObservation(courseId, planId, obsId) {
     const response = await axios.delete(
-      `${API_URL}/courses/${courseId}/planning/${planId}/observations/${obsId}`,
+      `${API_URL_D}/courses/${courseId}/planning/${planId}/observations/${obsId}`,
+      getAuthHeaders()
+    )
+    return response.data
+  },
+
+  async updateEstado(courseId, planId, data) {
+    const response = await axios.put(
+      `${API_URL_D}/courses/${courseId}/planning/${planId}/estado`,
+      data,
       getAuthHeaders()
     )
     return response.data

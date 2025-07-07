@@ -4,57 +4,83 @@
 
     <main class="planning-tasks-container">
       <h1 class="page-title">Tareas Planificadas</h1>
-      <div class="course-subtitle">
+      <div v-if="planificacion" class="course-subtitle">
         {{ planificacion?.mes }} | Ciclo: {{ planificacion?.ciclo_escolar }} |
-        Estado:
-        <span class="badge" :class="planificacion.estado">{{ planificacion.estado }}</span>
+        <div class="estado-section">
+          Estado:
+          <select v-model="nuevoEstado" @change="actualizarEstado" class="estado-dropdown">
+            <option disabled value="">Selecciona estado</option>
+            <option value="en revision">En revisión</option>
+            <option value="aceptada">Aceptada</option>
+            <option value="rechazada">Rechazada</option>
+          </select>
+        </div>
       </div>
       <div class="separator"></div>
 
-      <!-- Formulario para agregar tarea (si editable) -->
-      <form @submit.prevent="handleSubmit" class="task-form" v-if="planificacion?.estado === 'en revision'">
-        <input v-model="tema" placeholder="Tema de la tarea" class="form-input" required />
-        <input v-model.number="puntos" type="number" min="0" step="0.5" placeholder="Puntaje" class="form-input" required />
-        <button type="submit" class="btn primary">Agregar tarea</button>
-        <button v-if="isEditing" type="button" class="btn warning" @click="cancelEdit">Cancelar</button>
-      </form>
+      <!-- Tabla de tareas -->
+        <table v-if="tareas.length" class="task-table">
+          <thead>
+              <tr>
+              <th>#</th>
+              <th>Tema</th>
+              <th>Puntaje</th>  
+              </tr>
+          </thead>
+          <tbody>
+              <tr v-for="(tarea, index) in tareas" :key="tarea.id">
+                <td>{{ index + 1 }}</td>
+                <td>{{ tarea.tema_tarea }}</td>
+                <td>{{ tarea.puntos_tarea }}</td>
+              </tr>
+          </tbody>
+        </table>
 
-      <!-- Tarjetas de tareas -->
-      <div v-if="tareas.length === 0" class="no-tasks">No hay tareas planificadas.</div>
-
-      <div class="card-grid">
-        <div class="task-card" v-for="tarea in tareas" :key="tarea.id">
-            <div class="task-info">
-            <h3>{{ tarea.tema_tarea }}</h3>
-            <p><strong>Puntaje:</strong> {{ tarea.puntos_tarea }}</p>
-            </div>
-        </div>
-      </div>
+        <div v-else class="no-tasks">No hay tareas planificadas.</div>
 
       <!-- Observaciones del director (activas) -->
         <div class="observations-box">
-            <h2>Observaciones del director</h2>
+            <h2>Agregar observación</h2>
 
             <!-- Formulario para crear o editar observación -->
             <form @submit.prevent="handleObservationSubmit" class="observation-form">
                 <textarea v-model="nuevaObservacion" class="form-input" rows="3" placeholder="Escribe tu observación..." required />
                 <button class="btn primary" type="submit">
-                {{ editingObservationId ? 'Actualizar' : 'Agregar' }} observación
+                {{ editingObservationId ? 'Actualizar' : 'Agregar' }}
                 </button>
                 <button v-if="editingObservationId" class="btn danger" type="button" @click="cancelEditObservation">Cancelar</button>
             </form>
 
-            <!-- Lista de observaciones -->
-            <ul>
-                <li v-for="obs in observaciones" :key="obs.id">
-                <p class="obs-text">🗒️ {{ obs.observaciones }}</p>
-                <p class="obs-meta">📅 {{ formatDate(obs.fecha) }}</p>
-                <div class="obs-actions">
-                    <button class="btn small warning" @click="startEditObservation(obs)">Editar</button>
-                    <button class="btn small danger" @click="deleteObservation(obs.id)">Eliminar</button>
+            <!-- Observaciones del director -->
+            <div class="observations-section">
+              <h2 class="observations-title"> Observaciones</h2>
+
+              <div v-if="observaciones.length">
+                <div
+                  v-for="obs in observaciones"
+                  :key="obs.id"
+                  class="observation-card"
+                >
+                  <p class="obs-text"> <strong>{{ obs.observaciones }}</strong></p>
+                  <p class="obs-meta"> <em>{{ formatDate(obs.fecha) }}</em></p>
+
+                  <!-- Botones de acciones -->
+                  <div class="observation-actions">
+                    <button @click="startEditObservation(obs)" class="action-btn edit">
+                      <Edit class="action-icon" />
+                    </button>
+                    <button @click="confirmDeleteObservation(obs.id)" class="action-btn delete">
+                      <Trash class="action-icon" />
+                    </button>
+                  </div>
+
                 </div>
-                </li>
-            </ul>
+              </div>
+
+              <div v-else class="no-observations">
+                No hay retroalimentación registrada para esta planificación
+              </div>
+            </div>
         </div>
         </main>
     <NotificationDialog />
@@ -69,6 +95,7 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
 import { useNotifications } from '@/utils/useNotifications.js'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { Edit, Trash } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -77,14 +104,11 @@ const { showNotification } = useNotifications()
 const tareas = ref([])
 const observaciones = ref([])
 const planificacion = ref(null)
-const tema = ref('')
-const puntos = ref(null)
 const courseId = route.params.courseId
 const planId = route.params.planId
-const isEditing = ref(false)
-const taskBeingEdited = ref(null)
 const nuevaObservacion = ref('')
 const editingObservationId = ref(null)
+const nuevoEstado = ref('')
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -99,11 +123,27 @@ const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
 }
 
+const actualizarEstado = async () => {
+  if (!nuevoEstado.value || nuevoEstado.value === planificacion.value.estado) return
+
+  try {
+    await planningService.updateEstado(courseId, planId, {
+      estado: nuevoEstado.value
+    })
+    showNotification('success', 'Estado actualizado correctamente')
+    await fetchPlanningData() // recarga el estado actualizado
+  } catch (e) {
+    showNotification('error', 'Error', 'No se pudo actualizar el estado')
+    console.error(e)
+  }
+}
+
 const fetchPlanningData = async () => {
   try {
     planificacion.value = await planningService.fetchById(courseId, planId)
     tareas.value = await planningService.fetchTasks(courseId, planId)
     observaciones.value = await planningService.fetchObservations(courseId, planId)
+    nuevoEstado.value = planificacion.value.estado
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo cargar la planificación')
     console.error(error)
@@ -113,16 +153,13 @@ const fetchPlanningData = async () => {
 const handleObservationSubmit = async () => {
   try {
     if (editingObservationId.value) {
-      await planningService.updateObservation(courseId, editingObservationId.value, planId, {
+      await planningService.updateObservation(courseId, planId, editingObservationId.value, {
         observaciones: nuevaObservacion.value
       })
       showNotification('success', 'Observación actualizada')
     } else {
-      await planningService.createObservation({
-        courseId,
-        id_planificacion: planId,
-        planId,
-        id_director: localStorage.getItem('userId'), // ajusta según tu auth
+      await planningService.createObservation(courseId, planId, {
+        id_director: localStorage.getItem('userId'),
         observaciones: nuevaObservacion.value
       })
       showNotification('success', 'Observación agregada')
@@ -151,17 +188,24 @@ const startEditObservation = (obs) => {
   editingObservationId.value = obs.id
 }
 
+const confirmDeleteObservation = async (id) => {
+  if (!confirm('¿Estás seguro de eliminar esta observación?')) return
+
+  try {
+    await planningService.deleteObservation(courseId, planId, id)
+    showNotification('success', 'Observación eliminada correctamente')
+    await fetchPlanningData()
+  } catch (error) {
+    showNotification('error', 'Error', 'No se pudo eliminar la observación')
+    console.error(error)
+  }
+}
+
 const cancelEditObservation = () => {
   nuevaObservacion.value = ''
   editingObservationId.value = null
 }
 
-const cancelEdit = () => {
-  isEditing.value = false
-  taskBeingEdited.value = null
-  tema.value = ''
-  puntos.value = null
-}
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -254,7 +298,7 @@ onMounted(() => {
 }
 
 .btn.primary {
-  background-color: #4CAF50;
+  background-color: #1b9963;
   color: white;
 }
 
@@ -274,9 +318,9 @@ onMounted(() => {
   font-size: 0.8rem;
   text-transform: capitalize;
 }
-.badge.en\ revision { background: #fff3cd; color: #856404; }
-.badge.aceptada { background: #d4edda; color: #155724; }
-.badge.rechazada { background: #f8d7da; color: #721c24; }
+.badge.en\ revision { background: #856404; color: white; }
+.badge.aceptada { background: #155724; color: white; }
+.badge.rechazada { background: #721c24; color: white; }
 
 .no-tasks {
   text-align: center;
@@ -301,9 +345,166 @@ onMounted(() => {
   color: #444;
 }
 
+.observations-title {
+  padding-bottom: 1rem;
+}
+
 .obs-meta {
   font-size: 0.85rem;
   color: #666;
   margin-bottom: 1rem;
 }
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.task-table th,
+.task-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.task-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.btn.small {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  margin-right: 4px;
+}
+
+.observations-section {
+  margin-top: 2rem;
+  background: #fdfdfd;
+  padding: 1.3rem 1rem;
+  border-left: 5px solid #4a90e2;
+  border-radius: 6px;
+}
+
+.observation-card {
+  margin-bottom: 1rem;
+  padding: 1rem 1rem;
+  background-color: #eef6fc;
+  border-left: 4px solid #2c82c9;
+  border-radius: 4px;
+}
+
+.no-observations {
+  font-style: italic;
+  color: #777;
+  padding: 0.75rem;
+}
+
+.obs-text {
+  font-size: 1rem;
+  margin: 0;
+  padding-block: 0.3rem;
+}
+
+.obs-meta {
+  font-size: 0.85rem;
+  color: #555;
+  padding-block: 0.3rem;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.observation-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.action-btn.edit {
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+}
+
+.action-btn.edit:hover {
+  background-color: #e96b00;
+}
+
+.action-btn.delete {
+  background-color: #dc3545;
+  color: white;
+  margin-left: 0.5rem;
+  border: none;
+}
+
+.action-btn.delete:hover {
+  background-color: #bb2d3b;
+}
+
+.estado-dropdown {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.estado-dropdown:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  background-color: #fff;
+  color: #333;
+  transition: border-color 0.2s ease;
+  margin-bottom: 0.8rem;
+}
+
+.form-input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  background-color: #f9fcff;
+}
+
+.estado-section {
+  margin-top: 2rem; 
+}
+
+.observations-box {
+  margin-top: 3rem; 
+  background-color: #f1f1f1;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+
+
 </style>

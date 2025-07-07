@@ -18,6 +18,7 @@
             <th>Mes</th>
             <th>Ciclo Escolar</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -26,7 +27,10 @@
             <td>{{ plan.mes }}</td>
             <td>{{ plan.ciclo_escolar }}</td>
             <td>
-              <span class="badge" :class="plan.estado">{{ plan.estado }}</span>
+              <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
+            </td>
+            <td>
+              <button class="action-btn add" @click="goToTasks(plan.id)">Ver tareas</button>
             </td>
           </tr>
         </tbody>
@@ -63,13 +67,26 @@ const menuItems = [
   { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
 ]
 
+const formatEstadoClass = (estado) => {
+  return estado.toLowerCase().replace(/\s/g, '-');
+}
+
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
+}
+
+const goToTasks = (planId) => {
+  router.push({
+    name: 'PlanningTasksDir',
+    params: { courseId: route.params.courseId, planId: planId },
+    state: { courseData: courseData.value }
+  })
 }
 
 const fetchPlanning = async () => {
   try {
     const data = await planningService.fetchByCourse(courseId)
+    console.log('courseId:', courseId)
     planificaciones.value = data
   } catch (error) {
     showNotification('error', 'Error', 'No se pudieron cargar las planificaciones')
@@ -110,13 +127,40 @@ onMounted(async () => {
   margin: 1.5rem 0;
 }
 
+.planning-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  padding-top: 0.5rem;
+}
+
+.form-input {
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-actions {
+  align-self: flex-end; 
+}
+
 .planning-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.planning-table th,
-.planning-table td {
+.planning-table th, .planning-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #ddd;
   text-align: left;
@@ -128,24 +172,109 @@ onMounted(async () => {
 }
 
 .badge {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 999px; 
+  font-size: 1rem;
+  font-weight: 500;
   text-transform: capitalize;
+  display: inline-block;
+  line-height: 1;
 }
 
-.badge.en\ revision {
-  background-color: #ffe58f;
-  color: #8c6d1f;
+.badge.en-revision {
+  background-color: #f9e723;
+  color: white;
 }
 
 .badge.aceptada {
-  background-color: #b7eb8f;
-  color: #389e0d;
+  background-color: #5cc30d;
+  color: white;
 }
 
 .badge.rechazada {
-  background-color: #ffa39e;
-  color: #a8071a;
+  background-color: #f00b0b;
+  color: white;
 }
+
+.btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background-color: #1b9963;
+  margin-top: 20px;
+  height: 40px;
+  color: white;
+}
+
+.btn.danger {
+  background-color: #f44336;
+  color: white;
+}
+
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.action-btn.add {
+  background-color:  #70c873;; 
+  color: white;
+  border: none;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  height: 35px;
+}
+
+.action-btn.mustard:hover {
+  background-color: #469e49;
+}
+
+.action-btn.edit {
+  background-color: #fd7e14;
+  color: white;
+  border: none;
+}
+
+.action-btn.edit:hover {
+  background-color: #e96b00;
+}
+
+.action-btn.delete {
+  background-color: #dc3545;
+  color: white;
+  margin-left: 0.5rem;
+  border: none;
+}
+
+.action-btn.delete:hover {
+  background-color: #bb2d3b;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap; 
+}
+
 </style>
