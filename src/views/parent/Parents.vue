@@ -16,16 +16,9 @@
 
       <!-- Información adicional para padres -->
       <div v-if="!loading && !error" class="parent-info">
-        <h2>Información de sus hijos</h2>
-        <div v-if="children.length === 0" class="no-children">
+        <SelectChild v-if="children.length" :children="children" @child-selected="handleChildSelected" />
+        <div v-else class="no-children">
           No se encontraron estudiantes asociados a su cuenta.
-        </div>
-        <div v-else class="children-list">
-          <div v-for="child in children" :key="child.id" class="child-card">
-            <h3>{{ child.nombre }} {{ child.apellido }}</h3>
-            <p><strong>Carnet:</strong> {{ child.carnet }}</p>
-            <p><strong>Grado:</strong> {{ child.grado }} - Sección {{ child.seccion }}</p>
-          </div>
         </div>
       </div>
     </main>
@@ -35,11 +28,15 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
+import SelectChild from './SelectChild.vue'
+import StudentGrades from './StudentGrades.vue'
+import StudentTasks from './StudentTasks.vue'
 import { User, BookOpen, FileText, MessageSquare, CreditCard } from 'lucide-vue-next'
-import parentImg from '@/assets/maestro.png' // Usando la misma imagen por ahora
+import parentImg from '@/assets/maestro.png'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { profileService } from '@/services/profileService.js'
+import { parentService } from '@/services/parentService.js'
 
 const router = useRouter()
 const userProfile = ref({
@@ -49,6 +46,8 @@ const userProfile = ref({
   email: ''
 })
 const children = ref([])
+const selectedChild = ref(null)
+const selectedSubjectId = ref(null)
 const loading = ref(true)
 const error = ref(null)
 
@@ -66,6 +65,7 @@ const handleItemClick = (item) => {
   }
 }
 
+
 const fetchUserProfile = async () => {
   try {
     loading.value = true
@@ -73,17 +73,19 @@ const fetchUserProfile = async () => {
     const response = await profileService.getCurrentUserProfile()
     console.log('Profile response:', response) // Debug log
 
-    // El backend devuelve { success: true, user: userProfile }
     if (response.success && response.user) {
       userProfile.value = response.user
-      console.log('User profile set:', userProfile.value) // Debug log
+      // Si el perfil trae un campo estudiante, lo usamos como hijo
+      if (response.user.estudiante) {
+        children.value = [response.user.estudiante]
+      } else {
+        children.value = []
+      }
+      console.log('User profile set:', userProfile.value, 'Children:', children.value) // Debug log
     } else {
       console.log('Response format issue:', response)
       throw new Error('Invalid response format')
     }
-
-    // Aquí podrías agregar una llamada para obtener información de los hijos
-    // await fetchChildren()
   } catch (err) {
     console.error('Error fetching profile:', err)
     error.value = 'Error al cargar la información del perfil'
@@ -92,19 +94,20 @@ const fetchUserProfile = async () => {
   }
 }
 
-const fetchChildren = async () => {
-  // Esta función se implementaría cuando el backend tenga el endpoint
-  // para obtener los hijos asociados al padre
-  try {
-    // const response = await fetch('/api/parent/children', ...)
-    // children.value = await response.json()
-  } catch (err) {
-    console.error('Error fetching children:', err)
-  }
+
+
+
+const handleChildSelected = (child) => {
+  selectedChild.value = child;
+  selectedSubjectId.value = null;
 }
 
-onMounted(() => {
-  fetchUserProfile()
+const handleSubjectSelected = (subjectId) => {
+  selectedSubjectId.value = subjectId;
+}
+
+onMounted(async () => {
+  await fetchUserProfile();
 })
 </script>
 

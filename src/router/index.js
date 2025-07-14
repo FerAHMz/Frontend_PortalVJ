@@ -5,8 +5,12 @@ import { USER_ROLES } from '@/utils/constants.js'
 // Auth
 import Login from '@/views/auth/Login.vue'
 
+
 // Parent
 import ParentsProfile from '@/views/parent/Parents.vue'
+import ParentGrades from '@/views/parent/ParentGrades.vue'
+import ParentTasks from '@/views/parent/ParentTasks.vue'
+
 
 // Teacher
 import TeacherProfile from '@/views/teacher/TeacherProfile.vue'
@@ -47,6 +51,34 @@ const routes = [
     name: 'Login',
     component: Login,
     meta: { requiresAuth: false }
+  },
+  // PARENT ROUTES
+  {
+    path: '/parent',
+    name: 'ParentsProfile',
+    component: ParentsProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+  {
+    path: '/parent/grades',
+    name: 'ParentGrades',
+    component: ParentGrades,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+  {
+    path: '/parent/tasks',
+    name: 'ParentTasks',
+    component: ParentTasks,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
   },
 
   // Rutas protegidas por rol
