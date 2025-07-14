@@ -19,7 +19,7 @@
             <td>{{ grade.trimestre_id }}</td>
             <td>{{ grade.total }}</td>
             <td>
-              <button @click="viewTasks(grade.materia_id)">Ver tareas</button>
+              <button @click="$emit('view-tasks', grade.materia_id)">Ver tareas</button>
             </td>
           </tr>
         </tbody>
