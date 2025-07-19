@@ -24,6 +24,20 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userId');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const messageService = {
   async getConversations() {
     try {
@@ -35,69 +49,97 @@ export const messageService = {
     }
   },
 
-  async getConversationMessages(subject) {
-    try {
-      const response = await axiosInstance.get('/api/messages/conversation', {
-        params: { subject }
-      });
+async getConversationMessages(subject) {
+  try {
+    const response = await axiosInstance.get('/api/messages/conversation', {
+      params: { subject }
+    });
+    
+    // Check if the response was successful but returned no messages
+    if (response.data.success && Array.isArray(response.data.conversation)) {
       return response.data.conversation;
-    } catch (error) {
-      console.error('Error fetching conversation messages:', error);
-      throw error;
     }
-  },
+    
+    // If no messages, return empty array
+    return [];
+  } catch (error) {
+    console.error('Error fetching conversation messages:', error);
+    // Return empty array instead of throwing error
+    return [];
+  }
+}
+,
+
+async sendMessage(payload) {
+  try {
+    const userRole = localStorage.getItem('userRole');
+    const token = localStorage.getItem('token');
+    
+    console.log('Sending message with auth:', {
+      userRole,
+      hasToken: !!token,
+      payload: {
+        ...payload,
+        sender_role: userRole
+      }
+    });
+
+    const response = await axiosInstance.post('/api/messages', {
+      ...payload,
+      sender_role: userRole
+    });
+
+    console.log('Message response:', response.data);
+
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Error al enviar el mensaje');
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error in sendMessage:', error.response?.data || error);
+    if (error.response?.status === 403) {
+      throw new Error(error.response.data.error || 'No tiene permisos para enviar mensajes');
+    }
+    throw new Error(error.response?.data?.error || 'Error al enviar el mensaje');
+  }
+},
+
+async sendConversationMessage(payload) {
+  try {
+    const userRole = localStorage.getItem('userRole');
+    if (!userRole) {
+      throw new Error('No se encontró el rol del usuario');
+    }
+
+    const response = await axiosInstance.post('/api/messages/conversation', {
+      subject: payload.subject,
+      content: payload.content,
+      sender_role: userRole
+    });
+    
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Error al enviar el mensaje');
+    }
+    
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 403) {
+      throw new Error('No tiene permisos para enviar mensajes');
+    }
+    console.error('Error sending conversation message:', error);
+    throw new Error(error.response?.data?.error || 'Error al enviar el mensaje en la conversación');
+  }
+},
 
   async searchUsers(query) {
     try {
       const response = await axiosInstance.get('/api/messages/search-users', {
         params: { query }
       });
-      return response.data.users;
+      return response.data.users || [];
     } catch (error) {
       console.error('Error searching users:', error);
-      throw error;
-    }
-  },
-
-  async sendMessage(messageData) {
-    try {
-      const response = await axiosInstance.post('/api/messages', messageData);
-      return response.data;
-    } catch (error) {
-      if (error.code === 'ERR_NETWORK') {
-        console.error('Network error:', error);
-        throw new Error('No se pudo conectar con el servidor. Por favor, revise su conexión a internet.');
-      }
-      console.error('Error sending message:', error);
-      throw new Error(error.response?.data?.error || 'Error al enviar el mensaje');
-    }
-  },
-
-  async sendConversationMessage(messageData) {
-    try {
-      const response = await axiosInstance.post('/api/messages/conversation', messageData);
-      return response.data;
-    } catch (error) {
-      if (error.code === 'ERR_NETWORK') {
-        console.error('Network error:', error);
-        throw new Error('No se pudo conectar con el servidor. Por favor, revise su conexión a internet.');
-      }
-      console.error('Error sending conversation message:', error);
-      throw new Error(error.response?.data?.error || 'Error al enviar el mensaje en la conversación');
-    }
-  },
-
-  async sendMessage(recipientId, recipientRole, subject, content) {
-    try {
-      const response = await axiosInstance.post('/api/messages', {
-        recipient_id: recipientId,
-        recipient_role: recipientRole,
-        subject,
-        content
-      });
-      return response.data.message;
-    } catch (error) {
-      console.error('Error sending message:', error);
       throw error;
     }
   },
@@ -112,3 +154,5 @@ export const messageService = {
     }
   }
 };
+
+export default messageService;

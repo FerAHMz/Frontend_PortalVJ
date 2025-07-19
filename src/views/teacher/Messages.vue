@@ -4,24 +4,24 @@
     <main class="messages-container">
       <h1 class="page-title">Comunicación</h1>
       <div class="search-and-results">
-        <input
-          type="text"
-          v-model="searchQuery"
-          @input="searchUsers"
-          placeholder="Ingrese el nombre del usuario..."
-          class="search-input"
-        />
-        <div v-if="searchResults.length > 0" class="search-results">
-          <div
-            v-for="user in searchResults"
-            :key="user.id"
-            class="search-result-item"
-            @click="selectUser(user)"
-          >
-            {{ user.nombre }} {{ user.apellido }} ({{ user.rol }})
-          </div>
-        </div>
+    <input
+      type="text"
+      v-model="searchQuery"
+      @input="searchUsers"
+      placeholder="Ingrese el nombre del usuario..."
+      class="search-input"
+    />
+    <div v-if="searchResults.length > 0" class="search-results">
+      <div
+        v-for="user in searchResults"
+        :key="user.id"
+        class="search-result-item"
+        @click="selectUser(user)"
+      >
+        {{ user.nombre }} {{ user.apellido }} ({{ user.rol }})
       </div>
+    </div>
+  </div>
 
       <div class="messages-layout">
         <!-- Conversations List -->
@@ -42,23 +42,28 @@
         <!-- Selected Conversation -->
         <div class="selected-conversation" v-if="selectedConversation">
           <div class="messages-scrollable">
+            <div v-if="selectedConversation.length === 0" class="no-messages">
+              <p>No hay mensajes en esta conversación</p>
+            </div>
             <div
+              v-else
               v-for="(message, index) in selectedConversation"
               :key="message.created_at"
               class="message-item"
-              :class="{ 'alt-background': index % 2 === 1 }"
+              :class="{
+                'alt-background': index % 2 === 1,
+                'sent': message.sender_id === currentUserId.value
+              }"
             >
-              <p>{{ message.content }}</p>
-              <p><small>{{ new Date(message.created_at).toLocaleString() }}</small></p>
+              <div class="message-header">
+                <span class="sender">
+                  {{ message.sender_id === currentUserId.value ? 'Tú' : 
+                    (message.sender_nombre ? `${message.sender_nombre} ${message.sender_apellido}` : message.sender_role) }}
+                </span>
+                <span class="date">{{ new Date(message.created_at).toLocaleString() }}</span>
+              </div>
+              <p class="message-content">{{ message.content }}</p>
             </div>
-          </div>
-          <div class="new-message">
-            <textarea
-              v-model="newMessageContent"
-              placeholder="Escribe un mensaje..."
-              class="message-input"
-            ></textarea>
-            <button @click="sendMessage" class="send-message-btn">Enviar</button>
           </div>
         </div>
       </div>
@@ -138,6 +143,11 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
 import { messageService } from '@/services/messageService';
 import { useNotifications } from '@/utils/useNotifications.js';
+import { useRouter } from 'vue-router';
+import { getHomeRouteForRole } from '@/utils/auth.js';
+const currentUserId = ref(null);
+const currentUserRole = ref('');
+const router = useRouter();
 
 const { showNotification } = useNotifications();
 
@@ -161,9 +171,9 @@ const newConversation = ref({
   content: '',
 });
 const newMessageContent = ref('');
-const searchQuery = ref('')
-const searchResults = ref([])
-const selectedUser = ref(null)
+const searchQuery = ref('');
+const searchResults = ref([]);
+const selectedUser = ref(null);
 
 const fetchConversations = async () => {
   try {
@@ -181,9 +191,18 @@ const fetchConversations = async () => {
 const selectConversation = async (subject) => {
   try {
     const conversationData = await messageService.getConversationMessages(subject);
+    
+    if (!conversationData || conversationData.length === 0) {
+      showNotification('info', 'Información', 'No se encontraron mensajes en esta conversación');
+      selectedConversation.value = [];
+      return;
+    }
+    
     selectedConversation.value = conversationData;
   } catch (error) {
     console.error('Error fetching conversation:', error);
+    showNotification('error', 'Error', 'Error al cargar la conversación');
+    selectedConversation.value = [];
   }
 };
 
@@ -204,9 +223,14 @@ const openNewConversationModal = () => {
 const closeNewConversationModal = () => {
   showNewConversationModal.value = false;
   newConversation.value = { userType: '', userId: '', userName: '', subject: '', content: '' };
+  selectedUser.value = null;
+  searchQuery.value = '';
+  searchResults.value = [];
 };
 
 const createNewConversation = async () => {
+  debugAuthState();
+
   try {
     if (!selectedUser.value) {
       showNotification('warning', 'Atención', 'Por favor seleccione un usuario para enviar el mensaje');
@@ -215,6 +239,18 @@ const createNewConversation = async () => {
 
     if (!newConversation.value.subject || !newConversation.value.content) {
       showNotification('warning', 'Atención', 'Por favor complete todos los campos requeridos');
+      return;
+    }
+
+    const storedUserRole = localStorage.getItem('userRole');
+    console.log('Creating new conversation:', {
+      userRole: storedUserRole,
+      selectedUser: selectedUser.value,
+      subject: newConversation.value.subject
+    });
+
+    if (!storedUserRole) {
+      showNotification('error', 'Error', 'No se pudo verificar su rol de usuario');
       return;
     }
 
@@ -231,9 +267,10 @@ const createNewConversation = async () => {
     closeNewConversationModal();
   } catch (error) {
     console.error('Error creating conversation:', error);
-    showNotification('error', 'Error', 'Error al crear la conversación: ' + error.message);
+    showNotification('error', 'Error', error.message || 'Error al crear la conversación');
   }
 };
+
 
 const sendMessage = async () => {
   if (!selectedConversation.value || !selectedConversation.value[0]) {
@@ -270,33 +307,111 @@ const searchUsers = async () => {
 
   try {
     const users = await messageService.searchUsers(searchQuery.value);
-    searchResults.value = users;
+    searchResults.value = users;  // messageService already returns the users array
   } catch (error) {
     console.error('Error searching users:', error);
+    showNotification('error', 'Error', 'Error al buscar usuarios');
     searchResults.value = [];
   }
-}
+};
 
 const selectUser = (user) => {
-  if (!user || !user.id || !user.rol) {
-    console.error('Invalid user data:', user);
+  selectedUser.value = user;
+  searchResults.value = [];
+  searchQuery.value = '';
+  newConversation.value = {
+    ...newConversation.value,
+    recipient_id: user.id,
+    recipient_role: user.rol,
+    userName: `${user.nombre} ${user.apellido}`
+  };
+};
+
+const userRole = ref('');
+
+const sendReply = async () => {
+  if (!selectedConversation.value || !selectedConversation.value.length || !newMessageContent.value.trim()) {
     return;
   }
 
-  selectedUser.value = user
-  searchResults.value = []
-  searchQuery.value = ''
-  newConversation.value = {
-    ...newConversation.value,
-    userType: user.rol,
-    userId: user.id,
-    userName: `${user.nombre} ${user.apellido}`
-  }
-}
+  debugAuthState(); // Add this line to debug auth state
 
-onMounted(() => {
-  fetchConversations();
+  try {
+    const currentConversation = selectedConversation.value[0];
+    const storedUserRole = localStorage.getItem('userRole');
+
+    if (!storedUserRole) {
+      showNotification('error', 'Error', 'No se pudo verificar su rol de usuario');
+      return;
+    }
+
+    await messageService.sendConversationMessage({
+      subject: currentConversation.subject,
+      content: newMessageContent.value.trim(),
+      sender_role: storedUserRole
+    });
+    
+    await selectConversation(currentConversation.subject);
+    newMessageContent.value = '';
+    showNotification('success', 'Éxito', 'Mensaje enviado');
+  } catch (error) {
+    console.error('Error sending reply:', error);
+    showNotification('error', 'Error', error.message || 'Error al enviar el mensaje');
+  }
+};
+
+
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const storedUserRole = localStorage.getItem('userRole');
+    const storedUserId = localStorage.getItem('userId');
+
+    console.log('Auth data:', { token, storedUserRole, storedUserId });
+
+    if (!token || !storedUserRole || !storedUserId) {
+      console.log('Missing auth data, redirecting to login');
+      router.push('/login');
+      return;
+    }
+
+    // Verify the stored role matches the expected format
+    if (!['Maestro', 'Padre', 'Director', 'Administrativo'].includes(storedUserRole)) {
+      console.error('Invalid user role:', storedUserRole);
+      showNotification('error', 'Error', 'Rol de usuario inválido');
+      router.push('/login');
+      return;
+    }
+
+    // Correctly assign values to refs
+    currentUserId.value = storedUserId;
+    currentUserRole.value = storedUserRole; // Use the new ref name
+
+    await fetchConversations();
+  } catch (error) {
+    console.error('Error initializing messages:', error);
+    showNotification('error', 'Error', 'Error al cargar los mensajes');
+  }
 });
+
+
+const messageItem = computed(() => (message) => ({
+  'alt-background': true,
+  'sent': message.sender_id === currentUserId.value,
+}));
+
+const debugAuthState = () => {
+  console.log('Debug Auth State:', {
+    token: localStorage.getItem('token'),
+    userRole: localStorage.getItem('userRole'),
+    userId: localStorage.getItem('userId'),
+    currentUserIdRef: currentUserId.value,
+    currentUserRoleRef: currentUserRole.valuee
+  });
+};
+
+debugAuthState();
+
 </script>
 
 <style scoped>
@@ -426,11 +541,32 @@ onMounted(() => {
 }
 
 .message-item {
-  padding: 10px;
+  padding: 15px;
+  margin: 10px;
   border-radius: 8px;
-  background-color: #82E6B1;
-  font-size: 1.2rem;
-  margin-bottom: 70px;
+}
+
+.message-item.sent {
+  background-color: #e3f2fd;
+  margin-left: 20%;
+}
+
+.message-item:not(.sent) {
+  background-color: #f5f5f5;
+  margin-right: 20%;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.message-content {
+  margin: 0;
+  white-space: pre-wrap;
 }
 
 .message-item.alt-background {
@@ -555,5 +691,14 @@ textarea.form-input {
   background: #e8f5e9;
   border-radius: 4px;
   color: #2e7d32;
+}
+
+.no-messages {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #666;
+  font-style: italic;
 }
 </style>

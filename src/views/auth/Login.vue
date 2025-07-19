@@ -78,40 +78,42 @@
     }
   }
 
-  const login = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email.value, password: password.value })
-      })
+const login = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: email.value, password: password.value })
+    });
 
-      const data = await response.json()
-      console.log('Login response:', data) // Debug log
+    const data = await response.json();
+    console.log('Login response:', data);
 
-      if (data.success) {
-        // Store authentication data using the utility function
-        setAuthData(data.token, data.user.id, data.user.rol)
+    if (data.success) {
+      // Store authentication data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.user.id);
+      localStorage.setItem('userRole', data.user.rol);
 
-        console.log('Auth data stored:', {
-          token: data.token ? 'exists' : 'missing',
-          userId: data.user.id,
-          userRole: data.user.rol
-        }) // Debug log
+      console.log('Auth data stored:', {
+        token: data.token ? 'exists' : 'missing',
+        userId: data.user.id,
+        userRole: data.user.rol,
+        decodedToken: JSON.parse(atob(data.token.split('.')[1])) // Debug: decode token payload
+      });
 
-        showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al sistema')
-
-        // The redirect will happen when the notification closes
-      } else {
-        showNotification('error', 'Error de autenticación', 'Credenciales incorrectas')
-      }
-    } catch (error) {
-      console.error('Error en login:', error)
-      showNotification('error', 'Error de conexión', 'Hubo un problema al conectarse al servidor.')
+      showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al sistema');
+    } else {
+      showNotification('error', 'Error de autenticación', 'Credenciales incorrectas');
     }
+  } catch (error) {
+    console.error('Error en login:', error);
+    showNotification('error', 'Error de conexión', 'Hubo un problema al conectarse al servidor.');
   }
+};
+
   </script>
 
   <style scoped>
