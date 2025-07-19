@@ -48,7 +48,8 @@ const menuItems = [
   { label: 'Calificaciones', icon: FileText, path: '/parent/grades' },
   { label: 'Tareas', icon: BookOpen, path: '/parent/tasks' },
   { label: 'Pagos', icon: CreditCard, path: '/parent/payments' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' },
+  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' }
 ];
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path);

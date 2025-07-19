@@ -10,6 +10,7 @@ import Login from '@/views/auth/Login.vue'
 import ParentsProfile from '@/views/parent/Parents.vue'
 import ParentGrades from '@/views/parent/ParentGrades.vue'
 import ParentTasks from '@/views/parent/ParentTasks.vue'
+import ParentCalendar  from '@/views/parent/Calendar.vue'
 
 
 // Teacher
@@ -332,6 +333,15 @@ const routes = [
     path: '/parent',
     name: 'Parents',
     component: ParentsProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+  {
+    path: '/parent/calendar',
+    name: 'ParentCalendar',
+    component: ParentCalendar,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.PARENT]
