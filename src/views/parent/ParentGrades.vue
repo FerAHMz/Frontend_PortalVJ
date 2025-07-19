@@ -19,7 +19,7 @@ import Sidebar from '@/components/Sidebar.vue';
 import SelectChild from './SelectChild.vue';
 import StudentGrades from './StudentGrades.vue';
 import { profileService } from '@/services/profileService.js';
-import { User, BookOpen, FileText, MessageSquare, CreditCard } from 'lucide-vue-next';
+import { User, BookOpen, FileText, MessageSquare, CreditCard, CalendarDays } from 'lucide-vue-next';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -33,7 +33,8 @@ const menuItems = [
   { label: 'Calificaciones', icon: FileText, path: '/parent/grades' },
   { label: 'Tareas', icon: BookOpen, path: '/parent/tasks' },
   { label: 'Pagos', icon: CreditCard, path: '/parent/payments' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' },
+  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' }
 ];
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path);

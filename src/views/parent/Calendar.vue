@@ -51,7 +51,8 @@ const menuItems = [
   { label: 'Tareas', icon: BookOpen, path: '/parent/tasks' },
   { label: 'Pagos', icon: CreditCard, path: '/parent/payments' },
   { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' },
-  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' }
+  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' },
+  { label: 'Mensajes', icon: MessageSquare, path: '/parent/messages' }
 ]
 
 const currentDate = ref(new Date())
