@@ -249,6 +249,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Layout */
 .planning-tasks-container {
   flex: 1;
   padding: 2rem;
@@ -272,6 +273,7 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
+/* Form styles */
 .crud-actions {
   display: flex;
   justify-content: flex-start;
@@ -313,6 +315,7 @@ onMounted(() => {
   align-items: flex-end;
 }
 
+/* Table styles */
 .table-container {
   overflow-x: auto;
   background: white;
@@ -346,16 +349,24 @@ onMounted(() => {
   gap: 0.5rem;
 }
 
+.no-tasks {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 2rem 0;
+}
+
+/* Action buttons */
 .action-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
+  font-size: 0.9rem;
 }
 
 .action-btn.create {
@@ -369,27 +380,30 @@ onMounted(() => {
 }
 
 .action-btn.edit {
-  background-color: #f0ad4e;
+  background-color: #fd7e14;
   color: white;
+  padding: 0.5rem;
 }
 
 .action-btn.edit:hover {
-  background-color: #ec971f;
+  background-color: #e96b00;
 }
 
 .action-btn.delete {
-  background-color: #d9534f;
+  background-color: #dc3545;
   color: white;
+  padding: 0.5rem;
 }
 
 .action-btn.delete:hover {
-  background-color: #c9302c;
+  background-color: #bb2d3b;
 }
 
 .action-btn.cancel {
   background-color: #f5f5f5;
   color: #333;
   border: 1px solid #ddd;
+  padding: 0.5rem;
 }
 
 .action-btn.cancel:hover {
@@ -401,13 +415,41 @@ onMounted(() => {
   height: 18px;
 }
 
-.no-tasks {
-  text-align: center;
-  color: #777;
-  font-style: italic;
-  margin: 2rem 0;
+/* Inline editing styles */
+.inline-edit-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #1b9963;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: #f8fff8;
 }
 
+.inline-edit-input:focus {
+  outline: none;
+  border-color: #158a50;
+  background-color: #fff;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.inline-actions .action-btn {
+  padding: 0.5rem 0.5rem;
+}
+
+.normal-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.normal-actions .action-btn {
+  padding: 0.5rem;
+}
+
+/* Badge styles */
 .badge {
   padding: 0.5rem 1rem;
   border-radius: 6px;
@@ -434,6 +476,46 @@ onMounted(() => {
   color: white;
 }
 
+/* Observations section */
+.observations-section {
+  margin-top: 2rem;
+  background: #fdfdfd;
+  padding: 1.3rem 1rem;
+  border-left: 5px solid #fdfdfd;
+  border-radius: 6px;
+}
+
+.observations-title {
+  padding-bottom: 1rem;
+}
+
+.observation-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #eef6fc;
+  border-left: 4px solid #2c82c9;
+  border-radius: 4px;
+}
+
+.obs-text {
+  font-size: 1rem;
+  margin: 0;
+  padding-block: 0.3rem;
+}
+
+.obs-meta {
+  font-size: 0.85rem;
+  color: #555;
+  padding-block: 0.3rem;
+}
+
+.no-observations {
+  font-style: italic;
+  color: #777;
+  padding: 0.75rem;
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
   .planning-tasks-container {
     padding: 1rem;
@@ -453,183 +535,5 @@ onMounted(() => {
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;
   }
-}
-.observations-box {
-  background-color: #f1f1f1;
-  padding: 1.5rem;
-  border-radius: 8px;
-}
-.observations-box h2 {
-  margin-bottom: 1rem;
-  color: #333;
-}
-.obs-text {
-  margin: 0;
-  color: #444;
-}
-.observations-title {
-  padding-bottom: 1rem;
-}
-.obs-meta {
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 1rem;
-}
-.task-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  min-width: 600px; /* Mínimo ancho para evitar compresión excesiva */
-}
-
-.task-table th,
-.task-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-  word-wrap: break-word;
-}
-
-.task-table th {
-  background-color: #f5f5f5;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-/* Responsive table */
-@media screen and (max-width: 768px) {
-  .task-table {
-    font-size: 0.9rem;
-    min-width: auto;
-  }
-  
-  .task-table th,
-  .task-table td {
-    padding: 8px;
-  }
-}
-.btn.small {
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  margin-right: 4px;
-}
-.observations-section {
-  margin-top: 2rem;
-  background: #fdfdfd;
-  padding: 1.3rem 1rem;
-  border-left: 5px solid #4a90e2;
-  border-radius: 6px;
-}
-.observation-card {
-  margin-bottom: 1rem;
-  padding: 1rem 1rem;
-  background-color: #eef6fc;
-  border-left: 4px solid #2c82c9;
-  border-radius: 4px;
-}
-.no-observations {
-  font-style: italic;
-  color: #777;
-  padding: 0.75rem;
-}
-.obs-text {
-  font-size: 1rem;
-  margin: 0;
-  padding-block: 0.3rem;
-}
-.obs-meta {
-  font-size: 0.85rem;
-  color: #555;
-  padding-block: 0.3rem;
-}
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  font-size: 0.9rem;
-}
-.action-icon {
-  width: 18px;
-  height: 18px;
-}
-.action-btn.edit {
-  background-color: #fd7e14;
-  color: white;
-  border: none;
-}
-.action-btn.edit:hover {
-  background-color: #e96b00;
-}
-.action-btn.delete {
-  background-color: #dc3545;
-  color: white;
-  margin-left: 0.5rem;
-  border: none;
-}
-.action-btn.delete:hover {
-  background-color: #bb2d3b;
-}
-
-/* Inline editing styles */
-.inline-edit-input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid #1b9963;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  background-color: #f8fff8;
-}
-
-.inline-edit-input:focus {
-  outline: none;
-  border-color: #158a50;
-  background-color: #fff;
-}
-
-.inline-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.inline-actions .action-btn {
-  padding: 0.75rem 1.5rem;
-}
-
-.normal-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.normal-actions .action-btn {
-  padding: 0.5rem;
-}
-
-.action-btn.create {
-  background-color: #1b9963;
-  color: white;
-  padding: 0.75rem 1.5rem;
-}
-
-.action-btn.create:hover {
-  background-color: #158a50;
-}
-
-.action-btn.cancel {
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-}
-
-.action-btn.cancel:hover {
-  background-color: #e6e6e6;
 }
 </style>

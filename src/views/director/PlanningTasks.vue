@@ -419,7 +419,7 @@ onMounted(() => {
   margin-top: 2rem;
   background: #fdfdfd;
   padding: 1.3rem 1rem;
-  border-left: 5px solid #4a90e2;
+  border-left: 5px solid #fdfdfd;
   border-radius: 6px;
 }
 .observation-card {
@@ -604,7 +604,7 @@ onMounted(() => {
 }
 
 .inline-actions .action-btn {
-  padding: 0.75rem 1.5rem;
+  padding: 0.5rem !important;
 }
 
 .action-btn {
