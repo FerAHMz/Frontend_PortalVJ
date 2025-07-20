@@ -31,7 +31,7 @@ import SelectChild from './SelectChild.vue';
 import StudentTasks from './StudentTasks.vue';
 import { profileService } from '@/services/profileService.js';
 import { parentService } from '@/services/parentService.js';
-import { User, BookOpen, FileText, MessageSquare, CreditCard } from 'lucide-vue-next';
+import { User, BookOpen, FileText, MessageSquare, CreditCard, CalendarDays } from 'lucide-vue-next';
 import { ref, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 

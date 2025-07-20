@@ -12,6 +12,7 @@ import ParentGrades from '@/views/parent/ParentGrades.vue'
 import ParentTasks from '@/views/parent/ParentTasks.vue'
 import ParentCalendar  from '@/views/parent/Calendar.vue'
 import ParentMessages from '@/views/parent/Messages.vue'
+import PaymentHistory from '@/views/parent/PaymentHistory.vue'
 
 
 // Teacher
@@ -77,6 +78,15 @@ const routes = [
     path: '/parent/tasks',
     name: 'ParentTasks',
     component: ParentTasks,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+  {
+    path: '/parent/payments',
+    name: 'PaymentHistory',
+    component: PaymentHistory,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.PARENT]

@@ -16,5 +16,23 @@ export const parentService = {
   async getStudentTaskGrades(studentId, subjectId) {
     const res = await axios.get(`${API_URL}/${studentId}/grades/${subjectId}/tasks`, getAuthHeaders());
     return res.data;
+  },
+  async getChildPaymentHistory(studentId, startDate = null, endDate = null) {
+    let url = `${API_URL}/${studentId}/payments`;
+    const params = new URLSearchParams();
+    
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+    
+    const res = await axios.get(url, getAuthHeaders());
+    return res.data;
+  },
+  async getChildPendingPayments(studentId) {
+    const res = await axios.get(`${API_URL}/${studentId}/payments/pending`, getAuthHeaders());
+    return res.data;
   }
 };
