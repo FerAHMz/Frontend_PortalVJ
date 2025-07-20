@@ -93,5 +93,30 @@ export const userService = {
             }
             throw error;
         }
+    },
+
+    async activateUser(id, rol) {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            const response = await axios.put(`${API_URL}/${id}/activate`, { rol }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 403) {
+                throw new Error('No tiene permisos para realizar esta acción');
+            } else if (error.response?.status === 404) {
+                throw new Error('Usuario no encontrado');
+            } else if (error.response?.status === 500) {
+                throw new Error('Error en el servidor: ' + (error.response.data.error || 'Error desconocido'));
+            }
+            throw error;
+        }
     }
 };

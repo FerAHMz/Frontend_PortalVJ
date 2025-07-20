@@ -46,8 +46,19 @@
                 <button @click="editItem(item)" class="action-btn edit">
                   <Edit class="action-icon" />
                 </button>
-                <button @click="confirmDelete(item)" class="action-btn delete">
+                <button 
+                  v-if="item.activo" 
+                  @click="confirmDeactivate(item)" 
+                  class="action-btn delete"
+                >
                   <Trash class="action-icon" />
+                </button>
+                <button 
+                  v-else 
+                  @click="confirmActivate(item)" 
+                  class="action-btn activate"
+                >
+                  <Check class="action-icon" />
                 </button>
               </td>
             </tr>
@@ -141,7 +152,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 import { useNotifications } from '@/utils/useNotifications.js'
@@ -287,6 +298,27 @@ const deleteItem = async () => {
   }
 };
 
+const activateUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showNotification('error', 'Error', 'No se encontró token de autenticación');
+      return;
+    }
+
+    if (!itemToDelete.value?.id || !itemToDelete.value?.rol) {
+      throw new Error('Datos de usuario incompletos para activar');
+    }
+
+    await userService.activateUser(itemToDelete.value.id, itemToDelete.value.rol);
+    showNotification('success', 'Éxito', 'Usuario activado exitosamente');
+    await fetchUsers();
+  } catch (error) {
+    console.error('Error activando usuario:', error);
+    showNotification('error', 'Error', error.message || 'Error al activar el usuario');
+  }
+};
+
 const editableHeaders = computed(() => headers.filter(h =>
   !['id', 'rol'].includes(h.key)
 ))
@@ -413,6 +445,16 @@ const editItem = (item) => {
 const confirmDelete = (item) => {
   itemToDelete.value = item
   showConfirmModal.value = true
+}
+
+const confirmDeactivate = (item) => {
+  itemToDelete.value = item
+  showConfirmModal.value = true
+}
+
+const confirmActivate = (item) => {
+  itemToDelete.value = item
+  activateUser()
 }
 
 const closeModal = () => {
@@ -602,7 +644,7 @@ const handleItemClick = (item) => {
   gap: 0.5rem;
 }
 
-.action-btn.edit, .action-btn.delete {
+.action-btn.edit, .action-btn.delete, .action-btn.activate {
   padding: 0.5rem;
   border-radius: 6px;
 }
@@ -615,6 +657,12 @@ const handleItemClick = (item) => {
 
 .action-btn.delete {
   background-color: #d9534f;
+  color: white;
+  border: none;
+}
+
+.action-btn.activate {
+  background-color: #5cb85c;
   color: white;
   border: none;
 }
