@@ -31,7 +31,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in filteredItems" :key="item.id">
+            <tr v-for="item in filteredItems" :key="`${item.id}-${item.rol}`">
               <td v-for="header in headers" :key="header.key">
                 <template v-if="header.key === 'activo'">
                   <span :class="['status-badge', item[header.key] ? 'active' : 'inactive']">
@@ -195,15 +195,26 @@ const fetchUsers = async () => {
     }
     const data = await userService.getAllUsers();
     
-    // Mapear los datos y ordenarlos
+    // Mapear los datos y eliminar duplicados
     const mappedData = data.map(user => ({
       ...user,
       activo: user.activo === undefined ? true : user.activo
     }));
     
+    // Eliminar duplicados usando una clave única compuesta (id + rol)
+    const seenKeys = new Set();
+    const uniqueData = mappedData.filter(user => {
+      const uniqueKey = `${user.id}-${user.rol}`;
+      if (seenKeys.has(uniqueKey)) {
+        return false;
+      }
+      seenKeys.add(uniqueKey);
+      return true;
+    });
+    
     // Ordenar por rol y luego por ID para garantizar consistencia
     const roleOrder = { 'SUP': 1, 'Director': 2, 'Administrativo': 3, 'Maestro': 4, 'Padre': 5 };
-    mappedData.sort((a, b) => {
+    uniqueData.sort((a, b) => {
       const aOrder = roleOrder[a.rol] || 999;
       const bOrder = roleOrder[b.rol] || 999;
       
@@ -214,7 +225,7 @@ const fetchUsers = async () => {
       return a.id - b.id;
     });
     
-    items.value = mappedData;
+    items.value = uniqueData;
   } catch (error) {
     console.error('Error fetching users:', error.message);
     let errorMessage = 'Error al cargar usuarios';
@@ -291,6 +302,17 @@ const filteredItems = computed(() => {
       )
     );
   }
+  
+  // Eliminar duplicados adicionales que puedan surgir durante el filtrado
+  const seenKeys = new Set();
+  result = result.filter(item => {
+    const uniqueKey = `${item.id}-${item.rol}`;
+    if (seenKeys.has(uniqueKey)) {
+      return false;
+    }
+    seenKeys.add(uniqueKey);
+    return true;
+  });
   
   // Mantener el ordenamiento: primero por rol, luego por ID
   return result.sort((a, b) => {
