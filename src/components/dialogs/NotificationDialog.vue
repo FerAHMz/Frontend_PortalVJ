@@ -1,264 +1,206 @@
 <template>
-  <div v-if="show" class="notification-overlay">
-    <div class="notification-content" :class="typeClass">
-      <div class="notification-header">
-        <div class="notification-icon">
-          <component :is="iconComponent" />
+  <div class="notification-container">
+    <TransitionGroup name="notification" tag="div">
+      <div 
+        v-for="(notification, index) in notifications" 
+        :key="notification.id" 
+        class="notification-toast" 
+        :class="getNotificationClass(notification.type)"
+        :style="{ top: `${20 + index * 80}px` }"
+      >
+        <div class="notification-content">
+          <div class="notification-header">
+            <div class="notification-icon">
+              <component :is="getIcon(notification.type)" />
+            </div>
+            <div class="notification-text">
+              <h4>{{ notification.title }}</h4>
+              <p v-if="notification.message">{{ notification.message }}</p>
+            </div>
+            <button @click="removeNotification(notification.id)" class="notification-close">
+              <X :size="16" />
+            </button>
+          </div>
         </div>
-        <h3>{{ title }}</h3>
       </div>
-      <div class="notification-body">
-        <p v-if="message">{{ message }}</p>
-        <ul v-if="messages && messages.length" class="message-list">
-          <li v-for="(msg, index) in messages" :key="index">{{ msg }}</li>
-        </ul>
-      </div>
-      <div class="notification-actions">
-        <button @click="handleClose" class="notification-btn" :class="typeClass">
-          {{ closeText }}
-        </button>
-      </div>
-    </div>
+    </TransitionGroup>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-vue-next'
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-vue-next'
+import { useNotifications } from '@/utils/useNotifications.js'
+import { watch } from 'vue'
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  type: {
-    type: String,
-    default: 'info', // 'success', 'error', 'warning', 'info'
-    validator: (value) => ['success', 'error', 'warning', 'info'].includes(value)
-  },
-  title: {
-    type: String,
-    default: ''
-  },
-  message: {
-    type: String,
-    default: ''
-  },
-  messages: {
-    type: Array,
-    default: () => []
-  },
-  closeText: {
-    type: String,
-    default: 'Cerrar'
-  },
-  autoClose: {
-    type: Boolean,
-    default: false
-  },
-  autoCloseDelay: {
-    type: Number,
-    default: 3000
+const { notifications, removeNotification } = useNotifications()
+
+// Debug: watch notifications changes
+watch(notifications, (newNotifications) => {
+  console.log('NotificationDialog: notifications changed:', newNotifications.length)
+}, { deep: true })
+
+const getIcon = (type) => {
+  const icons = {
+    success: CheckCircle,
+    error: XCircle,
+    warning: AlertTriangle,
+    info: Info
   }
-})
-
-const emit = defineEmits(['close'])
-
-const typeClass = computed(() => `notification-${props.type}`)
-
-const iconComponent = computed(() => {
-  switch (props.type) {
-    case 'success':
-      return CheckCircle
-    case 'error':
-      return XCircle
-    case 'warning':
-      return AlertTriangle
-    case 'info':
-    default:
-      return Info
-  }
-})
-
-const handleClose = () => {
-  emit('close')
+  return icons[type] || Info
 }
 
-// Auto-close functionality
-if (props.autoClose && props.show) {
-  setTimeout(() => {
-    if (props.show) {
-      handleClose()
-    }
-  }, props.autoCloseDelay)
+const getNotificationClass = (type) => {
+  return `notification-${type}`
 }
 </script>
 
 <style scoped>
-.notification-overlay {
+.notification-container {
   position: fixed;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  right: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.notification-toast {
+  position: fixed;
+  right: 20px;
+  min-width: 350px;
+  max-width: 500px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid;
+  margin-bottom: 10px;
+  pointer-events: auto;
 }
 
 .notification-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  min-width: 350px;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  border-left: 5px solid;
+  padding: 16px;
 }
 
 .notification-header {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .notification-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.notification-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
+.notification-text {
+  flex: 1;
+}
+
+.notification-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
   font-weight: 600;
 }
 
-.notification-body {
-  margin-bottom: 1.5rem;
-}
-
-.notification-body p {
+.notification-text p {
   margin: 0;
-  color: #555;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #666;
 }
 
-.message-list {
-  margin: 0;
-  padding-left: 1.5rem;
-  color: #555;
-}
-
-.notification-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.notification-btn {
-  padding: 0.75rem 1.5rem;
+.notification-close {
+  flex-shrink: 0;
+  background: none;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  color: #666;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-close:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Success styles */
 .notification-success {
-  border-left-color: #28a745;
+  border-left-color: #10b981;
 }
 
 .notification-success .notification-icon {
-  background-color: #d4edda;
-  color: #28a745;
+  color: #10b981;
 }
 
-.notification-success h3 {
-  color: #28a745;
-}
-
-.notification-success .notification-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.notification-success .notification-btn:hover {
-  background-color: #218838;
+.notification-success h4 {
+  color: #065f46;
 }
 
 /* Error styles */
 .notification-error {
-  border-left-color: #dc3545;
+  border-left-color: #ef4444;
 }
 
 .notification-error .notification-icon {
-  background-color: #f8d7da;
-  color: #dc3545;
+  color: #ef4444;
 }
 
-.notification-error h3 {
-  color: #dc3545;
-}
-
-.notification-error .notification-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.notification-error .notification-btn:hover {
-  background-color: #c82333;
+.notification-error h4 {
+  color: #991b1b;
 }
 
 /* Warning styles */
 .notification-warning {
-  border-left-color: #ffc107;
+  border-left-color: #f59e0b;
 }
 
 .notification-warning .notification-icon {
-  background-color: #fff3cd;
-  color: #856404;
+  color: #f59e0b;
 }
 
-.notification-warning h3 {
-  color: #856404;
-}
-
-.notification-warning .notification-btn {
-  background-color: #ffc107;
-  color: #212529;
-}
-
-.notification-warning .notification-btn:hover {
-  background-color: #e0a800;
+.notification-warning h4 {
+  color: #92400e;
 }
 
 /* Info styles */
 .notification-info {
-  border-left-color: #17a2b8;
+  border-left-color: #3b82f6;
 }
 
 .notification-info .notification-icon {
-  background-color: #d1ecf1;
-  color: #17a2b8;
+  color: #3b82f6;
 }
 
-.notification-info h3 {
-  color: #17a2b8;
+.notification-info h4 {
+  color: #1e40af;
 }
 
-.notification-info .notification-btn {
-  background-color: #17a2b8;
-  color: white;
+/* TransitionGroup animations */
+.notification-enter-active {
+  transition: all 0.3s ease;
 }
 
-.notification-info .notification-btn:hover {
-  background-color: #138496;
+.notification-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.notification-move {
+  transition: transform 0.3s ease;
 }
 </style>

@@ -15,7 +15,9 @@ export const useNotifications = () => {
       ...options
     })
 
+    console.log('Adding notification:', notification)
     notifications.value.push(notification)
+    console.log('Total notifications:', notifications.value.length)
 
     if (notification.autoClose) {
       setTimeout(() => {

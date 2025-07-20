@@ -146,6 +146,8 @@ import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 import { useNotifications } from '@/utils/useNotifications.js'
 import { useRouter } from 'vue-router'
+import { getCurrentUser, isAuthenticated } from '@/utils/auth.js'
+import axios from 'axios'
 
 const { showNotification } = useNotifications();
 const router = useRouter()
@@ -188,21 +190,44 @@ const fetchUsers = async () => {
   try {
     const token = localStorage.getItem('token');
     if (!token) {
-      console.error('No authentication token found');
+      showNotification('error', 'Error', 'No se encontró token de autenticación');
       return;
     }
     const data = await userService.getAllUsers();
-    items.value = data.map(user => ({
+    
+    // Mapear los datos y ordenarlos
+    const mappedData = data.map(user => ({
       ...user,
       activo: user.activo === undefined ? true : user.activo
     }));
+    
+    // Ordenar por rol y luego por ID para garantizar consistencia
+    const roleOrder = { 'SUP': 1, 'Director': 2, 'Administrativo': 3, 'Maestro': 4, 'Padre': 5 };
+    mappedData.sort((a, b) => {
+      const aOrder = roleOrder[a.rol] || 999;
+      const bOrder = roleOrder[b.rol] || 999;
+      
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      
+      return a.id - b.id;
+    });
+    
+    items.value = mappedData;
   } catch (error) {
-    console.error('Error fetching users:', error.message)
-    if (error.response?.status === 401) {
-      console.error('Unauthorized access');
+    console.error('Error fetching users:', error.message);
+    let errorMessage = 'Error al cargar usuarios';
+    
+    if (error.message.includes('No tiene permisos')) {
+      errorMessage = 'No tiene permisos para acceder a esta información';
+    } else if (error.response?.status === 401) {
+      errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente';
     } else if (error.response?.status === 500) {
-      console.error('Server error:', error.response.data.error);
+      errorMessage = 'Error en el servidor: ' + (error.response.data.error || 'Error desconocido');
     }
+    
+    showNotification('error', 'Error', errorMessage);
   }
 }
 
@@ -256,13 +281,31 @@ const editableHeaders = computed(() => headers.filter(h =>
 ))
 
 const filteredItems = computed(() => {
-  if (!searchQuery.value) return items.value
-  const query = searchQuery.value.toLowerCase()
-  return items.value.filter(item =>
-    Object.values(item).some(val =>
-      String(val).toLowerCase().includes(query)
-    )
-  )
+  let result = items.value;
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    result = items.value.filter(item =>
+      Object.values(item).some(val =>
+        String(val).toLowerCase().includes(query)
+      )
+    );
+  }
+  
+  // Mantener el ordenamiento: primero por rol, luego por ID
+  return result.sort((a, b) => {
+    // Definir el orden de roles
+    const roleOrder = { 'SUP': 1, 'Director': 2, 'Administrativo': 3, 'Maestro': 4, 'Padre': 5 };
+    const aOrder = roleOrder[a.rol] || 999;
+    const bOrder = roleOrder[b.rol] || 999;
+    
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+    
+    // Si el rol es el mismo, ordenar por ID
+    return a.id - b.id;
+  });
 })
 
 const openCreateModal = () => {
@@ -286,7 +329,13 @@ const saveItem = async () => {
       return;
     }
 
-    validateForm();
+    // Validar formulario
+    try {
+      validateForm();
+    } catch (validationError) {
+      showNotification('error', 'Error de Validación', validationError.message);
+      return;
+    }
 
     const userData = {
       nombre: formData.value.nombre.trim(),
@@ -314,13 +363,18 @@ const saveItem = async () => {
     console.error('Error saving user:', error);
     let errorMessage = 'Error al guardar el usuario';
 
-    if (error.message.includes('duplicate key')) {
+    // Manejo específico de errores
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message && error.message.includes('duplicate key')) {
       if (error.message.includes('telefono_key')) {
         errorMessage = 'El número de teléfono ya está registrado';
       } else if (error.message.includes('maestros_pkey')) {
         errorMessage = 'Ya existe un maestro con este identificador';
       }
-    } else if (error.message.includes('not-null constraint')) {
+    } else if (error.message && error.message.includes('not-null constraint')) {
       errorMessage = 'Todos los campos requeridos deben ser completados';
     }
 
@@ -344,8 +398,65 @@ const closeModal = () => {
   showPassword.value = false
 }
 
-onMounted(() => {
-  fetchUsers()
+const debugToken = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found');
+      return;
+    }
+    
+    const response = await axios.get('http://localhost:3000/api/debug/token', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log('Debug token response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Debug token error:', error.response?.data || error.message);
+    return null;
+  }
+}
+
+onMounted(async () => {
+  // Verificar autenticación y permisos antes de cargar usuarios
+  console.log('=== Debug información de autenticación ===');
+  
+  // Primero, verificar el token en el backend
+  const tokenDebug = await debugToken();
+  if (!tokenDebug) {
+    showNotification('error', 'Error', 'Token inválido o expirado. Por favor, inicie sesión nuevamente.');
+    router.push('/login');
+    return;
+  }
+  
+  if (!isAuthenticated()) {
+    console.log('Usuario no autenticado');
+    showNotification('error', 'Error', 'Sesión expirada. Por favor, inicie sesión nuevamente.');
+    router.push('/login');
+    return;
+  }
+  
+  const currentUser = getCurrentUser();
+  console.log('Usuario actual:', currentUser);
+  
+  if (!currentUser) {
+    console.log('No se pudo obtener información del usuario');
+    showNotification('error', 'Error', 'No se pudo verificar la información del usuario');
+    router.push('/login');
+    return;
+  }
+  
+  if (currentUser.role !== 'SUP') {
+    console.log(`Rol incorrecto: ${currentUser.role} - Se requiere: SUP`);
+    showNotification('error', 'Error', `Acceso denegado. Su rol es "${currentUser.role}" pero se requiere "SUP"`);
+    return;
+  }
+  
+  console.log('Verificación de permisos exitosa, cargando usuarios...');
+  fetchUsers();
 })
 
 const handleItemClick = (item) => {

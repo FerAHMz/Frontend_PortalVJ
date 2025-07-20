@@ -47,29 +47,51 @@ export const userService = {
     },
 
     async updateUser(id, userData) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No authentication token found');
-        }
-        const response = await axios.put(`${API_URL}/${id}`, userData, {
-            headers: {
-                'Authorization': `Bearer ${token}`
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
             }
-        });
-        return response.data;
+            const response = await axios.put(`${API_URL}/${id}`, userData, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 403) {
+                throw new Error('No tiene permisos para realizar esta acción');
+            } else if (error.response?.status === 400) {
+                throw new Error(error.response.data.error || 'Datos inválidos');
+            } else if (error.response?.status === 500) {
+                throw new Error('Error en el servidor: ' + (error.response.data.error || 'Error desconocido'));
+            }
+            throw error;
+        }
     },
 
     async deleteUser(id, rol) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            throw new Error('No authentication token found');
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            const response = await axios.delete(`${API_URL}/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                data: { rol }
+            });
+            return response.data;
+        } catch (error) {
+            if (error.response?.status === 403) {
+                throw new Error('No tiene permisos para realizar esta acción');
+            } else if (error.response?.status === 404) {
+                throw new Error('Usuario no encontrado');
+            } else if (error.response?.status === 500) {
+                throw new Error('Error en el servidor: ' + (error.response.data.error || 'Error desconocido'));
+            }
+            throw error;
         }
-        const response = await axios.delete(`${API_URL}/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            data: { rol }
-        });
-        return response.data;
     }
 };

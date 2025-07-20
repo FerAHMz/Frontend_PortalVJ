@@ -26,16 +26,7 @@
         </form>
       </main>
 
-      <!-- Notification Dialog -->
-      <NotificationDialog
-        :show="notification.show"
-        :type="notification.type"
-        :title="notification.title"
-        :message="notification.message"
-        :auto-close="notification.type === 'success'"
-        :auto-close-delay="2000"
-        @close="closeNotification"
-      />
+      <!-- Sin NotificationDialog local, usaremos el global -->
     </div>
   </template>
 
@@ -43,42 +34,16 @@
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { Eye, EyeOff } from 'lucide-vue-next'
-  import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import { setAuthData, getHomeRouteForRole } from '@/utils/auth.js'
+  import { useNotifications } from '@/utils/useNotifications.js'
 
   const email = ref('')
   const password = ref('')
   const showPassword = ref(false)
   const router = useRouter()
+  const { showNotification } = useNotifications()
 
-  const notification = ref({
-    show: false,
-    type: 'info',
-    title: '',
-    message: ''
-  })
-
-  const showNotification = (type, title, message) => {
-    notification.value = {
-      show: true,
-      type,
-      title,
-      message
-    }
-  }
-
-  const closeNotification = () => {
-    notification.value.show = false
-    // Si es un login exitoso, redirigir después de cerrar la notificación
-    if (notification.value.type === 'success') {
-      const role = localStorage.getItem('userRole')
-      if (role) {
-        router.push(getHomeRouteForRole(role))
-      }
-    }
-  }
-
-const login = async () => {
+  const login = async () => {
   try {
     const response = await fetch('http://localhost:3000/login', {
       method: 'POST',
@@ -105,6 +70,22 @@ const login = async () => {
       });
 
       showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al sistema');
+      
+      // Redirigir inmediatamente después del login exitoso
+      setTimeout(() => {
+        const homeRoute = getHomeRouteForRole(data.user.rol);
+        console.log('User role:', data.user.rol);
+        console.log('Redirecting to:', homeRoute);
+        
+        if (homeRoute === '/login') {
+          console.error('Failed to get valid home route for role:', data.user.rol);
+          showNotification('error', 'Error', 'Rol de usuario no reconocido');
+          return;
+        }
+        
+        router.push(homeRoute);
+      }, 1500); // Dar tiempo para que se vea la notificación
+      
     } else {
       showNotification('error', 'Error de autenticación', 'Credenciales incorrectas');
     }

@@ -105,18 +105,27 @@ export const canAccessRoute = (routePath) => {
  * Obtiene la ruta principal según el rol del usuario
  */
 export const getHomeRouteForRole = (role) => {
+  console.log('getHomeRouteForRole called with role:', role);
+  console.log('Available USER_ROLES:', USER_ROLES);
+  
   switch (role) {
+    case 'SUP':
     case USER_ROLES.SUPER_USER:
       return '/superuser'
+    case 'Director':
     case USER_ROLES.DIRECTOR:
       return '/director'
+    case 'Administrativo':
     case USER_ROLES.ADMIN:
       return '/admin'
+    case 'Maestro':
     case USER_ROLES.TEACHER:
       return '/teacher'
+    case 'Padre':
     case USER_ROLES.PARENT:
       return '/parent'
     default:
+      console.log('Unknown role, redirecting to login');
       return '/login'
   }
 }
