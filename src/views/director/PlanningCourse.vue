@@ -11,30 +11,34 @@
         No hay planificaciones registradas para este curso.
       </div>
 
-      <table v-else class="planning-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Trimestre</th>
-            <th>Ciclo Escolar</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="plan in planificaciones" :key="plan.id">
-            <td>{{ plan.id }}</td>
-            <td>{{ plan.mes }}</td>
-            <td>{{ plan.ciclo_escolar }}</td>
-            <td>
-              <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
-            </td>
-            <td>
-              <button class="action-btn add" @click="goToTasks(plan.id)">Ver tareas</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Trimestre</th>
+              <th>Ciclo Escolar</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="plan in planificaciones" :key="plan.id">
+              <td>{{ plan.id }}</td>
+              <td>{{ plan.mes }}</td>
+              <td>{{ plan.ciclo_escolar }}</td>
+              <td>
+                <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
+              </td>
+              <td class="actions">
+                <button class="action-btn view" @click="goToTasks(plan.id)">
+                  <BookOpen class="action-icon" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
 
     <NotificationDialog />
@@ -47,7 +51,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
 const route = useRoute()
 const router = useRouter()
@@ -56,12 +60,10 @@ const courseData = ref(null)
 const planificaciones = ref([])
 const courseId = route.params.courseId
 const menuItems = [
-  { label: 'Perfil', icon: User, path: '/teacher' },
-  { label: 'Tablero', icon: ClipboardList },
-  { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
-  { label: 'Calendario de Tareas', icon: CalendarDays, path: '/teacher/calendar' },
-  { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Perfil', icon: User, path: '/director' },
+  { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
+  { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
+  { label: 'Personal', icon: Users, path: '/director/staff' }
 ]
 const formatEstadoClass = (estado) => {
   return estado.toLowerCase().replace(/\s/g, '-');
@@ -97,66 +99,107 @@ onMounted(async () => {
 
 <style scoped>
 .planning-container {
+  flex: 1;
   padding: 2rem;
-  margin-left: 150px; /* Compensar el sidebar */
-  margin-right: 2rem; /* Margen derecho para balance */
-  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
-  box-sizing: border-box;
+  margin-left: 130px;
 }
+
 .page-title {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
 }
+
 .course-subtitle {
   color: #666;
   margin-bottom: 1.5rem;
 }
+
 .separator {
-  height: 1px;
-  background-color: #eee;
-  margin: 1.5rem 0;
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
 }
-.planning-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  align-items: flex-end;
-  margin-bottom: 2rem;
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-.form-group {
-  display: flex;
-  flex-direction: column;
-  width: 250px;
-  padding-top: 0.5rem;
-}
-.form-input {
-  padding: 8px 10px;
-  margin-top: 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-family: inherit;
-}
-.form-actions {
-  align-self: flex-end; 
-}
-.planning-table {
+
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
-.planning-table th, .planning-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
+
+.data-table th, .data-table td {
+  padding: 1rem;
   text-align: left;
+  border-bottom: 1px solid #eee;
 }
-.planning-table th {
-  background-color: #f8f9fa;
+
+.data-table th {
+  background-color: #f5f5f5;
   font-weight: 600;
 }
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.action-btn.view {
+  background-color: #1b9963;
+  color: white;
+}
+
+.action-btn.view:hover {
+  background-color: #158a50;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.no-planning {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .planning-container {
+    padding: 1rem;
+    margin-left: 0;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
 .badge {
-  padding: 6px 12px;
-  border-radius: 6px; 
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: capitalize;
@@ -166,17 +209,17 @@ onMounted(async () => {
 }
 
 .badge.en-revision {
-  background-color: #f9e723;
-  color: #333;
+  background-color: #ffc107;
+  color: #856404;
 }
 
 .badge.aceptada {
-  background-color: #5cc30d;
+  background-color: #1b9963;
   color: white;
 }
 
 .badge.rechazada {
-  background-color: #f00b0b;
+  background-color: #d9534f;
   color: white;
 }
 .btn {

@@ -9,48 +9,50 @@
         <div class="estado-section">
           Estado: <span class="badge" :class="formatEstadoClass(planificacion.estado)">{{ planificacion.estado }}</span>
           <div class="estado-buttons">
-            <button 
-              @click="actualizarEstado('en revision')" 
-              :class="{ active: planificacion.estado === 'en revision' }"
-              class="estado-btn revision">
-              En Revisión
-            </button>
-            <button 
-              @click="actualizarEstado('aceptada')" 
-              :class="{ active: planificacion.estado === 'aceptada' }"
-              :disabled="planificacion.estado !== 'en revision'"
-              class="estado-btn aceptada">
-              Aceptar
-            </button>
-            <button 
-              @click="actualizarEstado('rechazada')" 
-              :class="{ active: planificacion.estado === 'rechazada' }"
-              :disabled="planificacion.estado !== 'en revision'"
-              class="estado-btn rechazada">
-              Rechazar
-            </button>
+            <!-- Mostrar botones según el estado actual -->
+            <template v-if="planificacion.estado === 'en revision'">
+              <button 
+                @click="actualizarEstado('aceptada')" 
+                class="action-btn success">
+                Aceptar
+              </button>
+              <button 
+                @click="actualizarEstado('rechazada')" 
+                class="action-btn delete">
+                Rechazar
+              </button>
+            </template>
+            <template v-else>
+              <button 
+                @click="actualizarEstado('en revision')" 
+                class="action-btn warning">
+                Poner en Revisión
+              </button>
+            </template>
           </div>
         </div>
       </div>
       <div class="separator"></div>
 
       <!-- Tabla de tareas -->
-        <table v-if="tareas.length" class="task-table">
-          <thead>
-              <tr>
-              <th>#</th>
-              <th>Tema</th>
-              <th>Puntaje</th>  
-              </tr>
-          </thead>
-          <tbody>
-              <tr v-for="(tarea, index) in tareas" :key="tarea.id">
-                <td>{{ index + 1 }}</td>
-                <td>{{ tarea.tema_tarea }}</td>
-                <td>{{ tarea.puntos_tarea }}</td>
-              </tr>
-          </tbody>
-        </table>
+        <div v-if="tareas.length" class="table-container">
+          <table class="data-table">
+            <thead>
+                <tr>
+                <th>#</th>
+                <th>Tema</th>
+                <th>Puntaje</th>  
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(tarea, index) in tareas" :key="tarea.id">
+                  <td>{{ index + 1 }}</td>
+                  <td>{{ tarea.tema_tarea }}</td>
+                  <td>{{ tarea.puntos_tarea }}</td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
 
         <div v-else class="no-tasks">No hay tareas planificadas.</div>
 
@@ -61,10 +63,10 @@
             <!-- Formulario para crear o editar observación -->
             <form @submit.prevent="handleObservationSubmit" class="observation-form">
                 <textarea v-model="nuevaObservacion" class="form-input" rows="3" placeholder="Escribe tu observación..." required />
-                <button class="btn primary" type="submit">
+                <button class="action-btn create" type="submit">
                 {{ editingObservationId ? 'Actualizar' : 'Agregar' }}
                 </button>
-                <button v-if="editingObservationId" class="btn danger" type="button" @click="cancelEditObservation">Cancelar</button>
+                <button v-if="editingObservationId" class="action-btn cancel" type="button" @click="cancelEditObservation">Cancelar</button>
             </form>
 
             <!-- Observaciones del director -->
@@ -77,19 +79,36 @@
                   :key="obs.id"
                   class="observation-card"
                 >
-                  <p class="obs-text"> <strong>{{ obs.observaciones }}</strong></p>
-                  <p class="obs-meta"> <em>{{ formatDate(obs.fecha) }}</em></p>
-
-                  <!-- Botones de acciones -->
-                  <div class="observation-actions">
-                    <button @click="startEditObservation(obs)" class="action-btn edit">
-                      <Edit class="action-icon" />
-                    </button>
-                    <button @click="confirmDeleteObservation(obs.id)" class="action-btn delete">
-                      <Trash class="action-icon" />
-                    </button>
+                  <div v-if="inlineEditingObservationId === obs.id" class="inline-edit-container">
+                    <textarea 
+                      v-model="inlineObservationText" 
+                      class="inline-edit-textarea" 
+                      rows="3"
+                      @keyup.enter.ctrl="handleInlineObservationSubmit"
+                      @keyup.escape="cancelEditObservation"
+                    />
+                    <div class="inline-actions">
+                      <button @click="handleInlineObservationSubmit" class="action-btn create">
+                        <Check class="action-icon" />
+                      </button>
+                      <button @click="cancelEditObservation" class="action-btn cancel">
+                        <X class="action-icon" />
+                      </button>
+                    </div>
                   </div>
-
+                  <div v-else>
+                    <p class="obs-text"> <strong>{{ obs.observaciones }}</strong></p>
+                    <p class="obs-meta"> <em>{{ formatDate(obs.fecha) }}</em></p>
+                    <!-- Botones de acciones -->
+                    <div class="observation-actions">
+                      <button @click="startEditObservation(obs)" class="action-btn edit">
+                        <Edit class="action-icon" />
+                      </button>
+                      <button @click="confirmDeleteObservation(obs.id)" class="action-btn delete">
+                        <Trash class="action-icon" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -100,6 +119,7 @@
         </div>
         </main>
     <NotificationDialog />
+    <ConfirmDialog ref="confirmDialog" />
   </div>
 </template>
 
@@ -108,13 +128,15 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'
 import { useNotifications } from '@/utils/useNotifications.js'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
-import { Edit, Trash } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
+import { Edit, Trash, Check, X } from 'lucide-vue-next'
 const route = useRoute()
 const router = useRouter()
 const { showNotification } = useNotifications()
+const confirmDialog = ref(null)
 const tareas = ref([])
 const observaciones = ref([])
 const planificacion = ref(null)
@@ -122,13 +144,15 @@ const courseId = route.params.courseId
 const planId = route.params.planId
 const nuevaObservacion = ref('')
 const editingObservationId = ref(null)
+// Variables separadas para edición inline
+const inlineObservationText = ref('')
+// Variables separadas para el estado de edición
+const inlineEditingObservationId = ref(null)
 const menuItems = [
-  { label: 'Perfil', icon: User, path: '/teacher' },
-  { label: 'Tablero', icon: ClipboardList },
-  { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
-  { label: 'Calendario de Tareas', icon: CalendarDays, path: '/teacher/calendar' },
-  { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Perfil', icon: User, path: '/director' },
+  { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
+  { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
+  { label: 'Personal', icon: Users, path: '/director/staff' }
 ]
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
@@ -194,23 +218,53 @@ const deleteObservation = async (id) => {
   }
 }
 const startEditObservation = (obs) => {
-  nuevaObservacion.value = obs.observaciones
-  editingObservationId.value = obs.id
+  // SOLO llenar el campo inline, NO el formulario general
+  inlineObservationText.value = obs.observaciones
+  inlineEditingObservationId.value = obs.id
 }
+
 const confirmDeleteObservation = async (id) => {
-  if (!confirm('¿Estás seguro de eliminar esta observación?')) return
+  const confirmed = await confirmDialog.value.show({
+    title: 'Eliminar observación',
+    message: '¿Estás seguro de que deseas eliminar esta observación? Esta acción no se puede deshacer.',
+    confirmText: 'Eliminar'
+  })
+  
+  if (!confirmed) return
+  
   try {
     await planningService.deleteObservation(courseId, planId, id)
-    showNotification('success', 'Observación eliminada correctamente')
+    showNotification('success', 'Éxito', 'Observación eliminada correctamente')
     await fetchPlanningData()
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo eliminar la observación')
     console.error(error)
   }
 }
+
+// Nueva función para manejar la edición inline
+const handleInlineObservationSubmit = async () => {
+  if (!inlineObservationText.value.trim()) return
+  
+  try {
+    await planningService.updateObservation(courseId, planId, inlineEditingObservationId.value, {
+      observaciones: inlineObservationText.value
+    })
+    showNotification('success', 'Éxito', 'Observación actualizada correctamente')
+    // Limpiar edición inline
+    inlineEditingObservationId.value = null
+    inlineObservationText.value = ''
+    await fetchPlanningData()
+  } catch (error) {
+    showNotification('error', 'Error', 'No se pudo actualizar la observación')
+    console.error(error)
+  }
+}
+
 const cancelEditObservation = () => {
-  nuevaObservacion.value = ''
-  editingObservationId.value = null
+  // Limpiar SOLO la edición inline, NO el formulario general
+  inlineEditingObservationId.value = null
+  inlineObservationText.value = ''
 }
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -225,99 +279,100 @@ onMounted(() => {
 
 <style scoped>
 .planning-tasks-container {
+  flex: 1;
   padding: 2rem;
-  margin-left: 150px; /* Compensar el sidebar */
-  margin-right: 2rem; /* Margen derecho para balance */
-  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
-  box-sizing: border-box;
+  margin-left: 130px;
 }
+
 .page-title {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
 }
+
 .course-subtitle {
   color: #666;
   margin-bottom: 1.5rem;
 }
+
 .separator {
-  height: 1px;
-  background-color: #eee;
-  margin: 1.5rem 0;
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
 }
-.task-form {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-}
-.form-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-  min-width: 200px;
-}
-.card-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  margin-bottom: 2rem;
-}
-.task-card {
-  background-color: #fafafa;
-  border: 1px solid #ddd;
+
+.table-container {
+  overflow-x: auto;
+  background: white;
   border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-direction: column;
-  min-height: 130px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
-.task-info h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #333;
+
+.data-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
 }
-.task-actions {
-  margin-top: auto;
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
 }
-.btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  margin-right: 8px;
-  cursor: pointer;
-}
-.btn.primary {
-  background-color: #1b9963;
-  color: white;
-}
-.btn.secondary {
-  background-color: #f0f0f0;
-  color: #333;
-}
-.btn.danger {
-  background-color: #f44336;
-  color: white;
-}
-.badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  text-transform: capitalize;
-}
-.badge.en\ revision { background: #856404; color: white; }
-.badge.aceptada { background: #155724; color: white; }
-.badge.rechazada { background: #721c24; color: white; }
+
 .no-tasks {
   text-align: center;
   color: #777;
   font-style: italic;
-  margin-bottom: 1rem;
+  margin: 2rem 0;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.action-btn.success {
+  background-color: #1b9963;
+  color: white;
+}
+
+.action-btn.success:hover {
+  background-color: #158a50;
+}
+
+.action-btn.delete {
+  background-color: #d9534f;
+  color: white;
+}
+
+.action-btn.delete:hover {
+  background-color: #c9302c;
+}
+
+.action-btn.warning {
+  background-color: #ffc107;
+  color: #856404;
+}
+
+.action-btn.warning:hover {
+  background-color: #e0a800;
 }
 .observations-box {
   background-color: #f1f1f1;
@@ -455,7 +510,28 @@ onMounted(() => {
   border-radius: 8px;
 }
 
-/* Estilos para botones de estado */
+@media (max-width: 768px) {
+  .planning-tasks-container {
+    padding: 1rem;
+    margin-left: 0;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .estado-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .estado-buttons {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
 .estado-section {
   margin-top: 1rem; 
   display: flex;
@@ -470,78 +546,9 @@ onMounted(() => {
   margin-left: 1rem;
 }
 
-.estado-btn {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  text-transform: capitalize;
-}
-
-.estado-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.estado-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.estado-btn.revision {
-  background-color: #f9e723;
-  color: #333;
-  border: 2px solid #f9e723;
-}
-
-.estado-btn.revision.active {
-  background-color: #f9e723;
-  color: #333;
-  box-shadow: 0 2px 8px rgba(249, 231, 35, 0.3);
-}
-
-.estado-btn.aceptada {
-  background-color: #5cc30d;
-  color: white;
-  border: 2px solid #5cc30d;
-}
-
-.estado-btn.aceptada.active {
-  background-color: #5cc30d;
-  color: white;
-  box-shadow: 0 2px 8px rgba(92, 195, 13, 0.3);
-}
-
-.estado-btn.aceptada:not(:disabled):hover {
-  background-color: #4ea20a;
-  border-color: #4ea20a;
-}
-
-.estado-btn.rechazada {
-  background-color: #f00b0b;
-  color: white;
-  border: 2px solid #f00b0b;
-}
-
-.estado-btn.rechazada.active {
-  background-color: #f00b0b;
-  color: white;
-  box-shadow: 0 2px 8px rgba(240, 11, 11, 0.3);
-}
-
-.estado-btn.rechazada:not(:disabled):hover {
-  background-color: #d9090a;
-  border-color: #d9090a;
-}
-
 /* Estilos para badges de estado */
 .badge {
-  padding: 6px 12px;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -552,17 +559,110 @@ onMounted(() => {
 }
 
 .badge.en-revision {
-  background-color: #f9e723;
-  color: #333;
+  background-color: #ffc107;
+  color: #856404;
 }
 
 .badge.aceptada {
-  background-color: #5cc30d;
+  background-color: #1b9963;
   color: white;
 }
 
 .badge.rechazada {
-  background-color: #f00b0b;
+  background-color: #d9534f;
   color: white;
+}
+
+/* Inline editing styles for observations */
+.inline-edit-container {
+  padding: 1rem;
+}
+
+.inline-edit-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #1b9963;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #f8fff8;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.inline-edit-textarea:focus {
+  outline: none;
+  border-color: #158a50;
+  background-color: #fff;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  justify-content: flex-end;
+}
+
+.inline-actions .action-btn {
+  padding: 0.75rem 1.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.action-btn.create {
+  background-color: #1b9963;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.action-btn.create:hover {
+  background-color: #158a50;
+}
+
+.action-btn.edit {
+  background-color: #f0ad4e;
+  color: white;
+  padding: 0.5rem;
+}
+
+.action-btn.edit:hover {
+  background-color: #ec971f;
+}
+
+.action-btn.delete {
+  background-color: #d9534f;
+  color: white;
+  padding: 0.5rem;
+}
+
+.action-btn.delete:hover {
+  background-color: #c9302c;
+}
+
+.action-btn.cancel {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+
+.action-btn.cancel:hover {
+  background-color: #e6e6e6;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
 }
 </style>

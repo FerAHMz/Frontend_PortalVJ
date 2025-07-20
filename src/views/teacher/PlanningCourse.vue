@@ -8,67 +8,73 @@
       <div class="separator"></div>
 
       <!-- Formulario para crear planificación -->
-      <form @submit.prevent="submitPlanning" class="planning-form">
-        <div class="form-group">
-          <label for="trimestre">Trimestre</label>
-          <select v-model="trimestre" class="form-input" required>
-            <option disabled value="">Selecciona un trimestre</option>
-            <option v-for="t in trimestres" :key="t.value" :value="t.value">{{ t.label }}</option>
-          </select>
-        </div>
+      <div class="crud-actions">
+        <div class="form-container">
+          <form @submit.prevent="submitPlanning" class="planning-form">
+            <div class="form-group">
+              <label for="trimestre">Trimestre</label>
+              <select v-model="trimestre" class="form-input" required>
+                <option disabled value="">Selecciona un trimestre</option>
+                <option v-for="t in trimestres" :key="t.value" :value="t.value">{{ t.label }}</option>
+              </select>
+            </div>
 
-        <div class="form-group">
-          <label for="ciclo">Ciclo escolar</label>
-          <input v-model="ciclo" type="text" class="form-input" required placeholder="Ej. 2025" />
-        </div>
+            <div class="form-group">
+              <label for="ciclo">Ciclo escolar</label>
+              <input v-model="ciclo" type="text" class="form-input" required placeholder="Ej. 2025" />
+            </div>
 
-        <button class="btn primary" type="submit">
-            {{ isEditing ? 'Actualizar planificación' : 'Crear planificación' }}
-        </button>
-        <button v-if="isEditing" @click="cancelEdit" type="button" class="btn secondary">
-          Cancelar
-        </button>
-      </form>
+            <div class="form-actions">
+              <button class="action-btn create" type="submit">
+                <Plus class="action-icon" />
+                Crear planificación
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
 
       <div v-if="planificaciones.length === 0" class="no-planning">
         No hay planificaciones registradas para este curso.
       </div>
 
-      <table v-else class="planning-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Trimestre</th>
-            <th>Ciclo Escolar</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="plan in planificaciones" :key="plan.id">
-            <td>{{ plan.id }}</td>
-            <td>{{ plan.mes }}</td>
-            <td>{{ plan.ciclo_escolar }}</td>
-            <td>
-              <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
-            </td>
-            <td>
-               <div class="action-group">
-                  <button class="action-btn add" @click="goToTasks(plan.id)">Agregar tareas</button>
-                  <button @click="editPlanning(plan)" class="action-btn edit">
-                    <Edit class="action-icon" />
-                  </button>
-                  <button @click="deletePlanning(plan.id)" class="action-btn delete">
-                    <Trash class="action-icon" />
-                  </button>
-                </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Trimestre</th>
+              <th>Ciclo Escolar</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="plan in planificaciones" :key="plan.id">
+              <td>{{ plan.id }}</td>
+              <td>{{ plan.mes }}</td>
+              <td>{{ plan.ciclo_escolar }}</td>
+              <td>
+                <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
+              </td>
+              <td class="actions">
+                 <div class="action-group">
+                    <button class="action-btn view" @click="goToTasks(plan.id)">
+                      <BookOpen class="action-icon" />
+                    </button>
+                    <button @click="deletePlanning(plan.id)" class="action-btn delete">
+                      <Trash class="action-icon" />
+                    </button>
+                  </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </main>
 
     <NotificationDialog />
+    <ConfirmDialog ref="confirmDialog" />
   </div>
 </template>
 
@@ -77,13 +83,15 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
-import { Edit, Trash } from 'lucide-vue-next'
+import { Trash } from 'lucide-vue-next'
 const route = useRoute()
 const router = useRouter()
 const { showNotification } = useNotifications()
+const confirmDialog = ref(null)
 const courseData = ref(null)
 const planificaciones = ref([])
 const trimestre = ref('')
@@ -94,8 +102,6 @@ const trimestres = [
   { value: 'III', label: 'III Trimestre (Septiembre - Diciembre)' }
 ]
 const courseId = route.params.courseId
-const isEditing = ref(false)
-const editingId = ref(null)
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
   { label: 'Tablero', icon: ClipboardList },
@@ -121,26 +127,17 @@ const fetchPlanning = async () => {
 }
 const submitPlanning = async () => {
   try {
-    if (isEditing.value) {
-      await planningService.update(courseId, editingId.value, {
-        mes: trimestre.value,
-        ciclo_escolar: ciclo.value
-      })
-      showNotification('success', 'Actualizado', 'Planificación actualizada')
-    } else {
-      await planningService.create(courseId, { 
-        mes: trimestre.value,
-        ciclo_escolar: ciclo.value
-      })
-      showNotification('success', 'Creado', 'Planificación creada')
-    }
+    await planningService.create(courseId, { 
+      mes: trimestre.value,
+      ciclo_escolar: ciclo.value
+    })
+    showNotification('success', 'Éxito', 'Planificación creada correctamente')
+    // Reset form
     trimestre.value = ''
     ciclo.value = ''
-    isEditing.value = false
-    editingId.value = null
     await fetchPlanning()
   } catch (error) {
-    showNotification('error', 'Error', 'No se pudo guardar la planificación')
+    showNotification('error', 'Error', 'No se pudo crear la planificación')
     console.error(error)
   }
 }
@@ -154,25 +151,20 @@ const goToTasks = (planId) => {
       state: { courseData: courseData.value }
     })
 }
-const editPlanning = (plan) => {
-  trimestre.value = plan.mes
-  ciclo.value = plan.ciclo_escolar
-  editingId.value = plan.id
-  isEditing.value = true
-}
-
-const cancelEdit = () => {
-  trimestre.value = ''
-  ciclo.value = ''
-  isEditing.value = false
-  editingId.value = null
-}
 const deletePlanning = async (planId) => {
-  if (!confirm('¿Estás seguro de eliminar esta planificación?')) return
+  const plan = planificaciones.value.find(p => p.id === planId)
+  const confirmed = await confirmDialog.value.show({
+    title: 'Eliminar planificación',
+    message: `¿Estás seguro de que deseas eliminar la planificación "${plan?.mes || ''}"? Esta acción no se puede deshacer.`,
+    confirmText: 'Eliminar'
+  })
+  
+  if (!confirmed) return
+  
   try {
     await planningService.delete(courseId, planId)
     planificaciones.value = planificaciones.value.filter(p => p.id !== planId)
-    showNotification('success', 'Eliminado', 'Planificación eliminada')
+    showNotification('success', 'Éxito', 'Planificación eliminada correctamente')
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo eliminar la planificación')
     console.error(error)
@@ -189,66 +181,176 @@ onMounted(async () => {
 
 <style scoped>
 .planning-container {
+  flex: 1;
   padding: 2rem;
-  margin-left: 150px; /* Compensar el sidebar */
-  margin-right: 2rem; /* Margen derecho para balance */
-  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
-  box-sizing: border-box;
+  margin-left: 130px;
 }
+
 .page-title {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
 }
+
 .course-subtitle {
   color: #666;
   margin-bottom: 1.5rem;
 }
+
 .separator {
-  height: 1px;
-  background-color: #eee;
-  margin: 1.5rem 0;
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
 }
+
+.crud-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.form-container {
+  flex: 1;
+}
+
 .planning-form {
   display: flex;
-  flex-wrap: wrap;
   gap: 1.5rem;
   align-items: flex-end;
-  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
-  width: 250px;
-  padding-top: 0.5rem;
+  min-width: 200px;
 }
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
 .form-input {
-  padding: 8px 10px;
-  margin-top: 6px;
-  border: 1px solid #ccc;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
-  font-family: inherit;
 }
+
 .form-actions {
-  align-self: flex-end; 
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
 }
-.planning-table {
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.data-table {
   width: 100%;
   border-collapse: collapse;
 }
-.planning-table th, .planning-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #ddd;
+
+.data-table th, .data-table td {
+  padding: 1rem;
   text-align: left;
+  border-bottom: 1px solid #eee;
 }
-.planning-table th {
-  background-color: #f8f9fa;
+
+.data-table th {
+  background-color: #f5f5f5;
   font-weight: 600;
 }
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.action-btn.create {
+  background-color: #1b9963;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.action-btn.create:hover {
+  background-color: #158a50;
+}
+
+.action-btn.view {
+  background-color: #1b9963;
+  color: white;
+}
+
+.action-btn.view:hover {
+  background-color: #158a50;
+}
+
+.action-btn.edit {
+  background-color: #f0ad4e;
+  color: white;
+}
+
+.action-btn.edit:hover {
+  background-color: #ec971f;
+}
+
+.action-btn.delete {
+  background-color: #d9534f;
+  color: white;
+}
+
+.action-btn.delete:hover {
+  background-color: #c9302c;
+}
+
+.action-btn.cancel {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.action-btn.cancel:hover {
+  background-color: #e6e6e6;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.action-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
 .badge {
-  padding: 6px 12px;
-  border-radius: 6px; 
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
   text-transform: capitalize;
@@ -258,85 +360,45 @@ onMounted(async () => {
 }
 
 .badge.en-revision {
-  background-color: #f9e723;
-  color: #333;
+  background-color: #ffc107;
+  color: #856404;
 }
 
 .badge.aceptada {
-  background-color: #5cc30d;
+  background-color: #1b9963;
   color: white;
 }
 
 .badge.rechazada {
-  background-color: #f00b0b;
+  background-color: #d9534f;
   color: white;
 }
-.btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-right: 8px;
-  cursor: pointer;
+
+.no-planning {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 2rem 0;
 }
-.btn.primary {
-  background-color: #1b9963;
-  margin-top: 20px;
-  height: 40px;
-  color: white;
-}
-.btn.danger {
-  background-color: #f44336;
-  color: white;
-}
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border: none;
-}
-.action-icon {
-  width: 18px;
-  height: 18px;
-}
-.action-btn.add {
-  background-color:  #70c873;; 
-  color: white;
-  border: none;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-  height: 35px;
-}
-.action-btn.mustard:hover {
-  background-color: #469e49;
-}
-.action-btn.edit {
-  background-color: #fd7e14;
-  color: white;
-  border: none;
-}
-.action-btn.edit:hover {
-  background-color: #e96b00;
-}
-.action-btn.delete {
-  background-color: #dc3545;
-  color: white;
-  margin-left: 0.5rem;
-  border: none;
-}
-.action-btn.delete:hover {
-  background-color: #bb2d3b;
-}
-.action-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap; 
+
+@media (max-width: 768px) {
+  .planning-container {
+    padding: 1rem;
+    margin-left: 0;
+  }
+
+  .planning-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-group {
+    min-width: auto;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

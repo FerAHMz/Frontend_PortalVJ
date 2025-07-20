@@ -12,41 +12,84 @@
       <div class="separator"></div>
 
       <!-- Formulario para agregar tarea (si editable) -->
-      <form @submit.prevent="handleSubmit" class="task-form" v-if="planificacion?.estado === 'en revision'">
-        <input v-model="tema" placeholder="Tema de la tarea" class="form-input" required />
-        <input v-model.number="puntos" type="number" min="0" step="0.5" placeholder="Puntaje" class="form-input" required />
-        <button type="submit" class="btn primary">
-          {{ isEditing ? 'Actualizar tarea' : 'Agregar tarea' }}
-        </button> 
-        <button v-if="isEditing" type="button" class="btn warning" @click="cancelEdit">Cancelar</button>
-      </form>
+      <div v-if="planificacion?.estado === 'en revision'" class="crud-actions">
+        <form @submit.prevent="handleSubmit" class="task-form">
+          <div class="form-group">
+            <label>Tema de la tarea</label>
+            <input v-model="tema" placeholder="Tema de la tarea" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label>Puntaje</label>
+            <input v-model.number="puntos" type="number" min="0" step="0.5" placeholder="Puntaje" class="form-input" required />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="action-btn create">
+              <Plus class="action-icon" />
+              Agregar tarea
+            </button>
+          </div>
+        </form>
+      </div>
 
       <!-- Tabla de tareas -->
-        <table v-if="tareas.length" class="task-table">
-        <thead>
-            <tr>
-            <th>#</th>
-            <th>Tema</th>
-            <th>Puntaje</th>
-            <th v-if="planificacion.estado === 'en revision'">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="(tarea, index) in tareas" :key="tarea.id">
-            <td>{{ index + 1 }}</td>
-            <td>{{ tarea.tema_tarea }}</td>
-            <td>{{ tarea.puntos_tarea }}</td>
-            <td v-if="planificacion.estado === 'en revision'">
-                <button @click="editTask(tarea)" class="action-btn edit">
-                  <Edit class="action-icon" />
-                </button>
-                <button @click="deleteTask(tarea.id)" class="action-btn delete">
-                  <Trash class="action-icon" />
-                </button>
-            </td>
-            </tr>
-        </tbody>
-        </table>
+        <div v-if="tareas.length" class="table-container">
+          <table class="data-table">
+            <thead>
+                <tr>
+                <th>#</th>
+                <th>Tema</th>
+                <th>Puntaje</th>
+                <th v-if="planificacion.estado === 'en revision'">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(tarea, index) in tareas" :key="tarea.id">
+                <td>{{ index + 1 }}</td>
+                <td>
+                  <input 
+                    v-if="taskBeingEdited?.id === tarea.id" 
+                    v-model="inlineEditTema" 
+                    class="inline-edit-input" 
+                    @keyup.enter="handleSubmit"
+                    @keyup.escape="cancelEdit"
+                  />
+                  <span v-else>{{ tarea.tema_tarea }}</span>
+                </td>
+                <td>
+                  <input 
+                    v-if="taskBeingEdited?.id === tarea.id" 
+                    v-model.number="inlineEditPuntos" 
+                    type="number" 
+                    min="0" 
+                    step="0.5" 
+                    class="inline-edit-input" 
+                    @keyup.enter="handleSubmit"
+                    @keyup.escape="cancelEdit"
+                  />
+                  <span v-else>{{ tarea.puntos_tarea }}</span>
+                </td>
+                <td v-if="planificacion.estado === 'en revision'" class="actions">
+                    <div v-if="taskBeingEdited?.id === tarea.id" class="inline-actions">
+                      <button @click="handleSubmit" class="action-btn create">
+                        <Check class="action-icon" />
+                      </button>
+                      <button @click="cancelEdit" class="action-btn cancel">
+                        <X class="action-icon" />
+                      </button>
+                    </div>
+                    <div v-else class="normal-actions">
+                      <button @click="editTask(tarea)" class="action-btn edit">
+                        <Edit class="action-icon" />
+                      </button>
+                      <button @click="deleteTask(tarea.id)" class="action-btn delete">
+                        <Trash class="action-icon" />
+                      </button>
+                    </div>
+                </td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
 
         <div v-else class="no-tasks">No hay tareas planificadas.</div>
 
@@ -75,6 +118,7 @@
     </main>
 
     <NotificationDialog />
+    <ConfirmDialog ref="confirmDialog" />
   </div>
 </template>
 
@@ -83,13 +127,15 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'
 import { useNotifications } from '@/utils/useNotifications.js'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
-import { Edit, Trash } from 'lucide-vue-next'
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus } from 'lucide-vue-next'
+import { Edit, Trash, Check, X } from 'lucide-vue-next'
 const route = useRoute()
 const router = useRouter()
 const { showNotification } = useNotifications()
+const confirmDialog = ref(null)
 const tareas = ref([])
 const observaciones = ref([])
 const planificacion = ref(null)
@@ -122,28 +168,32 @@ const fetchPlanningData = async () => {
   }
 }
 const handleSubmit = async () => {
-  if (!tema.value || puntos.value === null) return
   try {
     if (isEditing.value && taskBeingEdited.value) {
-      // EDITAR
+      // EDITAR usando variables inline
+      if (!inlineEditTema.value || inlineEditPuntos.value === null) return
       await planningService.updateTask(courseId, planId, taskBeingEdited.value.id, {
-        tema_tarea: tema.value,
-        puntos_tarea: puntos.value
+        tema_tarea: inlineEditTema.value,
+        puntos_tarea: inlineEditPuntos.value
       })
-      showNotification('success', 'Editado', 'Tarea actualizada')
+      showNotification('success', 'Éxito', 'Tarea actualizada correctamente')
+      // Reset inline edit
+      isEditing.value = false
+      taskBeingEdited.value = null
+      inlineEditTema.value = ''
+      inlineEditPuntos.value = null
     } else {
-      // CREAR NUEVA
+      // CREAR NUEVA usando variables del formulario
+      if (!tema.value || puntos.value === null) return
       await planningService.createTask(courseId, planId, {
         tema_tarea: tema.value,
         puntos_tarea: puntos.value
       })
-      showNotification('success', 'Agregada', 'Tarea registrada')
+      showNotification('success', 'Éxito', 'Tarea agregada correctamente')
+      // Reset form
+      tema.value = ''
+      puntos.value = null
     }
-    // Reset
-    tema.value = ''
-    puntos.value = null
-    isEditing.value = false
-    taskBeingEdited.value = null
     await fetchPlanningData()
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo guardar la tarea')
@@ -151,27 +201,41 @@ const handleSubmit = async () => {
   }
 }
 const deleteTask = async (taskId) => {
-  if (!confirm('¿Eliminar esta tarea?')) return
+  const confirmed = await confirmDialog.value.show({
+    title: 'Eliminar tarea',
+    message: '¿Estás seguro de que deseas eliminar esta tarea? Esta acción no se puede deshacer.',
+    confirmText: 'Eliminar'
+  })
+  
+  if (!confirmed) return
+  
   try {
     await planningService.deleteTask(courseId, planId, taskId)
-    showNotification('success', 'Tarea eliminada')
+    showNotification('success', 'Éxito', 'Tarea eliminada correctamente')
     await fetchPlanningData()
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo eliminar la tarea')
     console.error(error)
   }
 }
+// Variables separadas para edición inline
+const inlineEditTema = ref('')
+const inlineEditPuntos = ref(null)
+
 const editTask = (tarea) => {
-  tema.value = tarea.tema_tarea
-  puntos.value = tarea.puntos_tarea
+  // SOLO preparar para edición inline, NO llenar el formulario superior
   taskBeingEdited.value = tarea
   isEditing.value = true
+  // Llenar los valores temporales para la edición inline (NO afecta el formulario)
+  inlineEditTema.value = tarea.tema_tarea
+  inlineEditPuntos.value = tarea.puntos_tarea
 }
 const cancelEdit = () => {
   isEditing.value = false
   taskBeingEdited.value = null
-  tema.value = ''
-  puntos.value = null
+  // Limpiar solo las variables de edición inline
+  inlineEditTema.value = ''
+  inlineEditPuntos.value = null
 }
 const formatDate = (dateString) => {
   const date = new Date(dateString)
@@ -186,104 +250,166 @@ onMounted(() => {
 
 <style scoped>
 .planning-tasks-container {
+  flex: 1;
   padding: 2rem;
-  margin-left: 150px; /* Compensar el sidebar */
-  margin-right: 2rem; /* Margen derecho para balance */
-  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
-  box-sizing: border-box;
+  margin-left: 130px;
 }
 
-/* Responsive design */
-@media screen and (max-width: 1024px) {
-  .planning-tasks-container {
-    margin-left: 130px;
-    width: calc(100vw - 150px);
-    padding: 1.5rem;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .planning-tasks-container {
-    margin-left: 0;
-    width: 100vw;
-    padding: 1rem;
-  }
-}
 .page-title {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 1rem;
 }
+
 .course-subtitle {
   color: #666;
   margin-bottom: 1.5rem;
 }
+
 .separator {
-  height: 1px;
-  background-color: #eee;
-  margin: 1.5rem 0;
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
 }
-.task-form {
+
+.crud-actions {
   display: flex;
-  gap: 1rem;
+  justify-content: flex-start;
   margin-bottom: 2rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
-.form-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
+
+.task-form {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
   min-width: 200px;
 }
-.card-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
 }
-.task-card {
-  background-color: #fafafa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th, .data-table td {
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.data-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.data-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.actions {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-direction: column;
-  min-height: 130px;
+  gap: 0.5rem;
 }
-.task-info h3 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-.task-actions {
-  margin-top: auto;
-}
-.btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  margin-right: 8px;
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
 }
-.btn.primary {
+
+.action-btn.create {
   background-color: #1b9963;
   color: white;
+  padding: 0.75rem 1.5rem;
 }
-.btn.secondary {
-  background-color: #f0f0f0;
-  color: #333;
+
+.action-btn.create:hover {
+  background-color: #158a50;
 }
-.btn.danger {
-  background-color: #f44336;
+
+.action-btn.edit {
+  background-color: #f0ad4e;
   color: white;
 }
+
+.action-btn.edit:hover {
+  background-color: #ec971f;
+}
+
+.action-btn.delete {
+  background-color: #d9534f;
+  color: white;
+}
+
+.action-btn.delete:hover {
+  background-color: #c9302c;
+}
+
+.action-btn.cancel {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.action-btn.cancel:hover {
+  background-color: #e6e6e6;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.no-tasks {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 2rem 0;
+}
+
 .badge {
-  padding: 6px 12px;
+  padding: 0.5rem 1rem;
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -293,25 +419,40 @@ onMounted(() => {
   font-family: inherit;
 }
 
-.badge.en-revision { 
-  background-color: #f9e723; 
-  color: #333; 
+.badge.en-revision {
+  background-color: #ffc107;
+  color: #856404;
 }
 
-.badge.aceptada { 
-  background-color: #5cc30d; 
-  color: white; 
+.badge.aceptada {
+  background-color: #1b9963;
+  color: white;
 }
 
-.badge.rechazada { 
-  background-color: #f00b0b; 
-  color: white; 
+.badge.rechazada {
+  background-color: #d9534f;
+  color: white;
 }
-.no-tasks {
-  text-align: center;
-  color: #777;
-  font-style: italic;
-  margin-bottom: 1rem;
+
+@media (max-width: 768px) {
+  .planning-tasks-container {
+    padding: 1rem;
+    margin-left: 0;
+  }
+
+  .task-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-group {
+    min-width: auto;
+  }
+
+  .data-table th, .data-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 .observations-box {
   background-color: #f1f1f1;
@@ -404,16 +545,16 @@ onMounted(() => {
   padding-block: 0.3rem;
 }
 .action-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  padding: 0.5rem;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   border: none;
+  font-size: 0.9rem;
 }
 .action-icon {
   width: 18px;
@@ -435,5 +576,60 @@ onMounted(() => {
 }
 .action-btn.delete:hover {
   background-color: #bb2d3b;
+}
+
+/* Inline editing styles */
+.inline-edit-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #1b9963;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: #f8fff8;
+}
+
+.inline-edit-input:focus {
+  outline: none;
+  border-color: #158a50;
+  background-color: #fff;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.inline-actions .action-btn {
+  padding: 0.75rem 1.5rem;
+}
+
+.normal-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.normal-actions .action-btn {
+  padding: 0.5rem;
+}
+
+.action-btn.create {
+  background-color: #1b9963;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+
+.action-btn.create:hover {
+  background-color: #158a50;
+}
+
+.action-btn.cancel {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+
+.action-btn.cancel:hover {
+  background-color: #e6e6e6;
 }
 </style>
