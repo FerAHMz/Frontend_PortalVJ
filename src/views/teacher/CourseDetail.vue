@@ -71,6 +71,11 @@ onMounted(() => {
     label: 'Calificaciones', 
     path: 'grades',
     description: 'Gestionar calificaciones y tareas'
+  },
+  { 
+    label: 'Planificación', 
+    path: 'planning',
+    description: 'Administrar planificación de tareas del curso'
   }
   ]
   
@@ -92,6 +97,14 @@ onMounted(() => {
       name: 'CourseAttendance',
       params: { 
         courseId: route.params.courseId
+      },
+      state: { courseData: courseData.value }
+    })
+    } else if (option.path === 'planning') {
+    router.push({
+      name: 'CoursePlanning',
+      params: { 
+      courseId: route.params.courseId
       },
       state: { courseData: courseData.value }
     })

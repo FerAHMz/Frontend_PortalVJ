@@ -31,6 +31,8 @@ import AttendanceForm from '@/views/teacher/AttendanceForm.vue'
 import Messages from '@/views/teacher/Messages.vue'
 import ReportCardStudents from '@/views/teacher/ReportCardStudents.vue'
 import ReportCard from '@/views/teacher/ReportCard.vue'
+import CoursePlanning from '@/views/teacher/PlanningCourse.vue'
+import PlanningTasks from '@/views/teacher/PlanningTasks.vue'
 
 // Admin
 import AdminProfile from '@/views/admin/AdminProfile.vue'
@@ -46,6 +48,9 @@ import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
 
 // Director
 import DirectorProfile from '@/views/director/DirectorProfile.vue'
+import PlanningCourseDir from '@/views/director/PlanningCourse.vue'
+import PlanningTasksDir from '@/views/director/PlanningTasks.vue'
+import AcademicManagement from '@/views/director/AcademicManagement.vue'
 
 const routes = [
   // Rutas públicas
@@ -251,6 +256,26 @@ const routes = [
     },
     props: true
   },
+ {
+    path: '/teacher/courses/:courseId/planning',
+    name: 'CoursePlanning',
+    component: CoursePlanning,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
+  },
+  {
+    path: '/teacher/courses/:courseId/planning/:planId/tasks',
+    name: 'CoursePlanningTasks',
+    component: PlanningTasks,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    },
+    props: true
+  },
 
   // ADMIN ROUTES
   {
@@ -333,6 +358,33 @@ const routes = [
     path: '/director',
     name: 'DirectorProfile',
     component: DirectorProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/academic',
+    name: 'AcademicManagement',
+    component: AcademicManagement,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/planning/:courseId',
+    name: 'PlanningCourseDir',
+    component: PlanningCourseDir,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/planning/:courseId/tasks/:planId',
+    name: 'PlanningTasksDir',
+    component: PlanningTasksDir,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.DIRECTOR]
