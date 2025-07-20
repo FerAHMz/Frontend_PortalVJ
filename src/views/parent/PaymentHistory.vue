@@ -77,8 +77,8 @@
           </div>
         </div>
 
-        <!-- Pagos pendientes -->
-        <div v-if="selectedChild && pendingPayments && pendingPayments.length > 0" class="pending-payments">
+        <!-- Pagos pendientes - Solo se muestra cuando no hay filtros de fecha activos -->
+        <div v-if="selectedChild && !hasDateFilters && pendingPayments && pendingPayments.length > 0" class="pending-payments">
           <h3>Pagos Pendientes ({{ pendingPayments.length }} meses)</h3>
           <div class="pending-months">
             <span 
@@ -89,16 +89,18 @@
               {{ month }}
             </span>
           </div>
-          <p class="payment-info">
-            <strong>Nota:</strong> Solo se muestran los meses transcurridos del año actual. 
-            Monto mensual esperado: <strong>Q500.00</strong>
-          </p>
         </div>
 
-        <!-- Mensaje cuando está al día -->
-        <div v-else-if="selectedChild && pendingPayments && pendingPayments.length === 0" class="up-to-date">
+        <!-- Mensaje cuando está al día - Solo se muestra cuando no hay filtros de fecha activos -->
+        <div v-else-if="selectedChild && !hasDateFilters && pendingPayments && pendingPayments.length === 0" class="up-to-date">
           <h3>¡Al día con los pagos!</h3>
           <p>No hay pagos pendientes para los meses transcurridos del año actual.</p>
+        </div>
+
+        <!-- Mensaje informativo cuando hay filtros de fecha activos -->
+        <div v-else-if="selectedChild && hasDateFilters" class="date-filter-info">
+          <h3>Búsqueda por rango de fechas</h3>
+          <p>Mostrando pagos del período seleccionado. Los pagos pendientes del año actual se ocultan durante la búsqueda histórica.</p>
         </div>
 
         <!-- Tabla de historial de pagos -->
@@ -174,6 +176,11 @@ const paymentSummary = ref(null)
 const pendingPayments = ref([])
 const startDate = ref('')
 const endDate = ref('')
+
+// Variable computada para detectar si hay filtros de fecha activos
+const hasDateFilters = computed(() => {
+  return startDate.value || endDate.value
+})
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/parent' },
@@ -564,6 +571,27 @@ onMounted(async () => {
 .up-to-date p {
   margin: 0;
   color: #155724;
+  font-size: 0.9rem;
+}
+
+.date-filter-info {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #bee5eb;
+  border-radius: 8px;
+  background: #d1ecf1;
+  text-align: center;
+}
+
+.date-filter-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #0c5460;
+  font-size: 1.1rem;
+}
+
+.date-filter-info p {
+  margin: 0;
+  color: #0c5460;
   font-size: 0.9rem;
 }
 
