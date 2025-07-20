@@ -15,7 +15,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Mes</th>
+            <th>Trimestre</th>
             <th>Ciclo Escolar</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -98,8 +98,10 @@ onMounted(async () => {
 <style scoped>
 .planning-container {
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  margin-left: 150px; /* Compensar el sidebar */
+  margin-right: 2rem; /* Margen derecho para balance */
+  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
+  box-sizing: border-box;
 }
 .page-title {
   font-size: 1.8rem;
@@ -154,21 +156,25 @@ onMounted(async () => {
 }
 .badge {
   padding: 6px 12px;
-  border-radius: 999px; 
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 6px; 
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: capitalize;
   display: inline-block;
   line-height: 1;
+  font-family: inherit;
 }
+
 .badge.en-revision {
   background-color: #f9e723;
-  color: white;
+  color: #333;
 }
+
 .badge.aceptada {
   background-color: #5cc30d;
   color: white;
 }
+
 .badge.rechazada {
   background-color: #f00b0b;
   color: white;

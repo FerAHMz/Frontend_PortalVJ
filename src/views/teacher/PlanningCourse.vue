@@ -10,10 +10,10 @@
       <!-- Formulario para crear planificación -->
       <form @submit.prevent="submitPlanning" class="planning-form">
         <div class="form-group">
-          <label for="mes">Mes</label>
-          <select v-model="mes" class="form-input" required>
-            <option disabled value="">Selecciona un mes</option>
-            <option v-for="m in meses" :key="m" :value="m">{{ m }}</option>
+          <label for="trimestre">Trimestre</label>
+          <select v-model="trimestre" class="form-input" required>
+            <option disabled value="">Selecciona un trimestre</option>
+            <option v-for="t in trimestres" :key="t.value" :value="t.value">{{ t.label }}</option>
           </select>
         </div>
 
@@ -25,6 +25,9 @@
         <button class="btn primary" type="submit">
             {{ isEditing ? 'Actualizar planificación' : 'Crear planificación' }}
         </button>
+        <button v-if="isEditing" @click="cancelEdit" type="button" class="btn secondary">
+          Cancelar
+        </button>
       </form>
 
       <div v-if="planificaciones.length === 0" class="no-planning">
@@ -35,7 +38,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Mes</th>
+            <th>Trimestre</th>
             <th>Ciclo Escolar</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -83,11 +86,12 @@ const router = useRouter()
 const { showNotification } = useNotifications()
 const courseData = ref(null)
 const planificaciones = ref([])
-const mes = ref('')
+const trimestre = ref('')
 const ciclo = ref('')
-const meses = [
-  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+const trimestres = [
+  { value: 'I', label: 'I Trimestre (Enero - Abril)' },
+  { value: 'II', label: 'II Trimestre (Mayo - Agosto)' },
+  { value: 'III', label: 'III Trimestre (Septiembre - Diciembre)' }
 ]
 const courseId = route.params.courseId
 const isEditing = ref(false)
@@ -119,18 +123,18 @@ const submitPlanning = async () => {
   try {
     if (isEditing.value) {
       await planningService.update(courseId, editingId.value, {
-        mes: mes.value,
+        mes: trimestre.value,
         ciclo_escolar: ciclo.value
       })
       showNotification('success', 'Actualizado', 'Planificación actualizada')
     } else {
       await planningService.create(courseId, { 
-        mes: mes.value,
+        mes: trimestre.value,
         ciclo_escolar: ciclo.value
       })
       showNotification('success', 'Creado', 'Planificación creada')
     }
-    mes.value = ''
+    trimestre.value = ''
     ciclo.value = ''
     isEditing.value = false
     editingId.value = null
@@ -151,10 +155,17 @@ const goToTasks = (planId) => {
     })
 }
 const editPlanning = (plan) => {
-  mes.value = plan.mes
+  trimestre.value = plan.mes
   ciclo.value = plan.ciclo_escolar
   editingId.value = plan.id
   isEditing.value = true
+}
+
+const cancelEdit = () => {
+  trimestre.value = ''
+  ciclo.value = ''
+  isEditing.value = false
+  editingId.value = null
 }
 const deletePlanning = async (planId) => {
   if (!confirm('¿Estás seguro de eliminar esta planificación?')) return
@@ -179,8 +190,10 @@ onMounted(async () => {
 <style scoped>
 .planning-container {
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  margin-left: 150px; /* Compensar el sidebar */
+  margin-right: 2rem; /* Margen derecho para balance */
+  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
+  box-sizing: border-box;
 }
 .page-title {
   font-size: 1.8rem;
@@ -235,24 +248,28 @@ onMounted(async () => {
 }
 .badge {
   padding: 6px 12px;
-  border-radius: 999px; 
-  font-size: 0.85rem;
-  font-weight: 500;
+  border-radius: 6px; 
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: capitalize;
   display: inline-block;
   line-height: 1;
+  font-family: inherit;
 }
+
 .badge.en-revision {
-  background-color: #efe85dd3;
-  color: black;
+  background-color: #f9e723;
+  color: #333;
 }
+
 .badge.aceptada {
-  background-color: #b7eb8f;
-  color: #6edf18;
+  background-color: #5cc30d;
+  color: white;
 }
+
 .badge.rechazada {
-  background-color: #f26868;
-  color: #f00b0b;
+  background-color: #f00b0b;
+  color: white;
 }
 .btn {
   padding: 6px 10px;

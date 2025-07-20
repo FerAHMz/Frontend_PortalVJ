@@ -37,10 +37,10 @@
             <td>{{ tarea.tema_tarea }}</td>
             <td>{{ tarea.puntos_tarea }}</td>
             <td v-if="planificacion.estado === 'en revision'">
-                <button @click="editItem(item)" class="action-btn edit">
+                <button @click="editTask(tarea)" class="action-btn edit">
                   <Edit class="action-icon" />
                 </button>
-                <button @click="confirmDeleteItem(item)" class="action-btn delete">
+                <button @click="deleteTask(tarea.id)" class="action-btn delete">
                   <Trash class="action-icon" />
                 </button>
             </td>
@@ -187,8 +187,27 @@ onMounted(() => {
 <style scoped>
 .planning-tasks-container {
   padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  margin-left: 150px; /* Compensar el sidebar */
+  margin-right: 2rem; /* Margen derecho para balance */
+  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
+  box-sizing: border-box;
+}
+
+/* Responsive design */
+@media screen and (max-width: 1024px) {
+  .planning-tasks-container {
+    margin-left: 130px;
+    width: calc(100vw - 150px);
+    padding: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .planning-tasks-container {
+    margin-left: 0;
+    width: 100vw;
+    padding: 1rem;
+  }
 }
 .page-title {
   font-size: 1.8rem;
@@ -264,14 +283,30 @@ onMounted(() => {
   color: white;
 }
 .badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: capitalize;
+  display: inline-block;
+  line-height: 1;
+  font-family: inherit;
 }
-.badge.en\ revision { background: #856404; color: white; }
-.badge.aceptada { background: #155724; color: white; }
-.badge.rechazada { background: #721c24; color: white; }
+
+.badge.en-revision { 
+  background-color: #f9e723; 
+  color: #333; 
+}
+
+.badge.aceptada { 
+  background-color: #5cc30d; 
+  color: white; 
+}
+
+.badge.rechazada { 
+  background-color: #f00b0b; 
+  color: white; 
+}
 .no-tasks {
   text-align: center;
   color: #777;
@@ -303,16 +338,36 @@ onMounted(() => {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  min-width: 600px; /* Mínimo ancho para evitar compresión excesiva */
 }
+
 .task-table th,
 .task-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #ddd;
   text-align: left;
+  word-wrap: break-word;
 }
+
 .task-table th {
   background-color: #f5f5f5;
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Responsive table */
+@media screen and (max-width: 768px) {
+  .task-table {
+    font-size: 0.9rem;
+    min-width: auto;
+  }
+  
+  .task-table th,
+  .task-table td {
+    padding: 8px;
+  }
 }
 .btn.small {
   font-size: 0.8rem;

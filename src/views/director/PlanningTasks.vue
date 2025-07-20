@@ -7,13 +7,29 @@
       <div v-if="planificacion" class="course-subtitle">
         {{ planificacion?.mes }} | Ciclo: {{ planificacion?.ciclo_escolar }} |
         <div class="estado-section">
-          Estado:
-          <select v-model="nuevoEstado" @change="actualizarEstado" class="estado-dropdown">
-            <option disabled value="">Selecciona estado</option>
-            <option value="en revision">En revisión</option>
-            <option value="aceptada">Aceptada</option>
-            <option value="rechazada">Rechazada</option>
-          </select>
+          Estado: <span class="badge" :class="formatEstadoClass(planificacion.estado)">{{ planificacion.estado }}</span>
+          <div class="estado-buttons">
+            <button 
+              @click="actualizarEstado('en revision')" 
+              :class="{ active: planificacion.estado === 'en revision' }"
+              class="estado-btn revision">
+              En Revisión
+            </button>
+            <button 
+              @click="actualizarEstado('aceptada')" 
+              :class="{ active: planificacion.estado === 'aceptada' }"
+              :disabled="planificacion.estado !== 'en revision'"
+              class="estado-btn aceptada">
+              Aceptar
+            </button>
+            <button 
+              @click="actualizarEstado('rechazada')" 
+              :class="{ active: planificacion.estado === 'rechazada' }"
+              :disabled="planificacion.estado !== 'en revision'"
+              class="estado-btn rechazada">
+              Rechazar
+            </button>
+          </div>
         </div>
       </div>
       <div class="separator"></div>
@@ -106,7 +122,6 @@ const courseId = route.params.courseId
 const planId = route.params.planId
 const nuevaObservacion = ref('')
 const editingObservationId = ref(null)
-const nuevoEstado = ref('')
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
   { label: 'Tablero', icon: ClipboardList },
@@ -118,11 +133,17 @@ const menuItems = [
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
 }
-const actualizarEstado = async () => {
-  if (!nuevoEstado.value || nuevoEstado.value === planificacion.value.estado) return
+
+const formatEstadoClass = (estado) => {
+  return estado.toLowerCase().replace(/\s/g, '-');
+}
+
+const actualizarEstado = async (nuevoEstado) => {
+  if (!nuevoEstado || nuevoEstado === planificacion.value.estado) return
+  
   try {
     await planningService.updateEstado(courseId, planId, {
-      estado: nuevoEstado.value
+      estado: nuevoEstado
     })
     showNotification('success', 'Estado actualizado correctamente')
     await fetchPlanningData() // recarga el estado actualizado
@@ -136,7 +157,6 @@ const fetchPlanningData = async () => {
     planificacion.value = await planningService.fetchById(courseId, planId)
     tareas.value = await planningService.fetchTasks(courseId, planId)
     observaciones.value = await planningService.fetchObservations(courseId, planId)
-    nuevoEstado.value = planificacion.value.estado
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo cargar la planificación')
     console.error(error)
@@ -206,8 +226,10 @@ onMounted(() => {
 <style scoped>
 .planning-tasks-container {
   padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
+  margin-left: 150px; /* Compensar el sidebar */
+  margin-right: 2rem; /* Margen derecho para balance */
+  width: calc(100vw - 170px); /* Usar todo el espacio disponible */
+  box-sizing: border-box;
 }
 .page-title {
   font-size: 1.8rem;
@@ -406,20 +428,7 @@ onMounted(() => {
 .action-btn.delete:hover {
   background-color: #bb2d3b;
 }
-.estado-dropdown {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 0.95rem;
-  background-color: white;
-  color: #333;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-.estado-dropdown:focus {
-  border-color: #4a90e2;
-  outline: none;
-}
+
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
@@ -432,18 +441,128 @@ onMounted(() => {
   transition: border-color 0.2s ease;
   margin-bottom: 0.8rem;
 }
+
 .form-input:focus {
   border-color: #4a90e2;
   outline: none;
   background-color: #f9fcff;
 }
-.estado-section {
-  margin-top: 2rem; 
-}
+
 .observations-box {
   margin-top: 3rem; 
   background-color: #f1f1f1;
   padding: 1.5rem;
   border-radius: 8px;
+}
+
+/* Estilos para botones de estado */
+.estado-section {
+  margin-top: 1rem; 
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.estado-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.estado-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-transform: capitalize;
+}
+
+.estado-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.estado-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.estado-btn.revision {
+  background-color: #f9e723;
+  color: #333;
+  border: 2px solid #f9e723;
+}
+
+.estado-btn.revision.active {
+  background-color: #f9e723;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(249, 231, 35, 0.3);
+}
+
+.estado-btn.aceptada {
+  background-color: #5cc30d;
+  color: white;
+  border: 2px solid #5cc30d;
+}
+
+.estado-btn.aceptada.active {
+  background-color: #5cc30d;
+  color: white;
+  box-shadow: 0 2px 8px rgba(92, 195, 13, 0.3);
+}
+
+.estado-btn.aceptada:not(:disabled):hover {
+  background-color: #4ea20a;
+  border-color: #4ea20a;
+}
+
+.estado-btn.rechazada {
+  background-color: #f00b0b;
+  color: white;
+  border: 2px solid #f00b0b;
+}
+
+.estado-btn.rechazada.active {
+  background-color: #f00b0b;
+  color: white;
+  box-shadow: 0 2px 8px rgba(240, 11, 11, 0.3);
+}
+
+.estado-btn.rechazada:not(:disabled):hover {
+  background-color: #d9090a;
+  border-color: #d9090a;
+}
+
+/* Estilos para badges de estado */
+.badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: inline-block;
+  line-height: 1;
+  font-family: inherit;
+}
+
+.badge.en-revision {
+  background-color: #f9e723;
+  color: #333;
+}
+
+.badge.aceptada {
+  background-color: #5cc30d;
+  color: white;
+}
+
+.badge.rechazada {
+  background-color: #f00b0b;
+  color: white;
 }
 </style>
