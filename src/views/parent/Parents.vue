@@ -122,6 +122,7 @@ onMounted(async () => {
   flex: 1;
   padding: 20px;
   background-color: white;
+  overflow-y: auto;
 }
 
 .page-title {
@@ -194,5 +195,146 @@ onMounted(async () => {
 .child-card p {
   margin: 0.5rem 0;
   color: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-container {
+    padding: 15px;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .parent-info {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .children-list {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  
+  .profile-container {
+    padding: 10px;
+    height: auto;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .loading, .error {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .parent-info {
+    padding: 1.5rem;
+    margin-top: 1rem;
+  }
+  
+  .parent-info h2 {
+    font-size: 1.3rem;
+    text-align: center;
+  }
+  
+  .children-list {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  
+  .child-card {
+    padding: 1.2rem;
+  }
+  
+  .no-children {
+    padding: 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 8px;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .loading, .error {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .error {
+    margin: 0 10px;
+  }
+  
+  .parent-info {
+    padding: 1rem;
+    margin-top: 0.8rem;
+  }
+  
+  .parent-info h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .child-card {
+    padding: 1rem;
+  }
+  
+  .child-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .child-card p {
+    font-size: 0.9rem;
+  }
+  
+  .no-children {
+    padding: 1.2rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 320px) {
+  .profile-container {
+    padding: 5px;
+  }
+  
+  .page-title {
+    font-size: 1.2rem;
+  }
+  
+  .parent-info {
+    padding: 0.8rem;
+  }
+  
+  .child-card {
+    padding: 0.8rem;
+  }
+  
+  .child-card h3 {
+    font-size: 1rem;
+  }
+  
+  .child-card p {
+    font-size: 0.85rem;
+  }
 }
 </style>

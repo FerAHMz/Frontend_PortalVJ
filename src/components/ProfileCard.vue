@@ -149,21 +149,96 @@
     height: 18px;
   }
 
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .profile-header {
+      padding: 1.5rem 2rem;
+      gap: 1.5rem;
+    }
+    
+    .profile-img {
+      width: 160px;
+      height: 160px;
+    }
+    
+    .profile-main h2 {
+      font-size: 1.6rem;
+    }
+  }
+
   @media (max-width: 768px) {
     .profile-header {
       flex-direction: column;
       align-items: center;
       text-align: center;
+      padding: 1.5rem;
+      gap: 1.5rem;
+    }
+
+    .profile-img {
+      width: 140px;
+      height: 140px;
     }
 
     .profile-info {
       flex-direction: column;
       align-items: center;
       gap: 1.5rem;
+      width: 100%;
+    }
+
+    .profile-main {
+      width: 100%;
+    }
+
+    .profile-main h2 {
+      font-size: 1.5rem;
     }
 
     .profile-actions {
       align-items: center;
+      width: 100%;
+    }
+
+    .logout-btn {
+      width: 100%;
+      justify-content: center;
+      max-width: 200px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .profile-header {
+      padding: 1rem;
+      gap: 1rem;
+    }
+
+    .profile-img {
+      width: 120px;
+      height: 120px;
+    }
+
+    .profile-main h2 {
+      font-size: 1.3rem;
+    }
+
+    .role {
+      font-size: 1rem;
+    }
+
+    .contact h3,
+    .courses h3 {
+      font-size: 0.9rem;
+    }
+
+    .contact p,
+    .courses ul {
+      font-size: 0.85rem;
+    }
+
+    .logout-btn {
+      padding: 0.6rem 1.2rem;
+      font-size: 0.85rem;
     }
   }
   </style>

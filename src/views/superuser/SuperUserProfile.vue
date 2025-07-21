@@ -86,6 +86,7 @@ onMounted(() => {
   flex: 1;
   padding: 20px;
   background-color: white;
+  overflow-y: auto;
 }
 
 .page-title {
@@ -112,5 +113,70 @@ onMounted(() => {
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-container {
+    padding: 15px;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  
+  .profile-container {
+    padding: 10px;
+    height: auto;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .loading, .error {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 8px;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .loading, .error {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .error {
+    margin: 0 10px;
+  }
+}
+
+/* Para pantallas muy pequeñas */
+@media (max-width: 320px) {
+  .profile-container {
+    padding: 5px;
+  }
+  
+  .page-title {
+    font-size: 1.2rem;
+  }
 }
 </style>
