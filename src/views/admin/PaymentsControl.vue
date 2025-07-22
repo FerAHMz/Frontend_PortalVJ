@@ -9,13 +9,19 @@
       <div class="options">
         <ul>
           <li>
-            <router-link to="/admin/payments/control-de-pagos" class="payment-link">Control de pagos</router-link>
+            <router-link to="/admin/payments/control-de-pagos" class="payment-link">
+              Control de pagos
+            </router-link>
           </li>
           <li>
-            <router-link to="/admin/payments/registro-de-pagos" class="payment-link">Registro de pagos</router-link>
+            <router-link to="/admin/payments/registro-de-pagos" class="payment-link">
+              Registro de pagos
+            </router-link>
           </li>
           <li>
-            <router-link to="/admin/payments/upload" class="payment-link">Subir información de los pagos</router-link>
+            <router-link to="/admin/payments/upload" class="payment-link">
+              Subir información de los pagos
+            </router-link>
           </li>
         </ul>
       </div>
@@ -106,6 +112,86 @@ const handleItemClick = (item) => {
   text-decoration: none; 
 }
 
+/* Estilos para tablets (768px - 1024px) */
+@media (max-width: 1024px) {
+  .payments-control {
+    padding: 1.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .payment-link {
+    font-size: 1rem;
+  }
+  
+  .options li {
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+/* Estilos para móviles (hasta 768px) */
+@media (max-width: 768px) {
+  .payments-control {
+    padding: 1rem;
+    padding-top: 5rem; /* Espacio para el botón hamburguesa */
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .separator {
+    margin-bottom: 1rem;
+  }
+  
+  .options li {
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+  }
+  
+  .payment-link {
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+  }
+}
+
+/* Estilos para móviles pequeños (hasta 480px) */
+@media (max-width: 480px) {
+  .payments-control {
+    padding: 0.75rem;
+    padding-top: 4.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.25rem;
+  }
+  
+  .options li {
+    padding: 0.6rem 0.75rem;
+    gap: 0.25rem;
+  }
+  
+  .payment-link {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  
+  .mobile-menu-toggle {
+    width: 45px;
+    height: 45px;
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+  
+  .mobile-menu-toggle span {
+    width: 22px;
+    height: 2px;
+  }
+}
+
 .payments-table {
   margin: 2rem 0;
   width: 100%;
@@ -138,6 +224,7 @@ tr:hover {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
 .search-input,
@@ -165,5 +252,45 @@ tr:hover {
 .status-pending {
   color: #dc3545;
   font-weight: 600;
+}
+
+/* Responsive para controles */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-input,
+  .grade-select {
+    width: 100%;
+    min-width: unset;
+  }
+  
+  .payments-table {
+    margin: 1.5rem 0;
+  }
+  
+  th, td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  th, td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+  
+  .controls {
+    gap: 0.5rem;
+  }
+  
+  .search-input,
+  .grade-select {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

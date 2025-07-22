@@ -1,42 +1,79 @@
 <template>
-    <div class="layout">
-      <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
-      
-      <main class="upload-container">
-        <h1 class="page-title">Información de los pagos</h1>
-        <div class="separator"></div>
+  <div class="layout">
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
+    
+    <main class="upload-container">
+      <div class="content-wrapper">
+        <header class="page-header">
+          <h1 class="page-title">Información de los pagos</h1>
+          <div class="separator"></div>
+        </header>
         
-        <h2 class="section-title">Archivo de Excel</h2>
-        
-        <div class="upload-box" 
-             :class="{ 'uploading': isUploading, 'dragging': isDragging }"
-             @dragover.prevent="isDragging = true"
-             @dragleave.prevent="isDragging = false"
-             @drop.prevent="handleDrop">
-          <div class="upload-box-content">
-            <FileUp class="upload-icon" v-if="!isUploading" />
-            <Loader2 class="upload-icon animate-spin" v-else />
-            <p>{{ isUploading ? 'Procesando archivo...' : 'Arrastra archivo o' }}</p>
-            <label for="file-upload" class="file-upload-btn" :class="{ 'disabled': isUploading }">
-              {{ isUploading ? 'Procesando...' : 'Subir' }}
-            </label>
-            <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" 
-              @change="handleFileUpload" :disabled="isUploading" />
+        <section class="upload-section">
+          <h2 class="section-title">Archivo de Excel</h2>
+          
+          <div class="upload-box" 
+               :class="{ 'uploading': isUploading, 'dragging': isDragging }"
+               @dragover.prevent="handleDragOver"
+               @dragleave.prevent="handleDragLeave"
+               @drop.prevent="handleDrop">
+            <div class="upload-box-content">
+              <div class="upload-icon-container">
+                <FileUp class="upload-icon" v-if="!isUploading" />
+                <Loader2 class="upload-icon animate-spin" v-else />
+              </div>
+              
+              <div class="upload-text">
+                <p class="upload-message">
+                  {{ isUploading ? 'Procesando archivo...' : 'Arrastra tu archivo aquí' }}
+                </p>
+                <p class="upload-subtitle" v-if="!isUploading">
+                  Formatos soportados: .xlsx, .xls, .csv
+                </p>
+              </div>
+              
+              <div class="upload-actions">
+                <label for="file-upload" class="file-upload-btn" :class="{ 'disabled': isUploading }">
+                  <span class="btn-text">{{ isUploading ? 'Procesando...' : 'Seleccionar archivo' }}</span>
+                  <span class="btn-text-mobile">{{ isUploading ? 'Procesando...' : 'Subir' }}</span>
+                </label>
+                <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" 
+                  @change="handleFileUpload" :disabled="isUploading" />
+              </div>
+              
+              <div class="upload-hint" v-if="!isUploading">
+                <p>o haz clic para seleccionar</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
-      <ErrorDialog 
-        :show="showError"
-        :errors="validationErrors"
-        @close="showError = false"
-      />
-      <ConfirmationDialog
-        :show="showConfirmation"
-        :fileName="selectedFile?.name"
-        @confirm="processFile"
-        @cancel="cancelUpload"
-      />
-    </div>
+          
+          <!-- Información adicional -->
+          <div class="upload-info">
+            <div class="info-card">
+              <h3>📋 Formato requerido</h3>
+              <p>El archivo debe contener las columnas: Carnet, Nombre, Grado, Monto, Mes, Fecha</p>
+            </div>
+            <div class="info-card">
+              <h3>📊 Tamaño máximo</h3>
+              <p>Archivos hasta 10MB</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    
+    <ErrorDialog 
+      :show="showError"
+      :errors="validationErrors"
+      @close="showError = false"
+    />
+    <ConfirmationDialog
+      :show="showConfirmation"
+      :fileName="selectedFile?.name"
+      @confirm="processFile"
+      @cancel="cancelUpload"
+    />
+  </div>
 </template>
 
 <script setup>
@@ -136,7 +173,21 @@ const cancelUpload = () => {
   resetForm()
 }
 
+const handleDragOver = (event) => {
+  event.preventDefault()
+  isDragging.value = true
+}
+
+const handleDragLeave = (event) => {
+  event.preventDefault()
+  // Solo cambiar isDragging si realmente salimos del área
+  if (!event.currentTarget.contains(event.relatedTarget)) {
+    isDragging.value = false
+  }
+}
+
 const handleDrop = (event) => {
+  event.preventDefault()
   isDragging.value = false
   const droppedFile = event.dataTransfer.files[0]
   if (droppedFile) {
@@ -153,122 +204,435 @@ const handleDrop = (event) => {
 </script>
 
 <style scoped>
+/* Layout general */
 .layout {
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.upload-container {
+  flex: 1;
+  padding: 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  overflow-y: auto;
+  margin-left: 130px; /* Espacio para sidebar en desktop */
+  transition: margin-left 0.3s ease;
+}
+
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.separator {
+  height: 3px;
+  background: linear-gradient(90deg, #1b9963 0%, #22c55e 100%);
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+}
+
+/* Sección de upload */
+.upload-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.section-title {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Upload box */
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  min-height: 320px;
+  border: 3px dashed #cbd5e0;
+  background-color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.upload-box:hover {
+  border-color: #1b9963;
+  background-color: #f0f9f4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(27, 153, 99, 0.15);
+}
+
+.upload-box.dragging {
+  border-color: #1b9963;
+  background-color: #f0f9f4;
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(27, 153, 99, 0.2);
+}
+
+.upload-box.uploading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.upload-box-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+/* Icono de upload */
+.upload-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #1b9963, #22c55e);
+  border-radius: 50%;
+  margin-bottom: 0.5rem;
+}
+
+.upload-icon {
+  width: 40px;
+  height: 40px;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Texto del upload */
+.upload-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upload-message {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+}
+
+.upload-subtitle {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* Acciones de upload */
+.upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.file-upload-btn {
+  background: linear-gradient(135deg, #1b9963, #22c55e);
+  color: white;
+  padding: 12px 32px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(27, 153, 99, 0.3);
+  min-width: 160px;
+}
+
+.file-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(27, 153, 99, 0.4);
+  background: linear-gradient(135deg, #158a50, #16a34a);
+}
+
+.file-upload-btn:active {
+  transform: translateY(0);
+}
+
+.file-upload-btn.disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-text-mobile {
+  display: none;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* Hint de upload */
+.upload-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-hint p {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* Información adicional */
+.upload-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 2rem;
+}
+
+.info-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.info-card h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.info-card p {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Animaciones */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-  
-  .upload-container {
-    flex: 1;
-    padding: 2rem;
-    background: white;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  to {
+    transform: rotate(360deg);
   }
-  
-  .page-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 1rem;
-    width: 100%;
-    text-align: left;
+}
+
+/* Responsive Design */
+
+/* Tablet */
+@media screen and (max-width: 1024px) {
+  .content-wrapper {
+    padding: 1.5rem;
   }
-  
-  .separator {
-    border-bottom: 2px solid #000;
-    margin-bottom: 1.5rem;
-    width: 100%;
-  }
-  
-  .section-title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 2rem;
-    text-align: left;
-  }
-  
+
   .upload-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 3rem;
-    border-radius: 20px;
-    width: 450px;
-    margin: 0 auto;
-    border: 4px solid #000;
-    background-color: white;
+    max-width: 450px;
+    padding: 2.5rem 1.5rem;
   }
-  
-  .upload-box-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+
+  .upload-icon-container {
+    width: 70px;
+    height: 70px;
   }
-  
+
   .upload-icon {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 1rem;
-    transition: opacity 0.3s ease;
+    width: 35px;
+    height: 35px;
   }
-  
-  .animate-spin {
-    animation: spin 1s linear infinite;
-    opacity: 1;
+}
+
+/* Mobile */
+@media screen and (max-width: 768px) {
+  .upload-container {
+    margin-left: 0; /* Eliminar margen del sidebar en móvil */
+    padding-top: 80px; /* Espacio para el botón hamburguesa */
   }
-  
-  .upload-box p {
-    font-size: 1rem;
-    color: #555;
+
+  .content-wrapper {
+    padding: 1rem;
+    min-height: calc(100vh - 80px);
   }
-  
-  .file-upload-btn {
-    background-color: #1b9963;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+  .page-title {
+    font-size: clamp(1.5rem, 6vw, 2.2rem);
     text-align: center;
+  }
+
+  .section-title {
+    font-size: clamp(1.125rem, 4vw, 1.375rem);
+  }
+
+  /* Upload box móvil */
+  .upload-box {
+    max-width: 100%;
+    padding: 2rem 1rem;
+    min-height: 280px;
+    border-radius: 16px;
+    margin: 0 0.5rem;
+  }
+
+  .upload-icon-container {
+    width: 60px;
+    height: 60px;
+  }
+
+  .upload-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .upload-message {
     font-size: 1rem;
-    border: none;
   }
-  
-  .file-upload-btn:hover {
-    background-color: #158a50;
+
+  .upload-subtitle {
+    font-size: 0.8125rem;
   }
-  
-  input[type="file"] {
+
+  /* Botón móvil */
+  .file-upload-btn {
+    padding: 14px 24px;
+    font-size: 1rem;
+    min-width: 140px;
+  }
+
+  .btn-text {
     display: none;
   }
-  
-  .uploading {
-    opacity: 0.7;
-    pointer-events: none;
+
+  .btn-text-mobile {
+    display: inline;
   }
-  
-  .file-upload-btn.disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+
+  /* Info cards móvil */
+  .upload-info {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
   }
-  
-  .dragging {
-    border-style: dashed;
-    background-color: #f5f5f5;
+
+  .info-card {
+    padding: 1.25rem;
   }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+
+  .info-card h3 {
+    font-size: 1rem;
   }
-  </style>
+
+  .info-card p {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Móvil pequeño */
+@media screen and (max-width: 480px) {
+  .upload-container {
+    padding-top: 75px;
+  }
+
+  .content-wrapper {
+    padding: 0.75rem;
+  }
+
+  .upload-box {
+    padding: 1.5rem 0.75rem;
+    min-height: 260px;
+    margin: 0 0.25rem;
+  }
+
+  .upload-icon-container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .upload-icon {
+    width: 25px;
+    height: 25px;
+  }
+
+  .upload-message {
+    font-size: 0.9375rem;
+  }
+
+  .file-upload-btn {
+    padding: 12px 20px;
+    font-size: 0.9375rem;
+    min-width: 120px;
+  }
+
+  .info-card {
+    padding: 1rem;
+  }
+}
+
+/* Mejoras para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus states para accesibilidad */
+.file-upload-btn:focus-visible {
+  outline: 2px solid #1b9963;
+  outline-offset: 2px;
+}
+
+.upload-box:focus-within {
+  border-color: #1b9963;
+  background-color: #f0f9f4;
+}
+</style>
