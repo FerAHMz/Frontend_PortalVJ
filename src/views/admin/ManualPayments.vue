@@ -815,6 +815,7 @@ onMounted(fetchPayments)
 
   .page-title {
     font-size: 1.5rem;
+    margin-top: 5.25rem;
     margin-bottom: 0.75rem;
   }
 

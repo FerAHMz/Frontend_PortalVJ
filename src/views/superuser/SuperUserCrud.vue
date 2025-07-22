@@ -1,26 +1,32 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" @item-clicked="handleItemClick"/>
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
+
     <main class="crud-container">
-      <h1 class="page-title">Panel de Super Usuario</h1>
+      <!-- Título -->
+      <h1 class="page-title">Panel de Super Usuario</h1>
       <div class="separator"></div>
 
+      <!-- Acciones (botón + buscador) -->
       <div class="crud-actions">
         <button @click="openCreateModal" class="action-btn create">
-          <Plus class="action-icon" /> Nuevo Registro
+          <Plus class="action-icon" />
+          <span class="btn-text">Nuevo Registro</span>
         </button>
+
         <div class="search-container">
           <input
             type="text"
             v-model="searchQuery"
             placeholder="Buscar..."
             class="search-input"
-          >
+          />
           <Search class="search-icon" />
         </div>
       </div>
 
-      <div class="table-container">
+      <!-- Tabla (escritorio / tablet) -->
+      <div class="table-container desktop-table">
         <table class="data-table">
           <thead>
             <tr>
@@ -31,10 +37,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in filteredItems" :key="`${item.id}-${item.rol}`">
+            <tr
+              v-for="item in filteredItems"
+              :key="`${item.id}-${item.rol}`"
+            >
               <td v-for="header in headers" :key="header.key">
                 <template v-if="header.key === 'activo'">
-                  <span :class="['status-badge', item[header.key] ? 'active' : 'inactive']">
+                  <span
+                    :class="[
+                      'status-badge',
+                      item[header.key] ? 'active' : 'inactive'
+                    ]"
+                  >
                     {{ item[header.key] ? 'Activo' : 'Inactivo' }}
                   </span>
                 </template>
@@ -43,19 +57,22 @@
                 </template>
               </td>
               <td class="actions">
-                <button @click="editItem(item)" class="action-btn edit">
+                <button
+                  @click="editItem(item)"
+                  class="action-btn edit"
+                >
                   <Edit class="action-icon" />
                 </button>
-                <button 
-                  v-if="item.activo" 
-                  @click="confirmDeactivate(item)" 
+                <button
+                  v-if="item.activo"
+                  @click="confirmDeactivate(item)"
                   class="action-btn delete"
                 >
                   <Trash class="action-icon" />
                 </button>
-                <button 
-                  v-else 
-                  @click="confirmActivate(item)" 
+                <button
+                  v-else
+                  @click="confirmActivate(item)"
                   class="action-btn activate"
                 >
                   <Check class="action-icon" />
@@ -66,10 +83,72 @@
         </table>
       </div>
 
-      <!-- Modal para crear/editar -->
+      <!-- Tarjetas (móvil) -->
+      <div class="mobile-cards">
+        <div
+          v-for="item in filteredItems"
+          :key="`${item.id}-${item.rol}`"
+          class="user-card"
+        >
+          <div class="card-header">
+            <h3 class="user-name">
+              {{ item.nombre }} {{ item.apellido }}
+            </h3>
+            <span class="user-role">{{ item.rol }}</span>
+          </div>
+
+          <div class="card-body">
+            <p><strong>ID:</strong> {{ item.id }}</p>
+            <p><strong>Email:</strong> {{ item.email }}</p>
+            <p><strong>Teléfono:</strong> {{ item.telefono }}</p>
+            <p>
+              <strong>Estado:</strong>
+              <span
+                :class="[
+                  'status-badge',
+                  item.activo ? 'active' : 'inactive'
+                ]"
+              >
+                {{ item.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </p>
+          </div>
+
+          <div class="card-actions">
+            <button
+              @click="editItem(item)"
+              class="action-btn edit"
+            >
+              <Edit class="action-icon" />
+              <span>Editar</span>
+            </button>
+
+            <button
+              v-if="item.activo"
+              @click="confirmDeactivate(item)"
+              class="action-btn delete"
+            >
+              <Trash class="action-icon" />
+              <span>Desactivar</span>
+            </button>
+
+            <button
+              v-else
+              @click="confirmActivate(item)"
+              class="action-btn activate"
+            >
+              <Check class="action-icon" />
+              <span>Activar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de creación/edición -->
       <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
           <h2>{{ editingItem ? 'Editar Registro' : 'Nuevo Registro' }}</h2>
+
           <form @submit.prevent="saveItem">
             <div class="form-group">
               <label for="rol">Rol</label>
@@ -79,20 +158,28 @@
                 class="form-input"
                 required
               >
-                <option v-for="role in roles" :key="role.value" :value="role.value">
+                <option
+                  v-for="role in roles"
+                  :key="role.value"
+                  :value="role.value"
+                >
                   {{ role.label }}
                 </option>
               </select>
             </div>
 
-            <div v-for="header in editableHeaders" :key="header.key" class="form-group">
+            <div
+              v-for="header in editableHeaders"
+              :key="header.key"
+              class="form-group"
+            >
               <label :for="header.key">{{ header.title }}</label>
               <input
                 :type="header.type || 'text'"
                 v-model="formData[header.key]"
                 :id="header.key"
                 class="form-input"
-                :required="true"
+                required
               />
             </div>
 
@@ -118,7 +205,11 @@
             </div>
 
             <div class="modal-actions">
-              <button type="button" @click="closeModal" class="modal-btn cancel">
+              <button
+                type="button"
+                @click="closeModal"
+                class="modal-btn cancel"
+              >
                 Cancelar
               </button>
               <button type="submit" class="modal-btn save">
@@ -129,21 +220,22 @@
         </div>
       </div>
 
+      <!-- Confirmación -->
       <ModalConfirmacion
-          v-if="showConfirmModal"
-          :visible="showConfirmModal"
-          title="Confirmar Desactivación"
-          message="¿Estás seguro de desactivar este usuario?"
-          confirm-text="Desactivar"
-          cancel-text="Cancelar"
-          confirm-button-class="delete"
-          :loading="deleting"
-          @confirm="deleteItem"
-          @cancel="showConfirmModal = false"
+        v-if="showConfirmModal"
+        :visible="showConfirmModal"
+        title="Confirmar Desactivación"
+        message="¿Estás seguro de desactivar este usuario?"
+        confirm-text="Desactivar"
+        cancel-text="Cancelar"
+        confirm-button-class="delete"
+        :loading="deleting"
+        @confirm="deleteItem"
+        @cancel="showConfirmModal = false"
       />
     </main>
 
-    <!-- Notificaciones -->
+    <!-- Notificaciones -->
     <NotificationDialog />
   </div>
 </template>
@@ -531,34 +623,33 @@ const handleItemClick = (item) => {
 </script>
 
 <style scoped>
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
+/*  Estructura base   */
+.layout { display: flex; min-height: 100vh; }
 
 .crud-container {
   flex: 1;
   padding: 2rem;
-  margin-left: 130px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .page-title {
+  margin-top: 3.5rem;          /* evita que lo tape el menú */
+  margin-bottom: 1rem;
   font-size: 2rem;
   font-weight: bold;
   color: #000;
-  margin-bottom: 1rem;
 }
 
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-}
+.separator { border-bottom: 2px solid #000; margin-bottom: 1.5rem; }
 
+/*  Acciones  */
 .crud-actions {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  align-items: center;
   gap: 1rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
@@ -571,28 +662,24 @@ const handleItemClick = (item) => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.action-btn.create {
-  background-color: #1b9963;
-  color: white;
   border: none;
 }
 
-.action-btn.create:hover {
-  background-color: #158a50;
-}
+.action-btn.create { background: #1b9963; color: #fff; }
+.action-btn.create:hover { background: #158a50; }
 
-.action-icon {
-  width: 18px;
-  height: 18px;
-}
+.action-icon { width: 18px; height: 18px; flex-shrink: 0; }
 
-.search-container {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-}
+.action-btn.edit     { background: #f0ad4e; color: #fff; }
+.action-btn.delete   { background: #d9534f; color: #fff; }
+.action-btn.activate { background: #5cb85c; color: #fff; }
+
+.action-btn.edit,
+.action-btn.delete,
+.action-btn.activate { padding: 0.5rem; border-radius: 6px; }
+
+/*  Buscador  */
+.search-container { position: relative; flex: 1; max-width: 400px; }
 
 .search-input {
   width: 100%;
@@ -612,77 +699,93 @@ const handleItemClick = (item) => {
   color: #666;
 }
 
+/*  Tabla (desktop)  */
+.desktop-table { display: block; }
+
 .table-container {
   overflow-x: auto;
-  background: white;
+  background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.data-table { width: 100%; border-collapse: collapse; }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #eee;
 }
 
-.data-table th {
-  background-color: #f5f5f5;
-  font-weight: 600;
-}
+.data-table th { background: #f5f5f5; font-weight: 600; }
 
-.data-table tr:hover {
-  background-color: #f9f9f9;
-}
+.data-table tr:hover { background: #f9f9f9; }
 
-.actions {
+.actions { display: flex; gap: 0.5rem; }
+
+/*  Tarjetas (móvil)  */
+.mobile-cards    { display: none; }
+.user-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.user-name  { font-weight: 600; margin: 0; }
+.user-role  {
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+}
+.card-body   { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem; }
+.card-actions{
   display: flex;
   gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.action-btn.edit, .action-btn.delete, .action-btn.activate {
-  padding: 0.5rem;
-  border-radius: 6px;
+/*  Badge de estado  */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
+.status-badge.active   { background: #dcfce7; color: #166534; }
+.status-badge.inactive { background: #fee2e2; color: #991b1b; }
 
-.action-btn.edit {
-  background-color: #f0ad4e;
-  color: white;
-  border: none;
-}
-
-.action-btn.delete {
-  background-color: #d9534f;
-  color: white;
-  border: none;
-}
-
-.action-btn.activate {
-  background-color: #5cb85c;
-  color: white;
-  border: none;
-}
-
-/* Modales */
+/*  Modal  */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+  inset: 0;
+  background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .modal-content {
-  background: white;
+  background: #fff;
   padding: 2rem;
   border-radius: 8px;
   width: 100%;
@@ -691,32 +794,24 @@ const handleItemClick = (item) => {
   overflow-y: auto;
 }
 
-.modal-content.confirm {
-  max-width: 400px;
-}
+.form-group  { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
 
-.modal-content h2 {
-  margin-top: 0;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.form-input {
+.form-input  {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 1rem;
+  box-sizing: border-box;
 }
+
+.password-input-container { position: relative; display: flex; align-items: center; }
+.password-toggle {
+  position: absolute; right: 10px;
+  background: none; border: none; cursor: pointer; color: #666; padding: 5px;
+}
+.password-toggle:hover { color: #333; }
 
 .modal-actions {
   display: flex;
@@ -731,87 +826,68 @@ const handleItemClick = (item) => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.modal-btn.cancel {
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-}
-
-.modal-btn.save {
-  background-color: #1b9963;
-  color: white;
   border: none;
 }
 
-.modal-btn.delete {
-  background-color: #d9534f;
-  color: white;
-  border: none;
+.modal-btn.cancel  { background: #f5f5f5; border: 1px solid #ddd; }
+.modal-btn.save    { background: #1b9963; color: #fff; }
+.modal-btn.delete  { background: #d9534f; color: #fff; }
+
+/*  Breakpoints  */
+
+/* Tablets ≤ 1023 px */
+@media (max-width: 1023px) {
+  .crud-container { padding: 1.5rem; }
+  .page-title     { font-size: 1.75rem; }
+  .data-table th,
+  .data-table td  { padding: 0.75rem; font-size: 0.95rem; }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .crud-container {
-    padding: 1rem;
-    margin-left: 0;
+/* Portátiles pequeños / Tablets ≤ 991 px */
+@media (max-width: 991px) {
+  .crud-actions      { flex-direction: column; align-items: stretch; }
+  .search-container  { max-width: 100%; }
+  .action-btn.create { width: auto; justify-content: center; }
+}
+
+/* Móviles ≤ 767 px */
+@media (max-width: 767px) {
+  .crud-container { padding: 0.75rem; }
+  .page-title     { font-size: 1.5rem; margin-top: 5.25rem; margin-bottom: 0.75rem; }
+  .separator      { margin-bottom: 1rem; }
+
+  /* Ocultar tabla → mostrar tarjetas */
+  .desktop-table  { display: none; }
+  .mobile-cards   { display: block; }
+
+  /* Botón “Nuevo Registro” redondo */
+  .btn-text            { display: none; }
+  .action-btn.create   {
+    width: 48px; height: 48px;
+    padding: 0;
+    border-radius: 50%;
+    aspect-ratio: 1;
   }
 
-  .sidebar {
-    display: none;
+  /* Modal más compacto */
+  .modal-content {
+    padding: 1.5rem;
+    margin: 0.5rem;
+    max-width: calc(100vw - 1rem);
   }
-
-  .crud-actions {
-    flex-direction: column;
+  .modal-actions  {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
   }
-
-  .search-container {
-    max-width: 100%;
-  }
-
-  .data-table th, .data-table td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.9rem;
-  }
-}
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
+  .modal-btn      { width: 100%; text-align: center; }
 }
 
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  padding: 5px;
-}
-
-.password-toggle:hover {
-  color: #333;
-}
-
-.form-input:required {
-  border-left: 3px solid #1b9963;
-}
-
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-badge.active {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.status-badge.inactive {
-  background-color: #fee2e2;
-  color: #991b1b;
+/* Móviles muy pequeños ≤ 480 px */
+@media (max-width: 480px) {
+  .page-title   { font-size: 1.25rem; }
+  .search-input,
+  .form-input   { font-size: 16px; } 
+  .user-card    { padding: 1rem; }
+  .card-body p  { margin: 0.25rem 0; }
 }
 </style>
