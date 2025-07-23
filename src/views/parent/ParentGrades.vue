@@ -28,6 +28,7 @@ const children = ref([]);
 const selectedChild = ref(null);
 const loading = ref(true);
 const error = ref(null);
+
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/parent' },
   { label: 'Calificaciones', icon: FileText, path: '/parent/grades' },
@@ -36,17 +37,21 @@ const menuItems = [
   { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' },
   { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' }
 ];
+
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path);
 };
+
 const handleChildSelected = (child) => {
   selectedChild.value = child;
 };
+
 const handleViewTasks = (subjectId) => {
   if (selectedChild.value && subjectId) {
     router.push({ path: '/parent/tasks', query: { carnet: selectedChild.value.carnet, subjectId } });
   }
 };
+
 const fetchUserProfile = async () => {
   loading.value = true;
   error.value = null;
@@ -58,19 +63,23 @@ const fetchUserProfile = async () => {
   }
   loading.value = false;
 };
+
 onMounted(fetchUserProfile);
 </script>
 
 <style scoped>
 .layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
+
 .profile-container {
   flex: 1;
   padding: 20px;
   background-color: white;
+  overflow-x: auto;
 }
+
 .page-title {
   font-size: 2rem;
   font-weight: bold;
@@ -79,18 +88,24 @@ onMounted(fetchUserProfile);
   border-bottom: 1px solid #000000;
   padding-bottom: 0.5rem;
 }
+
 .loading, .error {
   text-align: center;
   padding: 2rem;
   font-size: 1.1rem;
 }
-.loading { color: #1b9963; }
+
+.loading { 
+  color: #1b9963; 
+}
+
 .error {
   color: #dc3545;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   border-radius: 8px;
 }
+
 .parent-info {
   margin-top: 2rem;
   background: white;
@@ -98,5 +113,106 @@ onMounted(fetchUserProfile);
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.no-children { text-align: center; color: #666; font-style: italic; }
+
+.no-children { 
+  text-align: center; 
+  color: #666; 
+  font-style: italic; 
+}
+
+/* Estilos responsive para tablets */
+@media screen and (max-width: 1024px) {
+  .profile-container {
+    padding: 16px;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .parent-info {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+}
+
+/* Estilos responsive para móviles */
+@media screen and (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  
+  .profile-container {
+    padding: 16px 12px;
+    /* Agregar padding superior para el botón hamburguesa */
+    padding-top: 80px;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    word-wrap: break-word;
+  }
+  
+  .parent-info {
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .loading, .error {
+    padding: 1.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  .error {
+    margin: 0 -12px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+}
+
+/* Estilos para móviles pequeños */
+@media screen and (max-width: 480px) {
+  .profile-container {
+    padding: 12px 8px;
+    padding-top: 80px;
+  }
+  
+  .page-title {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  
+  .parent-info {
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+  
+  .loading, .error {
+    padding: 1rem 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .no-children {
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
+}
+
+/* Animaciones suaves para transiciones */
+@media screen and (min-width: 769px) {
+  .profile-container {
+    transition: padding 0.3s ease;
+  }
+}
+
+/* Asegurar que el contenido no se superponga con el sidebar en móvil */
+@media screen and (max-width: 768px) {
+  .layout {
+    position: relative;
+  }
+}
 </style>

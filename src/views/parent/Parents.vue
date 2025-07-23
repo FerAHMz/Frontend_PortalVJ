@@ -230,6 +230,7 @@ onMounted(async () => {
   
   .page-title {
     font-size: 1.5rem;
+    margin-top: 5.25rem;
     margin-bottom: 1rem;
     text-align: center;
   }

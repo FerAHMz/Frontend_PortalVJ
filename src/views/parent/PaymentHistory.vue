@@ -103,8 +103,8 @@
           <p>Mostrando pagos del período seleccionado. Los pagos pendientes del año actual se ocultan durante la búsqueda histórica.</p>
         </div>
 
-        <!-- Tabla de historial de pagos -->
-        <div v-if="selectedChild && payments.length > 0" class="payment-table-container">
+        <!-- Tabla de historial de pagos - Vista escritorio -->
+        <div v-if="selectedChild && payments.length > 0" class="payment-table-container desktop-table">
           <h3>Historial Detallado</h3>
           <div class="table-wrapper">
             <table class="payment-table">
@@ -133,6 +133,47 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- Vista móvil - Cards de pagos -->
+        <div v-if="selectedChild && payments.length > 0" class="mobile-payments">
+          <h3>Historial Detallado</h3>
+          <div class="payments-grid">
+            <div 
+              v-for="payment in payments" 
+              :key="payment.id" 
+              class="payment-card"
+              :class="getPaymentRowClass(payment)"
+            >
+              <div class="payment-header">
+                <div class="payment-month">{{ payment.mes }}</div>
+                <div class="payment-status">
+                  <span :class="getStatusClass(payment.estado_descriptivo)">
+                    {{ payment.estado_descriptivo }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="payment-details">
+                <div class="detail-row">
+                  <span class="detail-label">Fecha:</span>
+                  <span class="detail-value">{{ formatDate(payment.fecha_pago) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Monto:</span>
+                  <span class="detail-value amount">Q{{ formatCurrency(payment.monto) }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">No. Boleta:</span>
+                  <span class="detail-value">{{ payment.no_boleta }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Método:</span>
+                  <span class="detail-value">{{ payment.metodo_pago }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -336,13 +377,14 @@ onMounted(async () => {
 <style scoped>
 .layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .profile-container {
   flex: 1;
   padding: 20px;
   background-color: white;
+  margin-left: 130px; /* Espacio para sidebar en escritorio */
 }
 
 .page-title {
@@ -403,6 +445,8 @@ onMounted(async () => {
 .date-input-group {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 180px;
 }
 
 .date-input-group label {
@@ -413,10 +457,11 @@ onMounted(async () => {
 }
 
 .date-input {
-  padding: 0.5rem;
+  padding: 0.75rem;
   border: 1px solid #e9ecef;
   border-radius: 4px;
   font-size: 0.9rem;
+  width: 100%;
 }
 
 .date-input:focus {
@@ -425,13 +470,15 @@ onMounted(async () => {
 }
 
 .btn-clear {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   background-color: #6c757d;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  white-space: nowrap;
+  height: fit-content;
 }
 
 .btn-clear:hover:not(:disabled) {
@@ -489,13 +536,10 @@ onMounted(async () => {
   border-left-color: #dc3545;
 }
 
-.card-icon {
-  font-size: 1.5rem;
-}
-
 .card-content {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .card-label {
@@ -524,15 +568,6 @@ onMounted(async () => {
   font-size: 1.1rem;
 }
 
-.payment-info {
-  margin: 0 0 1rem 0;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: #495057;
-}
-
 .pending-months {
   display: flex;
   flex-wrap: wrap;
@@ -555,11 +590,6 @@ onMounted(async () => {
   border-radius: 8px;
   background: #d4edda;
   text-align: center;
-}
-
-.up-to-date-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
 }
 
 .up-to-date h3 {
@@ -595,6 +625,11 @@ onMounted(async () => {
   font-size: 0.9rem;
 }
 
+/* Vista tabla para escritorio */
+.desktop-table {
+  display: block;
+}
+
 .payment-table-container {
   border: 1px solid #e9ecef;
   border-radius: 8px;
@@ -627,6 +662,7 @@ onMounted(async () => {
   text-align: left;
   font-weight: 600;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .payment-table td {
@@ -656,6 +692,71 @@ onMounted(async () => {
   background: rgba(248, 215, 218, 0.3);
 }
 
+/* Vista móvil - Cards */
+.mobile-payments {
+  display: none;
+}
+
+.payments-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.payment-card {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.payment-month {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #333;
+}
+
+.payment-details {
+  padding: 1rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.detail-value.amount {
+  font-weight: bold;
+  color: #1b9963;
+}
+
+/* Estados de pago */
 .status-paid {
   background: #d4edda;
   color: #155724;
@@ -663,6 +764,7 @@ onMounted(async () => {
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .status-partial {
@@ -672,6 +774,7 @@ onMounted(async () => {
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .status-invalid {
@@ -681,6 +784,7 @@ onMounted(async () => {
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .status-pending {
@@ -690,17 +794,13 @@ onMounted(async () => {
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .no-payments, .select-child-message {
   padding: 2rem;
   text-align: center;
   color: #666;
-}
-
-.no-payments-icon, .select-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
 }
 
 .no-payments h3, .select-child-message h3 {
@@ -715,22 +815,134 @@ onMounted(async () => {
   font-size: 0.9rem;
 }
 
-@media (max-width: 768px) {
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .profile-container {
+    margin-left: 0; /* Quitar margen en móvil */
+    padding: 15px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-top: 60px; /* Espacio para el botón hamburguesa */
+  }
+
+  .parent-info {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  /* Filtros de fecha en móvil */
   .date-inputs {
     flex-direction: column;
-    align-items: stretch;
+    gap: 1rem;
   }
-  
+
+  .date-input-group {
+    min-width: unset;
+  }
+
+  .btn-clear {
+    width: 100%;
+  }
+
+  /* Cards de resumen más compactas */
   .summary-cards {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
-  
+
+  .summary-card {
+    padding: 0.75rem;
+  }
+
+  .card-value {
+    font-size: 1rem;
+  }
+
+  /* Ocultar tabla y mostrar cards en móvil */
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-payments {
+    display: block;
+  }
+
+  .mobile-payments h3 {
+    margin: 0 0 1rem 0;
+    color: #1b9963;
+    font-size: 1.1rem;
+  }
+
+  /* Meses pendientes más compactos */
+  .pending-months {
+    justify-content: center;
+  }
+
+  .pending-month {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+  }
+}
+
+/* Tablets */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .profile-container {
+    padding: 18px;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .payment-table {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
-  
+
   .payment-table th,
   .payment-table td {
+    padding: 0.6rem;
+  }
+}
+
+/* Pantallas pequeñas */
+@media screen and (max-width: 480px) {
+  .profile-container {
+    padding: 10px;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+    padding-top: 65px;
+  }
+
+  .parent-info {
+    padding: 0.75rem;
+  }
+
+  .date-filters,
+  .payment-summary,
+  .pending-payments,
+  .up-to-date,
+  .date-filter-info {
+    padding: 0.75rem;
+  }
+
+  .payment-header {
+    padding: 0.75rem;
+  }
+
+  .payment-details {
+    padding: 0.75rem;
+  }
+
+  .detail-row {
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-card {
     padding: 0.5rem;
   }
 }
