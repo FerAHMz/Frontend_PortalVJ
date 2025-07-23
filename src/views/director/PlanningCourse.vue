@@ -11,7 +11,8 @@
         No hay planificaciones registradas para este curso.
       </div>
 
-      <div class="table-container">
+      <!-- Vista de tabla para desktop -->
+      <div class="table-container desktop-view">
         <table class="data-table">
           <thead>
             <tr>
@@ -39,6 +40,32 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Vista de tarjetas para móvil -->
+      <div class="cards-container mobile-view">
+        <div v-for="plan in planificaciones" :key="plan.id" class="planning-card">
+          <div class="card-header">
+            <h3 class="card-title">Plan #{{ plan.id }}</h3>
+            <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
+          </div>
+          <div class="card-content">
+            <div class="card-row">
+              <span class="card-label">Trimestre:</span>
+              <span class="card-value">{{ plan.mes }}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Ciclo Escolar:</span>
+              <span class="card-value">{{ plan.ciclo_escolar }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn view mobile" @click="goToTasks(plan.id)">
+              <BookOpen class="action-icon" />
+              Ver Tareas
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <NotificationDialog />
@@ -53,24 +80,29 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
 import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+
 const route = useRoute()
 const router = useRouter()
 const { showNotification } = useNotifications()
 const courseData = ref(null)
 const planificaciones = ref([])
 const courseId = route.params.courseId
+
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/director' },
   { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
   { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
   { label: 'Personal', icon: Users, path: '/director/staff' }
 ]
+
 const formatEstadoClass = (estado) => {
   return estado.toLowerCase().replace(/\s/g, '-');
 }
+
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
 }
+
 const goToTasks = (planId) => {
   router.push({
     name: 'PlanningTasksDir',
@@ -78,6 +110,7 @@ const goToTasks = (planId) => {
     state: { courseData: courseData.value }
   })
 }
+
 const fetchPlanning = async () => {
   try {
     const data = await planningService.fetchByCourse(courseId)
@@ -88,6 +121,7 @@ const fetchPlanning = async () => {
     console.error(error)
   }
 }
+
 onMounted(async () => {
   const course = sessionStorage.getItem('currentCourse')
   if (course) {
@@ -101,7 +135,8 @@ onMounted(async () => {
 .planning-container {
   flex: 1;
   padding: 2rem;
-  margin-left: 130px;
+  background-color: #fff;
+  min-height: 100vh;
 }
 
 .page-title {
@@ -114,6 +149,8 @@ onMounted(async () => {
 .course-subtitle {
   color: #666;
   margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
 .separator {
@@ -121,11 +158,32 @@ onMounted(async () => {
   margin-bottom: 1.5rem;
 }
 
+.no-planning {
+  text-align: center;
+  color: #777;
+  font-style: italic;
+  margin: 2rem 0;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+
+/* Vista de tabla para desktop */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
 .table-container {
   overflow-x: auto;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
 }
 
 .data-table {
@@ -142,26 +200,34 @@ onMounted(async () => {
 .data-table th {
   background-color: #f5f5f5;
   font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
 }
 
-.data-table tr:hover {
+.data-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.data-table tbody tr:hover {
   background-color: #f9f9f9;
 }
 
 .actions {
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
 }
 
 .action-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   border: none;
 }
 
@@ -172,6 +238,7 @@ onMounted(async () => {
 
 .action-btn.view:hover {
   background-color: #158a50;
+  transform: translateY(-1px);
 }
 
 .action-icon {
@@ -179,28 +246,85 @@ onMounted(async () => {
   height: 18px;
 }
 
-.no-planning {
-  text-align: center;
-  color: #777;
-  font-style: italic;
-  margin: 2rem 0;
+/* Vista de tarjetas para móvil */
+.cards-container {
+  display: grid;
+  gap: 1rem;
 }
 
-@media (max-width: 768px) {
-  .planning-container {
-    padding: 1rem;
-    margin-left: 0;
-  }
-
-  .data-table th, .data-table td {
-    padding: 0.75rem 0.5rem;
-    font-size: 0.9rem;
-  }
+.planning-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
-.badge {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+
+.planning-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.card-content {
+  padding: 1rem;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.card-row:last-child {
+  margin-bottom: 0;
+}
+
+.card-label {
+  font-weight: 500;
+  color: #666;
   font-size: 0.9rem;
+}
+
+.card-value {
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.card-actions {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+.action-btn.mobile {
+  width: 100%;
+  justify-content: center;
+  padding: 0.8rem;
+}
+
+/* Badges */
+.badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: capitalize;
   display: inline-block;
@@ -209,85 +333,149 @@ onMounted(async () => {
 }
 
 .badge.en-revision {
-  background-color: #ffc107;
+  background-color: #fff3cd;
   color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
 .badge.aceptada {
-  background-color: #1b9963;
-  color: white;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
 .badge.rechazada {
-  background-color: #d9534f;
-  color: white;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
-.btn {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  margin-right: 8px;
-  cursor: pointer;
+
+/* Responsive breakpoints */
+@media screen and (max-width: 1024px) {
+  .planning-container {
+    padding: 1.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .data-table th, .data-table td {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
 }
-.btn.primary {
-  background-color: #1b9963;
-  margin-top: 20px;
-  height: 40px;
-  color: white;
+
+@media screen and (max-width: 768px) {
+  .planning-container {
+    padding: 1rem;
+    padding-top: 5rem; /* Espacio para el botón hamburguesa */
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+  
+  .course-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    padding: 0 1rem;
+  }
+  
+  /* Ocultar tabla en móvil y mostrar tarjetas */
+  .desktop-view {
+    display: none;
+  }
+  
+  .mobile-view {
+    display: block;
+  }
+  
+  .no-planning {
+    margin: 1rem 0;
+    padding: 1.5rem;
+    font-size: 0.9rem;
+  }
 }
-.btn.danger {
-  background-color: #f44336;
-  color: white;
+
+@media screen and (max-width: 480px) {
+  .planning-container {
+    padding: 0.8rem;
+    padding-top: 4.5rem;
+  }
+  
+  .page-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+  }
+  
+  .course-subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  
+  .separator {
+    margin-bottom: 1rem;
+  }
+  
+  .planning-card {
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  
+  .card-header {
+    padding: 0.8rem;
+  }
+  
+  .card-title {
+    font-size: 1rem;
+  }
+  
+  .card-content {
+    padding: 0.8rem;
+  }
+  
+  .card-actions {
+    padding: 0.8rem;
+  }
+  
+  .card-label, .card-value {
+    font-size: 0.85rem;
+  }
+  
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+  
+  .action-btn.mobile {
+    font-size: 0.85rem;
+  }
 }
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border: none;
+
+@media screen and (max-width: 360px) {
+  .course-subtitle {
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+  
+  .card-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+  
+  .card-value {
+    font-weight: 500;
+  }
 }
-.action-icon {
-  width: 18px;
-  height: 18px;
-}
-.action-btn.add {
-  background-color:  #70c873;; 
-  color: white;
-  border: none;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-  height: 35px;
-}
-.action-btn.mustard:hover {
-  background-color: #469e49;
-}
-.action-btn.edit {
-  background-color: #fd7e14;
-  color: white;
-  border: none;
-}
-.action-btn.edit:hover {
-  background-color: #e96b00;
-}
-.action-btn.delete {
-  background-color: #dc3545;
-  color: white;
-  margin-left: 0.5rem;
-  border: none;
-}
-.action-btn.delete:hover {
-  background-color: #bb2d3b;
-}
-.action-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap; 
+
+/* Animaciones suaves */
+@media (prefers-reduced-motion: no-preference) {
+  .planning-card,
+  .action-btn,
+  .data-table tbody tr {
+    transition: all 0.3s ease;
+  }
 }
 </style>
