@@ -2,19 +2,20 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="report-card-container">
-      <h1 class="page-title"> Boleta de calificaciones</h1>
+      <h1 class="page-title">Boleta de calificaciones</h1>
       <div class="separator"></div>
 
+      <!-- Contenedor de búsqueda -->
+      <div class="search-container">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Ingrese el nombre del estudiante..."
+          class="search-input"
+        >
+      </div>
 
-        <div class="search-container">
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Ingrese el nombre del estudiante..."
-            class="search-input"
-          >
-        </div>
-
+      <!-- Filtros responsivos -->
       <div class="filters">
         <div class="filter-item">
           <label for="grade-select">Seleccione el grado y sección:</label>
@@ -47,16 +48,17 @@
         </div>
       </div>
 
-
+      <!-- Lista de estudiantes responsive -->
       <div class="students-list">
         <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
           <div class="student-info">
             <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
             <span class="student-id">Carnet: {{ student.carnet }}</span>
           </div>
-          <div >
+          <div class="student-actions">
             <button @click="viewReportCard(student)" class="save-btn">
-              Abrir boleta
+              <span class="btn-text-full">Abrir boleta</span>
+              <span class="btn-text-short">Abrir</span>
             </button>
           </div>
         </div>
@@ -93,8 +95,7 @@
     { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
   ]
 
-
-//aca busqueda por nombre, apellido o carnet
+  // Búsqueda por nombre, apellido o carnet
   const filteredStudents = computed(() => {
     if (!searchQuery.value && !searchGradeYear.grado && !searchGradeYear.year) {
       return students.value;
@@ -139,7 +140,6 @@
   };
 
   const fetchStudents = async () => {
-
     try {
       const token = localStorage.getItem('token');
       const response = await reportCardService.fetchStudentsGradeSection(
@@ -180,10 +180,10 @@
       router.push(path)
     }
   }
-
 </script>
 
 <style scoped>
+  /* Layout principal - se adapta al sidebar responsive */
   .layout {
     display: flex;
     min-height: 100vh;
@@ -192,9 +192,12 @@
   .report-card-container {
     flex: 1;
     padding: 2rem;
-    margin-left: 130px;
+    margin-left: 130px; /* Margen para sidebar en desktop */
+    transition: margin-left 0.3s ease;
+    min-width: 0; /* Permite que el contenido se contraiga */
   }
 
+  /* Títulos y separadores */
   .page-title {
     font-size: 2rem;
     font-weight: bold;
@@ -202,47 +205,15 @@
     margin-bottom: 0.5rem;
   }
 
-  .course-subtitle {
-    color: #555;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-  }
-
   .separator {
     border-bottom: 2px solid #000;
     margin-bottom: 1.5rem;
   }
 
+  /* Contenedor de búsqueda */
   .search-container {
     margin-bottom: 2rem;
   }
-
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    align-items: flex-end;
-  }
-
-  .filter-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .search-dropdown,
-  .input-year {
-    padding: 0.5rem;
-    font-size: 1rem;
-    width: 220px;
-  }
-
-  .filter-item label {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
 
   .search-input {
     width: 100%;
@@ -251,28 +222,55 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 1rem;
+    box-sizing: border-box;
+  }
+
+  /* Filtros responsivos */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-end;
+  }
+
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-item label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
+    text-align: left;
+  }
+
+  .search-dropdown,
+  .input-year {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
   }
 
   .input-year {
-    width: 100%;
     max-width: 150px;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
   }
 
-  .search-dropdown {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-
+  /* Lista de estudiantes */
   .students-list {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
   }
 
   .student-row {
@@ -281,15 +279,28 @@
     align-items: center;
     padding: 1rem;
     border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+  }
+
+  .student-row:hover {
+    background-color: #f8f9fa;
+  }
+
+  .student-row:last-child {
+    border-bottom: none;
   }
 
   .student-info {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0; /* Permite que el texto se contraiga */
   }
 
   .student-name {
     font-weight: 500;
+    color: #333;
+    margin-bottom: 0.25rem;
   }
 
   .student-id {
@@ -297,23 +308,13 @@
     font-size: 0.9rem;
   }
 
-  .info-text {
-    color: #888;
-    font-style: italic;
-    margin: 1rem 0;
-  }
-
-  .actions {
-    margin-top: 2rem;
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  .student-row > div:last-child {
+  .student-actions {
     display: flex;
     gap: 1rem;
+    flex-shrink: 0;
   }
 
+  /* Botón responsivo */
   .save-btn {
     background: #1b9963;
     color: white;
@@ -326,6 +327,12 @@
     white-space: nowrap;
   }
 
+  .save-btn:hover {
+    background: #147a4d;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
   .save-btn:active {
     transform: translateY(0);
     box-shadow: none;
@@ -335,4 +342,160 @@
     background: #ccc;
     cursor: not-allowed;
   }
-  </style>
+
+  /* Texto del botón - por defecto mostrar texto completo */
+  .btn-text-short {
+    display: none;
+  }
+
+  .btn-text-full {
+    display: inline;
+  }
+
+  /* Estilos para tablets */
+  @media screen and (max-width: 1024px) {
+    .report-card-container {
+      padding: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+    }
+
+    .filters {
+      gap: 1rem;
+    }
+
+    .filter-item {
+      min-width: 180px;
+    }
+  }
+
+  /* Estilos para móviles */
+  @media screen and (max-width: 768px) {
+    /* Remover margen del sidebar en móvil */
+    .report-card-container {
+      margin-left: 0;
+      padding: 1rem;
+      padding-top: 5rem; /* Espacio para el botón hamburguesa */
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+    }
+
+    /* Búsqueda a ancho completo */
+    .search-input {
+      max-width: none;
+    }
+
+    /* Filtros en columna */
+    .filters {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .filter-item {
+      min-width: auto;
+      flex: none;
+    }
+
+    .input-year {
+      max-width: none;
+    }
+
+    /* Lista de estudiantes más compacta */
+    .student-row {
+      padding: 0.75rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+
+    .student-info {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .student-actions {
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    /* Botón más pequeño en móvil */
+    .save-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    /* Mostrar texto corto del botón en pantallas muy pequeñas */
+    .btn-text-full {
+      display: none;
+    }
+
+    .btn-text-short {
+      display: inline;
+    }
+  }
+
+  /* Estilos para móviles muy pequeños */
+  @media screen and (max-width: 480px) {
+    .report-card-container {
+      padding: 0.75rem;
+      padding-top: 4.5rem;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+    }
+
+    .search-input {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .search-dropdown,
+    .input-year {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .student-row {
+      padding: 0.5rem;
+    }
+
+    .student-name {
+      font-size: 0.95rem;
+    }
+
+    .student-id {
+      font-size: 0.8rem;
+    }
+
+    .save-btn {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Mejoras para accesibilidad y usabilidad */
+  @media (prefers-reduced-motion: reduce) {
+    .report-card-container,
+    .save-btn,
+    .student-row {
+      transition: none;
+    }
+  }
+
+  /* Alto contraste para mejor legibilidad */
+  @media (prefers-contrast: high) {
+    .student-row {
+      border-bottom: 2px solid #333;
+    }
+
+    .save-btn {
+      border: 2px solid #1b9963;
+    }
+  }
+</style>

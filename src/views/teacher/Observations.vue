@@ -3,39 +3,51 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
       <main class="register-observation-container">
-        <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
-        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
-         Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+        <div class="page-header">
+          <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
+          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+           Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          </div>
         </div>
+        
         <div class="separator"></div>
 
-          <div class="search-container">
-            <input
-              type="text"
-              v-model="searchQuery"
-              placeholder="Ingrese el nombre del estudiante..."
-              class="search-input"
-            >
-          </div>
+        <!-- Contenedor de búsqueda responsive -->
+        <div class="search-container">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Ingrese el nombre del estudiante..."
+            class="search-input"
+          >
+        </div>
 
-          <div class="students-list">
-            <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
-              <div class="student-info">
-                <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
-                <span class="student-id">Carnet: {{ student.carnet }}</span>
-              </div>
-              <div>
-                <button @click="addObservation(student)"  class="save-btn">
-                  Agregar observación
-                </button>
-                <button @click="viewObservations(student)" class="save-btn">
-                  Ver observaciones
-                </button>
-              </div>
+        <!-- Lista de estudiantes responsive -->
+        <div class="students-list">
+          <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
+            <div class="student-info">
+              <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
+              <span class="student-id">Carnet: {{ student.carnet }}</span>
+            </div>
+            <div class="student-actions">
+              <button @click="addObservation(student)" class="action-btn primary">
+                <span class="btn-text-full">Agregar observación</span>
+                <span class="btn-text-short">Agregar</span>
+              </button>
+              <button @click="viewObservations(student)" class="action-btn secondary">
+                <span class="btn-text-full">Ver observaciones</span>
+                <span class="btn-text-short">Ver</span>
+              </button>
             </div>
           </div>
+        </div>
 
-          <NotificationDialog />
+        <!-- Mensaje cuando no hay estudiantes -->
+        <div v-if="filteredStudents.length === 0 && searchQuery" class="no-results">
+          <p>No se encontraron estudiantes que coincidan con "{{ searchQuery }}"</p>
+        </div>
+
+        <NotificationDialog />
       </main>
     </div>
   </template>
@@ -124,7 +136,6 @@
     }
   }
 
-
   onMounted(async () => {
     const savedCourse = sessionStorage.getItem('currentCourse')
     if (savedCourse) {
@@ -141,6 +152,7 @@
   </script>
 
   <style scoped>
+  /* Layout principal */
   .layout {
     display: flex;
     min-height: 100vh;
@@ -149,7 +161,14 @@
   .register-observation-container {
     flex: 1;
     padding: 2rem;
-    margin-left: 130px;
+    margin-left: 130px; /* Espacio para sidebar en escritorio */
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header de la página */
+  .page-header {
+    margin-bottom: 1.5rem;
   }
 
   .page-title {
@@ -157,6 +176,7 @@
     font-weight: bold;
     color: #000;
     margin-bottom: 0.5rem;
+    line-height: 1.2;
   }
 
   .course-subtitle {
@@ -170,32 +190,7 @@
     margin-bottom: 1.5rem;
   }
 
-  .observation-form {
-    max-width: 600px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-group label {
-    font-weight: 500;
-    color: #333;
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-
+  /* Contenedor de búsqueda */
   .search-container {
     margin-bottom: 2rem;
   }
@@ -205,31 +200,53 @@
     max-width: 400px;
     padding: 0.75rem;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 1rem;
+    transition: border-color 0.3s ease;
   }
 
+  .search-input:focus {
+    outline: none;
+    border-color: #1b9963;
+    box-shadow: 0 0 0 2px rgba(27, 153, 99, 0.1);
+  }
+
+  /* Lista de estudiantes */
   .students-list {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .student-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
+    padding: 1.5rem;
     border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+  }
+
+  .student-row:hover {
+    background-color: #f8f9fa;
+  }
+
+  .student-row:last-child {
+    border-bottom: none;
   }
 
   .student-info {
     display: flex;
     flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
   }
 
   .student-name {
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
   }
 
   .student-id {
@@ -237,37 +254,236 @@
     font-size: 0.9rem;
   }
 
-
-  .actions {
-    margin-top: 2rem;
+  /* Acciones de estudiante */
+  .student-actions {
     display: flex;
-    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-shrink: 0;
   }
 
-  .student-row > div:last-child {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .save-btn {
-    background: #1b9963;
-    color: white;
+  .action-btn {
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
     transition: all 0.2s ease;
     white-space: nowrap;
+    min-width: 140px;
   }
 
-  .save-btn:active {
+  .action-btn.primary {
+    background: #1b9963;
+    color: white;
+  }
+
+  .action-btn.primary:hover {
+    background: #158a56;
+    transform: translateY(-1px);
+  }
+
+  .action-btn.secondary {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+
+  .action-btn.secondary:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+  }
+
+  .action-btn:active {
     transform: translateY(0);
-    box-shadow: none;
   }
 
-  .save-btn:disabled {
+  .action-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Textos de botones */
+  .btn-text-short {
+    display: none;
+  }
+
+  /* Mensaje de no resultados */
+  .no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #666;
+    font-style: italic;
+  }
+
+  /* Responsive Design */
+
+  /* Tablets - 1024px y menos */
+  @media screen and (max-width: 1024px) {
+    .register-observation-container {
+      padding: 1.5rem;
+    }
+
+    .page-title {
+      font-size: 1.75rem;
+    }
+
+    .action-btn {
+      min-width: 120px;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  /* Tablets pequeñas y móviles grandes - 768px y menos */
+  @media screen and (max-width: 768px) {
+    .register-observation-container {
+      margin-left: 0; /* Remover margen del sidebar */
+      padding: 1rem;
+      padding-top: 80px; /* Espacio para el botón hamburguesa */
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      margin-top: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .course-subtitle {
+      font-size: 1rem;
+    }
+
+    .search-input {
+      max-width: 100%;
+    }
+
+    .student-row {
+      padding: 1.25rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .student-info {
+      text-align: center;
+    }
+
+    .student-name {
+      font-size: 1.05rem;
+    }
+
+    .student-actions {
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      flex: 1;
+      min-width: auto;
+      max-width: 180px;
+    }
+  }
+
+  /* Móviles - 480px y menos */
+  @media screen and (max-width: 480px) {
+    .register-observation-container {
+      padding: 0.75rem;
+      padding-top: 70px;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+    }
+
+    .course-subtitle {
+      font-size: 0.95rem;
+    }
+
+    .search-input {
+      padding: 0.65rem;
+      font-size: 0.95rem;
+    }
+
+    .student-row {
+      padding: 1rem;
+    }
+
+    .student-name {
+      font-size: 1rem;
+    }
+
+    .student-id {
+      font-size: 0.85rem;
+    }
+
+    .student-actions {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .action-btn {
+      max-width: 100%;
+      padding: 0.75rem 1rem;
+    }
+
+    /* Mostrar texto corto en botones en móviles muy pequeños */
+    .btn-text-full {
+      display: none;
+    }
+
+    .btn-text-short {
+      display: inline;
+    }
+  }
+
+  /* Móviles muy pequeños - 360px y menos */
+  @media screen and (max-width: 360px) {
+    .register-observation-container {
+      padding: 0.5rem;
+      padding-top: 65px;
+    }
+
+    .page-title {
+      font-size: 1.1rem;
+    }
+
+    .students-list {
+      margin: 0 -0.25rem;
+    }
+
+    .student-row {
+      padding: 0.75rem;
+    }
+
+    .action-btn {
+      padding: 0.65rem 0.75rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  /* Landscape móviles */
+  @media screen and (max-height: 500px) and (orientation: landscape) {
+    .register-observation-container {
+      padding-top: 60px;
+    }
+
+    .page-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .separator {
+      margin-bottom: 1rem;
+    }
+
+    .search-container {
+      margin-bottom: 1rem;
+    }
+
+    .student-row {
+      padding: 1rem;
+    }
   }
   </style>

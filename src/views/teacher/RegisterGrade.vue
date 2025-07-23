@@ -9,7 +9,7 @@
       </div>
       <div class="separator"></div>
 
-      <!-- Task Selection Section -->
+      <!-- Sección de Selección de Tareas -->
       <div v-if="!selectedTask" class="tasks-section">
         <h2>Seleccionar Tarea</h2>
         <div class="tasks-list">
@@ -18,19 +18,25 @@
                @click="selectTask(task)">
             <h3>{{ task.titulo }}</h3>
             <div class="task-details">
-              <span>Valor: {{ task.valor }} pts</span>
-              <span>Fecha: {{ formatDate(task.fecha_entrega) }}</span>
+              <span class="task-value">Valor: {{ task.valor }} pts</span>
+              <span class="task-date">Fecha: {{ formatDate(task.fecha_entrega) }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Grade Registration Section -->
+      <!-- Sección de Registro de Notas -->
       <div v-else class="grades-section">
         <div class="selected-task-header">
-          <h2>{{ selectedTask.titulo }}</h2>
+          <div class="task-info">
+            <h2>{{ selectedTask.titulo }}</h2>
+            <div class="task-meta mobile-only">
+              <span>{{ selectedTask.valor }} pts</span>
+            </div>
+          </div>
           <button @click="selectedTask = null" class="back-btn">
-            Volver a tareas
+            <span class="desktop-text">Volver a tareas</span>
+            <span class="mobile-text">Volver</span>
           </button>
         </div>
 
@@ -38,12 +44,18 @@
           <input
             type="text"
             v-model="searchQuery"
-            placeholder="Ingrese el nombre del estudiante..."
+            placeholder="Buscar estudiante..."
             class="search-input"
           >
         </div>
 
-        <div class="students-list">
+        <!-- Vista Desktop de estudiantes -->
+        <div class="students-list desktop-view">
+          <div class="students-header">
+            <div class="header-student">Estudiante</div>
+            <div class="header-grade">Calificación</div>
+            <div class="header-action">Acción</div>
+          </div>
           <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
             <div class="student-info">
               <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
@@ -59,9 +71,45 @@
                 placeholder="Nota"
               >
               <span class="max-points">/ {{ selectedTask.valor }}</span>
+            </div>
+            <div class="grade-action">
               <button
                 @click="handleGradeAction(student)"
                 :class="['grade-action-btn', student.hasExistingGrade ? 'update' : 'create']"
+              >
+                {{ student.hasExistingGrade ? 'Actualizar' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista Mobile de estudiantes -->
+        <div class="students-list mobile-view">
+          <div v-for="student in filteredStudents" :key="student.carnet" class="student-card">
+            <div class="student-card-header">
+              <div class="student-info">
+                <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
+                <span class="student-id">{{ student.carnet }}</span>
+              </div>
+            </div>
+            <div class="student-card-content">
+              <div class="grade-section">
+                <label class="grade-label">Calificación:</label>
+                <div class="grade-input-mobile">
+                  <input
+                    type="number"
+                    v-model="student.grade"
+                    :max="selectedTask.valor"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  >
+                  <span class="max-points">/ {{ selectedTask.valor }}</span>
+                </div>
+              </div>
+              <button
+                @click="handleGradeAction(student)"
+                :class="['grade-action-btn-mobile', student.hasExistingGrade ? 'update' : 'create']"
               >
                 {{ student.hasExistingGrade ? 'Actualizar' : 'Guardar' }}
               </button>
@@ -301,6 +349,8 @@ const handleItemClick = (path) => {
   flex: 1;
   padding: 2rem;
   margin-left: 130px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .page-title {
@@ -308,6 +358,7 @@ const handleItemClick = (path) => {
   font-weight: bold;
   color: #000;
   margin-bottom: 0.5rem;
+  line-height: 1.2;
 }
 
 .course-subtitle {
@@ -321,6 +372,7 @@ const handleItemClick = (path) => {
   margin-bottom: 1.5rem;
 }
 
+/* Sección de tareas */
 .tasks-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -341,18 +393,40 @@ const handleItemClick = (path) => {
   transform: translateY(-2px);
 }
 
+.task-item h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
 .task-details {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.5rem;
   color: #666;
+  font-size: 0.9rem;
 }
 
+/* Header de tarea seleccionada */
 .selected-task-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.task-info h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.task-meta {
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .back-btn {
@@ -361,8 +435,15 @@ const handleItemClick = (path) => {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.9rem;
 }
 
+.back-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Buscador */
 .search-container {
   margin-bottom: 2rem;
 }
@@ -376,18 +457,43 @@ const handleItemClick = (path) => {
   font-size: 1rem;
 }
 
+/* Vista desktop de estudiantes */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
 .students-list {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.students-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
 }
 
 .student-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 1rem;
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid #eee;
+}
+
+.student-row:last-child {
+  border-bottom: none;
 }
 
 .student-info {
@@ -397,6 +503,7 @@ const handleItemClick = (path) => {
 
 .student-name {
   font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
 .student-id {
@@ -416,10 +523,17 @@ const handleItemClick = (path) => {
   border: 1px solid #ddd;
   border-radius: 4px;
   text-align: center;
+  font-size: 0.9rem;
 }
 
 .max-points {
   color: #666;
+  font-size: 0.9rem;
+}
+
+.grade-action {
+  display: flex;
+  justify-content: center;
 }
 
 .grade-action-btn {
@@ -429,6 +543,7 @@ const handleItemClick = (path) => {
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .grade-action-btn.update {
@@ -445,6 +560,7 @@ const handleItemClick = (path) => {
   opacity: 0.9;
 }
 
+/* Botones de acción */
 .actions {
   margin-top: 2rem;
   display: flex;
@@ -464,5 +580,271 @@ const handleItemClick = (path) => {
 .save-btn:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+/* Estilos para móvil */
+@media screen and (max-width: 768px) {
+  .register-grade-container {
+    margin-left: 0;
+    padding: 1rem;
+    padding-top: 80px; /* Espacio para el botón hamburguesa */
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-top: 5.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .course-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Ocultar textos largos en móvil */
+  .desktop-text {
+    display: none;
+  }
+
+  .mobile-text {
+    display: inline;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  /* Tareas en móvil */
+  .tasks-list {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .task-item {
+    padding: 0.75rem;
+  }
+
+  .task-item h3 {
+    font-size: 1rem;
+  }
+
+  .task-details {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  /* Header de tarea seleccionada en móvil */
+  .selected-task-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .task-info h2 {
+    font-size: 1.25rem;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Buscador en móvil */
+  .search-input {
+    max-width: none;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  /* Ocultar vista desktop y mostrar vista móvil */
+  .desktop-view {
+    display: none;
+  }
+
+  .mobile-view {
+    display: block;
+  }
+
+  /* Vista móvil de estudiantes */
+  .student-card {
+    background: white;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+
+  .student-card-header {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+  }
+
+  .student-card .student-info {
+    gap: 0.25rem;
+  }
+
+  .student-card .student-name {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .student-card .student-id {
+    font-size: 0.9rem;
+  }
+
+  .student-card-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .grade-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .grade-label {
+    font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  .grade-input-mobile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .grade-input-mobile input {
+    flex: 1;
+    max-width: 120px;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 16px; /* Previene zoom en iOS */
+  }
+
+  .grade-action-btn-mobile {
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .grade-action-btn-mobile.update {
+    background: #f0ad4e;
+    color: white;
+  }
+
+  .grade-action-btn-mobile.create {
+    background: #5cb85c;
+    color: white;
+  }
+
+  .grade-action-btn-mobile:hover {
+    opacity: 0.9;
+  }
+
+  /* Botón de guardar en móvil */
+  .actions {
+    justify-content: stretch;
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+/* Tablets */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .register-grade-container {
+    padding: 1.5rem;
+  }
+
+  .tasks-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .student-row {
+    grid-template-columns: 2fr 1.2fr 1fr;
+  }
+
+  .students-header {
+    grid-template-columns: 2fr 1.2fr 1fr;
+  }
+}
+
+/* Pantallas muy pequeñas */
+@media screen and (max-width: 480px) {
+  .register-grade-container {
+    padding: 0.75rem;
+    padding-top: 70px;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .course-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .task-item {
+    padding: 0.5rem;
+  }
+
+  .student-card-header,
+  .student-card-content {
+    padding: 0.75rem;
+  }
+
+  .grade-input-mobile input {
+    padding: 0.5rem;
+  }
+
+  .grade-action-btn-mobile {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Clases de utilidad para mostrar/ocultar en diferentes tamaños */
+.mobile-only {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+  
+  .desktop-text {
+    display: none;
+  }
+  
+  .mobile-text {
+    display: inline;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .mobile-text {
+    display: none;
+  }
+  
+  .desktop-text {
+    display: inline;
+  }
 }
 </style>

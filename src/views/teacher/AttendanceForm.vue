@@ -3,16 +3,12 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
   
       <main class="attendance-container">
-  
-        <!-- Banner fijo para historial -->
-        <div class="history-info">
-          📅 Cambia la fecha para ver o editar registros históricos de asistencia.
-        </div>
-  
         <!-- Encabezado -->
-        <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
-        <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
-          Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+        <div class="header-section">
+          <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
+          <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
+            Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          </div>
         </div>
         <div class="separator"></div>
   
@@ -63,32 +59,35 @@
               <div class="student-icon">
                 <CircleUser />
               </div>
-              <div class="attendance-status">
-                <CircleX
-                  class="status-icon"
-                  :class="{ active: attendanceStatus[student.carnet] === 'absent' }"
-                  @click="setStatus(student.carnet, 'absent')"
-                  title="Ausente"
-                />
-                <ClockAlert
-                  class="status-icon"
-                  :class="{ active: attendanceStatus[student.carnet] === 'late' }"
-                  @click="setStatus(student.carnet, 'late')"
-                  title="Llegada tarde"
-                />
-                <CircleCheck
-                  class="status-icon"
-                  :class="{ active: attendanceStatus[student.carnet] === 'present' }"
-                  @click="setStatus(student.carnet, 'present')"
-                  title="Presente"
-                />
-              </div>
               <div class="student-info">
                 <div class="student-name">
                   {{ student.nombre }} {{ student.apellido }}
                 </div>
                 <div class="student-class">
                   Materia: {{ courseData.materia }}, Grado: {{ courseData.grado }}, Sección: {{ courseData.seccion }}
+                </div>
+              </div>
+              <div class="attendance-status">
+                <div class="status-button" 
+                     :class="{ active: attendanceStatus[student.carnet] === 'absent' }"
+                     @click="setStatus(student.carnet, 'absent')"
+                     title="Ausente">
+                  <CircleX class="status-icon" />
+                  <span class="status-label">Ausente</span>
+                </div>
+                <div class="status-button"
+                     :class="{ active: attendanceStatus[student.carnet] === 'late' }"
+                     @click="setStatus(student.carnet, 'late')"
+                     title="Llegada tarde">
+                  <ClockAlert class="status-icon" />
+                  <span class="status-label">Tarde</span>
+                </div>
+                <div class="status-button"
+                     :class="{ active: attendanceStatus[student.carnet] === 'present' }"
+                     @click="setStatus(student.carnet, 'present')"
+                     title="Presente">
+                  <CircleCheck class="status-icon" />
+                  <span class="status-label">Presente</span>
                 </div>
               </div>
             </div>
@@ -112,12 +111,14 @@
           <h3>Generar Reporte de Asistencia</h3>
           <div class="report-controls">
             <div class="date-range">
-              <label>Desde:</label>
-              <input type="date" v-model="reportStartDate" :max="todayDate">
-        
-              <label>Hasta:</label>
-              <input type="date" v-model="reportEndDate" :max="todayDate">
-        
+              <div class="date-input-group">
+                <label>Desde:</label>
+                <input type="date" v-model="reportStartDate" :max="todayDate">
+              </div>
+              <div class="date-input-group">
+                <label>Hasta:</label>
+                <input type="date" v-model="reportEndDate" :max="todayDate">
+              </div>
               <button @click="generateReport" class="generate-button">
                 Generar Reporte
               </button>
@@ -125,30 +126,32 @@
           </div>
 
           <div v-if="reportData.length" class="report-results">
-            <table>
-              <thead>
-                <tr>
-                  <th>Estudiante</th>
-                  <th>Días escolares</th>
-                  <th>Presente</th>
-                  <th>Llegadas tarde</th>
-                  <th>Ausente</th>
-                  <th>% Asistencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="student in reportData" :key="student.carnet">
-                  <td>{{ student.nombre }} {{ student.apellido }}</td>
-                  <td>{{ student.total_school_days }}</td>
-                  <td>{{ student.present_count }}</td>
-                  <td>{{ student.late_count }}</td>
-                  <td>{{ student.absent_count }}</td>
-                  <td>
-                    {{ calculateAttendancePercentage(student) }}%
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Estudiante</th>
+                    <th>Días escolares</th>
+                    <th>Presente</th>
+                    <th>Llegadas tarde</th>
+                    <th>Ausente</th>
+                    <th>% Asistencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="student in reportData" :key="student.carnet">
+                    <td>{{ student.nombre }} {{ student.apellido }}</td>
+                    <td>{{ student.total_school_days }}</td>
+                    <td>{{ student.present_count }}</td>
+                    <td>{{ student.late_count }}</td>
+                    <td>{{ student.absent_count }}</td>
+                    <td>
+                      {{ calculateAttendancePercentage(student) }}%
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         <NotificationDialog />
@@ -318,104 +321,142 @@
     display: flex;
     min-height: 100vh;
   }
+
   .attendance-container {
     flex: 1;
     padding: 2rem;
     background: white;
+    max-width: 100%;
+    overflow-x: hidden;
   }
+
+  /* Header Section */
+  .header-section {
+    margin-bottom: 1rem;
+  }
+
   .page-title {
     font-size: 1.8rem;
     margin-bottom: 0.5rem;
     color: #2c3e50;
+    word-break: break-word;
   }
+
   .course-subtitle {
     color: #555;
     font-size: 1.1rem;
     margin-bottom: 1rem;
+    word-break: break-word;
   }
+
   .separator {
     border-bottom: 2px solid #ddd;
     margin: 1.5rem 0;
   }
+
+  /* Filters Section */
   .filters-section {
     background: #f8f9fa;
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 2rem;
   }
+
+  .filters-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+  }
+
   .filter-controls {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
   }
+
   .filter-group {
     display: flex;
     flex-direction: column;
     min-width: 200px;
+    flex: 1;
   }
+
   .filter-group label {
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
     color: #555;
+    font-weight: 500;
   }
+
   .filter-group input,
   .filter-group select {
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-size: 1rem;
   }
+
+  /* Attendance Form */
   .attendance-form {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
   }
+
   .form-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
     border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
+
+  .form-header h3 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
   .date-selector {
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
+
+  .date-selector label {
+    font-weight: 500;
+    color: #555;
+  }
+
   .date-selector input {
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  .history-info {
-    background-color: #d9edf7;
-    color: #31708f;
-    padding: 0.75rem 1rem;
-    border: 1px solid #bce8f1;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
+
+  /* Student Cards */
   .student-cards {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
   }
+
   .student-card {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: #eee;
-    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    padding: 1rem;
     border-radius: 8px;
+    border: 1px solid #e9ecef;
   }
+
   .student-icon {
     width: 48px;
     height: 48px;
-    color: #444;
+    color: #6c757d;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -425,44 +466,87 @@
   .student-icon svg {
     width: 100%;
     height: 100%;
-    display: block;
   }
 
-  .status-icon {
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    stroke-width: 2;
-    opacity: 0.4;
-    transition: opacity 0.3s, stroke 0.3s;
-    stroke: currentColor;
-    fill: transparent;
-  }
-  .status-icon:hover { opacity: 0.7; }
-  .status-icon.active {
-    opacity: 1;
-    stroke-width: 3;
-    fill: transparent;
-  }
-  .status-icon.active:nth-child(1) { color: #c0392b; }
-  .status-icon.active:nth-child(2) { color: #e67e22; }
-  .status-icon.active:nth-child(3) { color: #1a5e40; }
   .student-info {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
   }
+
   .student-name {
     font-weight: 600;
     font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
   }
+
   .student-class {
     font-size: 0.9rem;
-    color: #555;
+    color: #6c757d;
+    word-break: break-word;
   }
+
+  .attendance-status {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .status-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    border: 2px solid #e9ecef;
+    min-width: 60px;
+  }
+
+  .status-button:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+  }
+
+  .status-button.active {
+    background: white;
+    border-width: 2px;
+  }
+
+  .status-button.active:nth-child(1) {
+    border-color: #dc3545;
+    color: #dc3545;
+  }
+
+  .status-button.active:nth-child(2) {
+    border-color: #fd7e14;
+    color: #fd7e14;
+  }
+
+  .status-button.active:nth-child(3) {
+    border-color: #198754;
+    color: #198754;
+  }
+
+  .status-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 0.25rem;
+  }
+
+  .status-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  /* Save Button */
   .save-button {
     margin-top: 1rem;
-    background-color: #4caf50;
+    background-color: #198754;
     color: white;
     border: none;
     padding: 0.8rem;
@@ -472,95 +556,243 @@
     cursor: pointer;
     transition: background-color 0.3s;
   }
+
   .save-button:hover {
-    background-color: #45a049;
+    background-color: #157347;
   }
+
   .save-button.update-mode {
-    background-color: #f0ad4e;
+    background-color: #fd7e14;
   }
+
   .save-button.update-mode:hover {
-    background-color: #ec971f;
+    background-color: #e8630f;
   }
+
   .empty-state {
     text-align: center;
     padding: 2rem;
-    color: #666;
+    color: #6c757d;
   }
 
+  /* Report Section */
   .report-section {
-    margin-top: 2rem;
     background: white;
     padding: 1.5rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
+  .report-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+  }
+
   .report-controls {
-    display: flex;
-    gap: 1rem;
     margin-bottom: 1rem;
   }
 
   .date-range {
     display: flex;
-    align-items: center;
+    align-items: end;
     gap: 1rem;
     flex-wrap: wrap;
   }
 
-  .date-range label {
+  .date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .date-input-group label {
     font-weight: 500;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  .date-input-group input {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 150px;
   }
 
   .generate-button {
-    background-color: #3498db;
+    background-color: #0d6efd;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 0.9rem;
+    height: fit-content;
   }
 
   .generate-button:hover {
-    background-color: #2980b9;
+    background-color: #0b5ed7;
   }
 
   .report-results {
     margin-top: 1.5rem;
+  }
+
+  .table-container {
     overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
   }
 
   table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px;
   }
 
   th, td {
     padding: 0.75rem;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
   }
 
   th {
     background-color: #f8f9fa;
     font-weight: 600;
+    color: #495057;
   }
 
   tr:hover {
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
   }
 
-  .export-button {
-    margin-top: 1rem;
-    background-color: #2ecc71;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
+  /* Mobile Responsive Styles */
+  @media screen and (max-width: 768px) {
+    .attendance-container {
+      padding: 1rem;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      margin-top: 5.25rem;
+    }
+
+    .course-subtitle {
+      font-size: 1rem;
+    }
+
+    /* Mobile filters */
+    .filter-group {
+      min-width: 100%;
+    }
+
+    /* Mobile form header */
+    .form-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    .date-selector {
+      justify-content: space-between;
+    }
+
+    /* Mobile student cards */
+    .student-card {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .student-info {
+      text-align: center;
+      order: -1;
+    }
+
+    .student-icon {
+      order: -2;
+      width: 60px;
+      height: 60px;
+    }
+
+    .attendance-status {
+      justify-content: center;
+      width: 100%;
+      gap: 1rem;
+    }
+
+    .status-button {
+      flex: 1;
+      min-width: 80px;
+      padding: 1rem 0.5rem;
+    }
+
+    .status-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    .status-label {
+      font-size: 0.8rem;
+    }
+
+    /* Mobile report section */
+    .date-range {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .date-input-group {
+      width: 100%;
+    }
+
+    .date-input-group input {
+      min-width: 100%;
+    }
+
+    .generate-button {
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1rem;
+    }
+
+    /* Mobile table */
+    table {
+      font-size: 0.8rem;
+    }
+
+    th, td {
+      padding: 0.5rem 0.25rem;
+    }
   }
 
-  .export-button:hover {
-    background-color: #27ae60;
+  @media screen and (max-width: 480px) {
+    .attendance-container {
+      padding: 0.5rem;
+    }
+
+    .filters-section,
+    .attendance-form,
+    .report-section {
+      padding: 1rem;
+    }
+
+    .student-card {
+      padding: 1rem 0.5rem;
+    }
+
+    .status-button {
+      min-width: 70px;
+      padding: 0.8rem 0.25rem;
+    }
+
+    .status-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .status-label {
+      font-size: 0.7rem;
+    }
   }
   </style>
