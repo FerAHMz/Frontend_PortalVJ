@@ -41,8 +41,8 @@ axiosInstance.interceptors.response.use(
 export const messageService = {
   async getConversations() {
     try {
-      const response = await axiosInstance.get('/api/messages');
-      return response.data.conversations;
+      const response = await axiosInstance.get('/api/messages/conversations');
+      return response.data.conversations || [];
     } catch (error) {
       console.error('Error fetching conversations:', error);
       throw error;
@@ -56,8 +56,8 @@ async getConversationMessages(subject) {
     });
     
     // Check if the response was successful but returned no messages
-    if (response.data.success && Array.isArray(response.data.conversation)) {
-      return response.data.conversation;
+    if (response.data.success && Array.isArray(response.data.messages)) {
+      return response.data.messages;
     }
     
     // If no messages, return empty array

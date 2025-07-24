@@ -50,11 +50,14 @@ const props = defineProps({
   items: Array
 })
 
+const emit = defineEmits(['item-clicked'])
+
 const isActive = (path) => {
   return route.path === path
 }
 
 const navigate = (item) => {
+  emit('item-clicked', item)
   if (item.path) {
     router.push(item.path)
     // Cerrar sidebar en móvil después de navegar

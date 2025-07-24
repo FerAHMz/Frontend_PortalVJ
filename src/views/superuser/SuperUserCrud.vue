@@ -244,7 +244,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 import { useNotifications } from '@/utils/useNotifications.js'
@@ -258,7 +258,8 @@ const router = useRouter()
 const menuItems = [
     { label: 'Perfil', icon: User, path: '/superuser/profile' },
     { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
-    { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' }
+    { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
+    { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' }
 ]
 
 const headers = [
