@@ -186,7 +186,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
+import { User, BookOpen, CalendarDays, FileText, MessageSquare, CreditCard } from 'lucide-vue-next';
 import { messageService } from '@/services/messageService';
 import { useNotifications } from '@/utils/useNotifications.js';
 import { useRouter } from 'vue-router';
@@ -199,12 +199,12 @@ const isMobileView = ref(false);
 const { showNotification } = useNotifications();
 
 const menuItems = [
-  { label: 'Perfil', icon: User, path: '/parent/profile' },
-  { label: 'Tablero', icon: ClipboardList, path: '/parent/dashboard' },
-  { label: 'Cursos', icon: BookOpen, path: '/parent/courses' },
-  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' },
-  { label: 'Boleta de calificaciones', icon: FileText, path: '/parent/grades' },
+  { label: 'Perfil', icon: User, path: '/parent' },
+  { label: 'Calificaciones', icon: FileText, path: '/parent/grades' },
+  { label: 'Tareas', icon: BookOpen, path: '/parent/tasks' },
+  { label: 'Pagos', icon: CreditCard, path: '/parent/payments' },
   { label: 'Comunicación', icon: MessageSquare, path: '/parent/messages' },
+  { label: 'Calendario', icon: CalendarDays, path: '/parent/calendar' }
 ];
 
 const conversations = ref([]);

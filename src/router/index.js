@@ -98,6 +98,24 @@ const routes = [
       roles: [USER_ROLES.PARENT]
     }
   },
+  {
+    path: '/parent/calendar',
+    name: 'ParentCalendar',
+    component: ParentCalendar,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
+  {
+    path: '/parent/messages',
+    name: 'ParentMessages',
+    component: ParentMessages,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.PARENT]
+    }
+  },
 
   // Rutas protegidas por rol
 
@@ -401,34 +419,6 @@ const routes = [
     }
   },
 
-  // PARENT ROUTES
-  {
-    path: '/parent',
-    name: 'Parents',
-    component: ParentsProfile,
-    meta: {
-      requiresAuth: true,
-      roles: [USER_ROLES.PARENT]
-    }
-  },
-  {
-    path: '/parent/calendar',
-    name: 'ParentCalendar',
-    component: ParentCalendar,
-    meta: {
-      requiresAuth: true,
-      roles: [USER_ROLES.PARENT]
-    }
-  },
-  {
-    path: '/parent/messages',
-    name: 'ParentMessages',
-    component: ParentMessages,
-    meta: {
-      requiresAuth: true,
-      roles: [USER_ROLES.PARENT]
-    }
-  },
 
   // Backward compatibility routes (redirects)
   {
