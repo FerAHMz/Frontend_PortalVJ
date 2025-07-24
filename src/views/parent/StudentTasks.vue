@@ -19,13 +19,23 @@
             <td>{{ task.nota }}</td>
           </tr>
         </tbody>
+        <tfoot v-if="tasks.length > 0">
+          <tr class="total-row">
+            <td colspan="2"><strong>Total de tareas:</strong></td>
+            <td><strong>{{ totalTasks }}</strong></td>
+          </tr>
+          <tr class="average-row">
+            <td colspan="2"><strong>Promedio:</strong></td>
+            <td><strong>{{ averageGrade.toFixed(2) }}</strong></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { parentService } from '@/services/parentService.js';
 
 const props = defineProps({
@@ -35,6 +45,23 @@ const props = defineProps({
 const tasks = ref([]);
 const loading = ref(false);
 const error = ref(null);
+
+// Computed properties para los totales
+const totalTasks = computed(() => {
+  return tasks.value.length;
+});
+
+const totalPoints = computed(() => {
+  return tasks.value.reduce((sum, task) => {
+    const nota = parseFloat(task.nota) || 0;
+    return sum + nota;
+  }, 0);
+});
+
+const averageGrade = computed(() => {
+  if (tasks.value.length === 0) return 0;
+  return (totalPoints.value / tasks.value.length) * 10;
+});
 
 const fetchTasks = async () => {
   if (!props.student || !props.subjectId) return;
@@ -74,5 +101,17 @@ watch(() => [props.student, props.subjectId], fetchTasks, { immediate: true });
 .tasks-table th {
   background: #1b9963;
   color: white;
+}
+.total-row {
+  background: #f8f9fa;
+  font-weight: bold;
+}
+.average-row {
+  background: #e3f2fd;
+  font-weight: bold;
+  border-top: 2px solid #1b9963;
+}
+.total-row td, .average-row td {
+  border-top: 2px solid #dee2e6;
 }
 </style>
