@@ -196,35 +196,72 @@ const generatePDF = async () => {
     }
 
     const doc = new jsPDF();
-    doc.text('Reporte Completo de Pagos', 14, 10);
-
-    // Payment Details Table
-    autoTable(doc, {
-      startY: 20,
-      head: [['Carnet', 'Nombre Estudiante', 'Grado', 'Monto', 'Mes Pagado', 'Fecha de Pago']],
-      body: data.payments.map((payment) => [
-        payment.carnet,
-        payment.student,
-        payment.grade,
-        payment.amount,
-        payment.month,
-        payment.paymentDate,
-      ]),
-    });
-
-    // Summary Table
-    doc.addPage();
+    
+    // Summary Table First (as requested)
     doc.text('Resumen de Pagos por Grado', 14, 10);
     autoTable(doc, {
       startY: 20,
       head: [['Grado', 'Estudiantes al Día']],
-      body: data.summary.map((item) => [item.grade, item.upToDate]),
+      body: data.summary.map((item) => [item.grade, item.uptodate || '0']),
+      margin: { top: 20 },
+    });
+
+    // Payment Details Table
+    const finalY = doc.lastAutoTable.finalY || 20;
+    doc.text('Control de Pagos', 14, finalY + 20);
+    
+    // Process payments to handle missing/unpaid months
+    const processedPayments = data.payments.map((payment) => {
+      let fechaPago = payment.paymentdate || 'No Pagado';
+      let mes = payment.month;
+      
+      // Handle unpaid months
+      if (fechaPago === 'No Pagado' || fechaPago === null || fechaPago === '') {
+        fechaPago = 'No se ha realizado el pago de este mes';
+        if (mes && !mes.includes('pendiente')) {
+          mes = `Mes pendiente: ${mes}`;
+        }
+      }
+      
+      return [
+        payment.carnet || 'N/A',
+        payment.student || 'N/A',
+        payment.grade || 'N/A',
+        payment.amount || '0.00',
+        mes || 'No especificado',
+        fechaPago,
+      ];
+    });
+
+    autoTable(doc, {
+      startY: finalY + 30,
+      head: [['Carnet', 'Nombre Estudiante', 'Grado', 'Monto', 'Mes Pagado', 'Fecha de Pago']],
+      body: processedPayments,
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: 255,
+        fontSize: 9,
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { cellWidth: 20 }, // Carnet
+        1: { cellWidth: 40 }, // Nombre
+        2: { cellWidth: 25 }, // Grado
+        3: { cellWidth: 20 }, // Monto
+        4: { cellWidth: 35 }, // Mes
+        5: { cellWidth: 40 }, // Fecha
+      },
     });
 
     doc.save('reporte_completo_pagos.pdf');
+    showNotification('PDF generado exitosamente', 'success');
   } catch (error) {
     console.error('Error generating PDF:', error);
-    showNotification('Error al generar el PDF', 'error');
+    showNotification('Error al generar el PDF: ' + error.message, 'error');
   }
 };
 
