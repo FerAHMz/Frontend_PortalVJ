@@ -206,7 +206,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import {
-  Settings, Plus, Search, Trash, BookOpen, User, FileText
+  Settings, Plus, Search, Trash, BookOpen, User, FileText, Users
 } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
@@ -221,7 +221,8 @@ const menuItems = [
   { label: 'Perfil',               icon: User,     path: '/superuser/profile' },
   { label: 'Gestión de Usuarios',  icon: Settings, path: '/superuser' },
   { label: 'Gestión de Cursos',    icon: BookOpen, path: '/superuser/teacher-courses' },
-  { label: 'Planificaciones',      icon: FileText, path: '/superuser/planifications' }
+  { label: 'Planificaciones',      icon: FileText, path: '/superuser/planifications' },
+  { label: 'Gestión de Familias',  icon: Users,    path: '/superuser/families' }
 ]
 
 const handleItemClick = item => {
