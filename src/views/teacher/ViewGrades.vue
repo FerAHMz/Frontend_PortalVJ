@@ -145,9 +145,9 @@ const selectedStudentIndex = ref(0)
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
-  { label: 'Tablero', icon: ClipboardList },
+  { label: 'Tablero', icon: ClipboardList, path: '/teacher/dashboard' },
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
-  { label: 'Calendario de Tareas', icon: CalendarDays, path: '/teacher/calendar' },
+  { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
   { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
 ]

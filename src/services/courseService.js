@@ -18,6 +18,9 @@ export const courseService = {
   getCourses() {
     return axios.get(`${API_URL}`, getAuthHeaders()); // /api/courses
   },
+  getCoursesByTeacher(teacherId) {
+    return axios.get(`${API_URL}/teacher/${teacherId}`, getAuthHeaders()); // /api/courses/teacher/:teacherId
+  },
 
   getTeachers() {
     return axios.get(`${API_URL}/teachers`, getAuthHeaders()); // /api/courses/teachers
@@ -53,5 +56,5 @@ export const courseService = {
       }
       throw error;
     }
-}
+  }
 };

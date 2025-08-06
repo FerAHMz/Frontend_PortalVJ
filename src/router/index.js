@@ -33,6 +33,7 @@ import ReportCardStudents from '@/views/teacher/ReportCardStudents.vue'
 import ReportCard from '@/views/teacher/ReportCard.vue'
 import CoursePlanning from '@/views/teacher/PlanningCourse.vue'
 import PlanningTasks from '@/views/teacher/PlanningTasks.vue'
+import TeacherDashboard from '@/views/teacher/TeacherDashboard.vue'
 
 // Admin
 import AdminProfile from '@/views/admin/AdminProfile.vue'
@@ -125,6 +126,15 @@ const routes = [
     path: '/teacher',
     name: 'TeacherProfile',
     component: TeacherProfile,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.TEACHER]
+    }
+  },
+  {
+    path: '/teacher/dashboard',
+    name: 'TeacherDashboard',
+    component: TeacherDashboard,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.TEACHER]
