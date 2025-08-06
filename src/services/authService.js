@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { API_BASE_URL } from '@/shared/utils/constants.js'
-import { setAuthData, logout, getAuthToken } from '@/shared/utils/auth.js'
+import { API_BASE_URL } from '@/utils/constants.js'
+import { setAuthData, logout, getAuthToken } from '@/utils/auth.js'
 
 const authService = {
   /**

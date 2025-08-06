@@ -51,7 +51,7 @@ export const useNotifications = () => {
   }
 
   const showError = (title, message, options = {}) => {
-    return showNotification('error', title, message, { autoClose: false, ...options })
+    return showNotification('error', title, message, { autoClose: true, autoCloseDelay: 5000, ...options })
   }
 
   const showWarning = (title, message, options = {}) => {

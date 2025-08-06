@@ -48,6 +48,7 @@ import SuperUserProfile from '@/views/superuser/SuperUserProfile.vue'
 import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
 import PlanificationsByGrade from '@/views/superuser/PlanificationsByGrade.vue'
 import FamilyManagement from '@/views/superuser/FamilyManagement.vue'
+import InscripcionesManagement from '@/views/superuser/InscripcionesManagement.vue'
 
 // Director
 import DirectorProfile from '@/views/director/DirectorProfile.vue'
@@ -395,6 +396,15 @@ const routes = [
     path: '/superuser/families',
     name: 'FamilyManagement',
     component: FamilyManagement,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.SUPER_USER]
+    }
+  },
+  {
+    path: '/superuser/inscripciones',
+    name: 'InscripcionesManagement',
+    component: InscripcionesManagement,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.SUPER_USER]

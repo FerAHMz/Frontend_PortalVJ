@@ -49,4 +49,4 @@ export const PROTECTED_ROUTES = {
   [USER_ROLES.PARENT]: ['/parent']
 }
 
-export const API_BASE_URL = 'http://localhost:3000'
+export const API_BASE_URL = 'http://localhost:3000/api'

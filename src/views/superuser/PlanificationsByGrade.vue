@@ -221,7 +221,7 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
 import { superUserPlanificationService } from '@/services/superUserPlanificationService';
 import { useNotifications } from '@/utils/useNotifications.js';
 import { useRouter } from 'vue-router';
-import { User, Settings, BookOpen, FileText } from 'lucide-vue-next';
+import { User, Settings, BookOpen, FileText, Users, UserPlus } from 'lucide-vue-next';
 
 const router = useRouter();
 const { showNotification } = useNotifications();
@@ -245,7 +245,9 @@ const menuItems = [
   { label: 'Perfil', icon: User, path: '/superuser/profile' },
   { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
   { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
-  { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' }
+  { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
+  { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
+  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
 ];
 
 // Computed properties

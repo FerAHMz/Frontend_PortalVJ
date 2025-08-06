@@ -244,7 +244,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users, UserPlus } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 import { useNotifications } from '@/utils/useNotifications.js'
@@ -260,7 +260,8 @@ const menuItems = [
     { label: 'Gestión de Usuarios', icon: Settings, path: '/superuser' },
     { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
     { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
-    { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' }
+    { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
+    { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
 ]
 
 const headers = [
