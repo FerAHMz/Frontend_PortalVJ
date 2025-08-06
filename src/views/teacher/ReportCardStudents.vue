@@ -20,6 +20,7 @@
         <div class="filter-item">
           <label for="grade-select">Seleccione el grado y sección:</label>
           <select v-model="searchGradeYear.gradeSectionId" class="search-dropdown" @change="fetchStudents">
+            <option value="">Seleccione una opción</option>
             <option v-for="item in gradeSections" :key="item.id_grado_seccion" :value="item.id_grado_seccion">
               {{ item.grado }} - {{ item.seccion }}
             </option>
@@ -48,8 +49,13 @@
         </div>
       </div>
 
+      <!-- Mensaje cuando no hay grados asignados -->
+      <div v-if="gradeSections.length === 0" class="no-data-message">
+        <p>No tiene grados y secciones asignados.</p>
+      </div>
+
       <!-- Lista de estudiantes responsive -->
-      <div class="students-list">
+      <div v-else-if="filteredStudents.length > 0" class="students-list">
         <div v-for="student in filteredStudents" :key="student.carnet" class="student-row">
           <div class="student-info">
             <span class="student-name">{{ student.nombre }} {{ student.apellido }}</span>
@@ -62,6 +68,11 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Mensaje cuando no hay estudiantes -->
+      <div v-else-if="searchGradeYear.gradeSectionId && selectedTrimester && searchGradeYear.year" class="no-data-message">
+        <p>No se encontraron estudiantes para los filtros seleccionados.</p>
       </div>
 
       <NotificationDialog />
@@ -140,6 +151,12 @@
   };
 
   const fetchStudents = async () => {
+    // Solo buscar estudiantes si hay valores seleccionados
+    if (!searchGradeYear.value.gradeSectionId || !selectedTrimester.value || !searchGradeYear.value.year) {
+      students.value = [];
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await reportCardService.fetchStudentsGradeSection(
@@ -153,25 +170,47 @@
     } catch (error) {
       console.error('Error fetching students in report card:', error);
       showNotification('Error al cargar los estudiantes', 'error');
+      students.value = [];
+    }
+  };
+
+  // Función para obtener los grados y secciones asignados al maestro
+  const fetchTeacherGradeSections = async () => {
+    try {
+      // Llamar al servicio que obtiene solo los grados/secciones del maestro autenticado
+      const response = await reportCardService.fetchTeacherGradeSections();
+      
+      gradeSections.value = response;
+      console.log('Grados y secciones del maestro:', gradeSections.value);
+
+      // Si hay grados disponibles, seleccionar el primero por defecto
+      if (gradeSections.value.length > 0) {
+        searchGradeYear.value.gradeSectionId = gradeSections.value[0].id_grado_seccion;
+      }
+
+    } catch (error) {
+      console.error('Error al cargar grados y secciones del maestro:', error);
+      showNotification('Error al cargar los grados asignados', 'error');
+      gradeSections.value = [];
     }
   };
 
   onMounted(async () => {
     try {
-      gradeSections.value = await reportCardService.fetchGradeSections();
-
-      if (gradeSections.value.length > 0) {
-        searchGradeYear.value.gradeSectionId = gradeSections.value[0].id_grado_seccion;
-      }
+      // Obtener solo los grados y secciones asignados al maestro
+      await fetchTeacherGradeSections();
 
       selectedTrimester.value = 'Primer Trimestre';
 
       const currentYear = new Date().getFullYear();
       searchGradeYear.value.year = currentYear;
 
-      fetchStudents();
+      // Solo buscar estudiantes si hay grados asignados
+      if (gradeSections.value.length > 0) {
+        fetchStudents();
+      }
     } catch (error) {
-      console.error('Error al cargar grados y secciones:', error);
+      console.error('Error durante la inicialización:', error);
     }
   });
 
@@ -312,6 +351,17 @@
     display: flex;
     gap: 1rem;
     flex-shrink: 0;
+  }
+
+  /* Mensaje cuando no hay datos */
+  .no-data-message {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
   }
 
   /* Botón responsivo */

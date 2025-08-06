@@ -63,8 +63,7 @@ const gradeOptions = [
   { label: 'Ver tareas', path: 'view-task' },
   { label: 'Registrar nota', path: 'register-grade' },
   { label: 'Ver calificaciones', path: 'view-grades' },
-  { label: 'Registrar observaciones', path: 'observations' },
-  { label: 'Boleta de calificaciones', path: 'report' }
+  { label: 'Registrar observaciones', path: 'observations' }
 ]
 
 onMounted(() => {

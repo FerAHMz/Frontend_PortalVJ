@@ -16,7 +16,6 @@ const getAuthHeaders = () => {
 
 export const reportCardService = {
   
-
   async fetchGradesTrimestre(gradeSectionId, carnetEstudiante, trimestre) {
     try {
       const response = await axios.get(
@@ -58,6 +57,20 @@ export const reportCardService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching grade sections:', error);
+      throw error;
+    }
+  },
+
+  //Obtiene solo los grados asignados al maestro autenticado
+  async fetchTeacherGradeSections() {
+    try {
+      const response = await axios.get(
+        `${API_URL}/teacher-grade-sections`, 
+        getAuthHeaders()
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching teacher grade sections:', error);
       throw error;
     }
   },
