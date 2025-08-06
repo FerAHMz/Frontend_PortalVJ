@@ -2,13 +2,25 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Calificaciones</h1>
+      <h1 class="page-title">Calificaciones y Asistencia</h1>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
       <div v-if="!loading && !error" class="parent-info">
         <SelectChild v-if="children.length" :children="children" @child-selected="handleChildSelected" />
         <div v-else class="no-children">No se encontraron estudiantes asociados a su cuenta.</div>
-        <StudentGrades v-if="selectedChild" :student="selectedChild" @view-tasks="handleViewTasks" />
+        
+        <!-- Sección de calificaciones -->
+        <StudentGrades 
+          v-if="selectedChild" 
+          :student="selectedChild" 
+          @view-tasks="handleViewTasks" 
+        />
+        
+        <!-- Sección de asistencia -->
+        <StudentAttendance 
+          v-if="selectedChild" 
+          :student="selectedChild" 
+        />
       </div>
     </main>
   </div>
@@ -18,6 +30,7 @@
 import Sidebar from '@/components/Sidebar.vue';
 import SelectChild from './SelectChild.vue';
 import StudentGrades from './StudentGrades.vue';
+import StudentAttendance from './StudentAttendance.vue';
 import { profileService } from '@/services/profileService.js';
 import { User, BookOpen, FileText, MessageSquare, CreditCard, CalendarDays } from 'lucide-vue-next';
 import { ref, onMounted } from 'vue';
@@ -112,6 +125,9 @@ onMounted(fetchUserProfile);
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .no-children { 
@@ -133,6 +149,7 @@ onMounted(fetchUserProfile);
   .parent-info {
     padding: 1.5rem;
     margin-top: 1.5rem;
+    gap: 1.5rem;
   }
 }
 
@@ -159,6 +176,7 @@ onMounted(fetchUserProfile);
     margin-top: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    gap: 1.5rem;
   }
   
   .loading, .error {
@@ -189,6 +207,7 @@ onMounted(fetchUserProfile);
   .parent-info {
     padding: 0.75rem;
     border-radius: 6px;
+    gap: 1rem;
   }
   
   .loading, .error {
@@ -213,6 +232,21 @@ onMounted(fetchUserProfile);
 @media screen and (max-width: 768px) {
   .layout {
     position: relative;
+  }
+}
+
+/* Separador visual entre secciones */
+.parent-info > *:not(:last-child)::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #dee2e6 20%, #dee2e6 80%, transparent);
+  margin: 1.5rem 0;
+}
+
+@media screen and (max-width: 768px) {
+  .parent-info > *:not(:last-child)::after {
+    margin: 1rem 0;
   }
 }
 </style>
