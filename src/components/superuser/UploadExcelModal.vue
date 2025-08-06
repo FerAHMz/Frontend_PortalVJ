@@ -53,9 +53,6 @@
                     <li><strong>Apellidos:</strong> Apellidos completos</li>
                     <li><strong>Fecha_Nacimiento:</strong> Formato YYYY-MM-DD</li>
                     <li><strong>ID_Grado_Seccion:</strong> Ver tabla de referencia</li>
-                  </ul>
-                  <h6>Campos opcionales:</h6>
-                  <ul>
                     <li><strong>SIRE:</strong> Código SIRE del estudiante</li>
                     <li><strong>Correo_Padres:</strong> Email de contacto</li>
                   </ul>
@@ -134,9 +131,11 @@
                   @change="handleFileSelect"
                   style="display: none"
                 />
-                <button class="btn btn-outline" @click="$refs.fileInput.click()">
-                  Seleccionar Archivo
-                </button>
+                <div class="center-btn-wrapper">
+                  <button class="btn btn-outline" @click="$refs.fileInput.click()">
+                    Seleccionar Archivo
+                  </button>
+                </div>
               </div>
 
               <div v-else class="file-info">
@@ -1049,5 +1048,15 @@ export default {
     flex-direction: column;
     gap: 1rem;
   }
+}
+</style>
+
+<style scoped>
+.center-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 1rem;
 }
 </style>

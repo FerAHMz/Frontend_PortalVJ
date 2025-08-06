@@ -3,40 +3,35 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     
     <main class="inscripciones-management">
-      <!-- Header con título y acciones principales -->
-      <div class="header-section">
-        <div class="header-content">
-          <h1 class="title">
-            <UserPlus class="title-icon" />
-            Gestión de Inscripciones
-          </h1>
-          <p class="subtitle">Administra las inscripciones de estudiantes y carga masiva</p>
-        </div>
-        
-        <div class="header-actions">
+      <!-- Header con título -->
+      <h1 class="page-title">Gestión de Inscripciones</h1>
+      <div class="separator"></div>
+
+      <!-- Acciones principales -->
+      <div class="crud-actions">
+        <div style="display: flex; gap: 1rem; align-items: center;">
           <button 
-            class="btn btn-secondary"
+            class="action-btn create"
             @click="showUploadModal = true"
             :disabled="loading"
           >
-            <Upload class="btn-icon" />
-            Carga Masiva
+            <Upload class="action-icon" />
+            <span class="btn-text">Carga Masiva</span>
           </button>
-          
           <button 
-            class="btn btn-primary"
+            class="action-btn create"
             @click="openCreateModal"
             :disabled="loading"
           >
-            <Plus class="btn-icon" />
-            Nueva Inscripción
+            <Plus class="action-icon" />
+            <span class="btn-text">Nueva Inscripción</span>
           </button>
         </div>
       </div>
 
       <!-- Filtros y búsqueda -->
       <div class="filters-section">
-        <div class="search-box">
+        <div class="search-container">
           <Search class="search-icon" />
           <input
             v-model="searchTerm"
@@ -44,16 +39,15 @@
             placeholder="Buscar por carnet, nombres o apellidos..."
             class="search-input"
           />
-          <button v-if="searchTerm" @click="resetFilters" class="clear-btn">
-            Limpiar
+          <button v-if="searchTerm" @click="resetFilters" class="clear-search-btn">
+            <X class="clear-icon" />
           </button>
         </div>
         
-        <div class="filter-controls">
-          <select v-model="statusFilter" class="filter-select">
-            <option value="">Todos los estados</option>
-            <option value="inscrito">Inscrito</option>
-            <option value="estudiante_activo">Estudiante Activo</option>
+        <select v-model="statusFilter" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="inscrito">Inscrito</option>
+          <option value="estudiante_activo">Estudiante Activo</option>
         </select>
         
         <select v-model="gradeFilter" class="filter-select">
@@ -66,13 +60,11 @@
             {{ grade.display_name }}
           </option>
         </select>
-        
-        <button class="btn btn-outline" @click="resetFilters">
-          <X class="btn-icon" />
-          Limpiar
+
+        <button class="clear-filters-btn" @click="resetFilters">
+          <X class="clear-icon" />
         </button>
       </div>
-    </div>
 
     <!-- Estadísticas rápidas -->
     <div class="stats-section" v-if="statistics">
@@ -292,6 +284,7 @@
     <!-- Modal para subir archivo Excel -->
     <UploadExcelModal
       v-if="showUploadModal"
+      :gradosYSecciones="gradosYSecciones"
       @close="showUploadModal = false"
       @upload-success="handleUploadSuccess"
     />
@@ -326,7 +319,7 @@ import UploadExcelModal from '@/components/superuser/UploadExcelModal.vue'
 import ConfirmationModal from '@/components/common/ConfirmationModal.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { 
-  User, Settings, BookOpen, FileText, Users, UserPlus, 
+  User, Settings, BookOpen, FileText, Users,
   Plus, Upload, Search, Edit, Trash, CheckCircle, XCircle,
   X, Clock, UserCheck, List, Inbox, ArrowUpDown, Eye,
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight
@@ -341,7 +334,7 @@ const menuItems = [
   { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
   { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
   { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
-  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
+  { label: 'Inscripciones', icon: Users, path: '/superuser/inscripciones' }
 ]
 
 const handleItemClick = (item) => {
@@ -658,35 +651,60 @@ const handleItemClick = (item) => {
   min-height: 100vh;
 }
 
-/* Header */
-.header-section {
+/* Header y título */
+.page-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  margin: 0 0 1rem 0;
+}
+
+.separator {
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
+}
+
+/* Acciones principales */
+.crud-actions {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.header-content .title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0;
-  display: flex;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
 }
 
-.title-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  color: #00923f;
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  white-space: nowrap;
 }
 
-.btn-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+.action-btn.create {
+  background: #1b9963;
+  color: #fff;
+}
+
+.action-btn.create:hover {
+  background: #158a50;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 .search-icon {
@@ -713,11 +731,6 @@ const handleItemClick = (item) => {
   opacity: 0.6;
 }
 
-.action-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
 .page-icon {
   width: 1rem;
   height: 1rem;
@@ -728,21 +741,6 @@ const handleItemClick = (item) => {
   height: 4rem;
   color: #9ca3af;
   margin-bottom: 1rem;
-}
-
-.header-content .title i {
-  color: #4299e1;
-}
-
-.header-content .subtitle {
-  font-size: 1.1rem;
-  color: #718096;
-  margin: 0.5rem 0 0 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
 }
 
 /* Filtros */
@@ -758,27 +756,31 @@ const handleItemClick = (item) => {
   flex-wrap: wrap;
 }
 
-.search-box {
+.search-container {
   position: relative;
   flex: 1;
   min-width: 300px;
 }
 
-.search-box i {
+.search-icon {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #a0aec0;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #6b7280;
 }
 
 .search-input {
   width: 100%;
-  padding: 12px 12px 12px 40px;
+  padding: 12px 40px 12px 40px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s;
+  height: 44px;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -786,19 +788,64 @@ const handleItemClick = (item) => {
   border-color: #4299e1;
 }
 
-.filter-controls {
+/* Botón X para limpiar búsqueda */
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  width: 24px;
+  height: 24px;
   display: flex;
-  gap: 1rem;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.clear-search-btn:hover {
+  background: #fee2e2;
+}
+
+.clear-icon {
+  width: 16px;
+  height: 16px;
+  color: #dc2626;
 }
 
 .filter-select {
-  padding: 10px 12px;
+  padding: 12px;
   border: 2px solid #e2e8f0;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   background: white;
   cursor: pointer;
+  height: 44px;
+  min-width: 180px;
+  box-sizing: border-box;
+}
+
+/* Botón de limpiar filtros */
+.clear-filters-btn {
+  background: none;
+  border: 2px solid #fca5a5;
+  color: #dc2626;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-filters-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
 }
 
 /* Estadísticas */
@@ -1106,56 +1153,37 @@ const handleItemClick = (item) => {
 }
 
 /* Botones generales */
-.btn {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+.action-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  white-space: nowrap;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #4299e1, #3182ce);
-  color: white;
+.action-btn.create {
+  background: #1b9963;
+  color: #fff;
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+.action-btn.create:hover {
+  background: #158a50;
 }
 
-.btn-secondary {
-  background: linear-gradient(135deg, #718096, #4a5568);
-  color: white;
-}
-
-.btn-secondary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
-}
-
-.btn-outline {
-  background: white;
-  border: 2px solid #e2e8f0;
-  color: #4a5568;
-}
-
-.btn-outline:hover {
-  border-color: #4299e1;
-  color: #4299e1;
-}
-
-.btn:disabled {
+.action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
+}
+
+.action-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* Responsive */
@@ -1165,19 +1193,21 @@ const handleItemClick = (item) => {
     padding: 80px 15px 15px 15px; /* Espacio para el botón hamburguesa del sidebar */
   }
 
-  .header-section {
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .crud-actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 1rem;
   }
 
-  .header-actions {
-    justify-content: stretch;
-  }
-
-  .header-actions .btn {
-    flex: 1;
+  .action-btn {
     justify-content: center;
+  }
+
+  .btn-text {
+    display: inline;
   }
 
   .filters-section {
@@ -1185,13 +1215,12 @@ const handleItemClick = (item) => {
     align-items: stretch;
   }
 
-  .filter-controls {
-    flex-wrap: wrap;
+  .search-container {
+    min-width: auto;
   }
 
   .filter-select {
-    flex: 1;
-    min-width: 150px;
+    min-width: auto;
   }
 
   .stats-section {

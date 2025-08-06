@@ -147,9 +147,8 @@
             
             <div class="form-grid">
               <div class="form-group">
-                <label for="sire" class="form-label">
+                <label for="sire" class="form-label required">
                   Código SIRE
-                  <span class="optional-text">(Opcional)</span>
                 </label>
                 <input
                   id="sire"
@@ -159,6 +158,7 @@
                   :class="{ 'error': errors.sire }"
                   placeholder="Ej: SIRE001"
                   :disabled="!isEditing && inscripcion"
+                  required
                 />
                 <span v-if="errors.sire" class="error-message">
                   {{ errors.sire }}
@@ -169,9 +169,8 @@
               </div>
 
               <div class="form-group">
-                <label for="correo_padres" class="form-label">
+                <label for="correo_padres" class="form-label required">
                   Correo de Padres
-                  <span class="optional-text">(Opcional)</span>
                 </label>
                 <input
                   id="correo_padres"
@@ -181,6 +180,7 @@
                   :class="{ 'error': errors.correo_padres }"
                   placeholder="Ej: padres@email.com"
                   :disabled="!isEditing && inscripcion"
+                  required
                 />
                 <span v-if="errors.correo_padres" class="error-message">
                   {{ errors.correo_padres }}
@@ -371,18 +371,20 @@ export default {
         newErrors.id_grado_seccion = 'Debe seleccionar un grado y sección'
       }
 
-      // Validar correo (si se proporciona)
-      if (form.value.correo_padres && form.value.correo_padres.trim()) {
+      // Validar SIRE (ahora requerido)
+      if (!form.value.sire?.trim()) {
+        newErrors.sire = 'El código SIRE es requerido'
+      } else if (form.value.sire.length < 3) {
+        newErrors.sire = 'El código SIRE debe tener al menos 3 caracteres'
+      }
+
+      // Validar correo (ahora requerido)
+      if (!form.value.correo_padres?.trim()) {
+        newErrors.correo_padres = 'El correo de padres es requerido'
+      } else {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(form.value.correo_padres)) {
           newErrors.correo_padres = 'El formato del correo no es válido'
-        }
-      }
-
-      // Validar SIRE (si se proporciona)
-      if (form.value.sire && form.value.sire.trim()) {
-        if (form.value.sire.length < 3) {
-          newErrors.sire = 'El código SIRE debe tener al menos 3 caracteres'
         }
       }
 
