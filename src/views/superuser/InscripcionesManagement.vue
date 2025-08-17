@@ -36,7 +36,7 @@
           <input
             v-model="searchTerm"
             type="text"
-            placeholder="Buscar por carnet, nombres o apellidos..."
+            placeholder="Buscar por carnet, nombre o apellido..."
             class="search-input"
           />
           <button v-if="searchTerm" @click="resetFilters" class="clear-search-btn">
@@ -138,12 +138,12 @@
                 Carnet
                 <ArrowUpDown class="sort-icon" />
               </th>
-              <th @click="sortBy('nombres')" class="sortable">
-                Nombres
+              <th @click="sortBy('nombre')" class="sortable">
+                Nombre
                 <ArrowUpDown class="sort-icon" />
               </th>
-              <th @click="sortBy('apellidos')" class="sortable">
-                Apellidos
+              <th @click="sortBy('apellido')" class="sortable">
+                Apellido
                 <ArrowUpDown class="sort-icon" />
               </th>
               <th>Grado - Sección</th>
@@ -166,8 +166,8 @@
               class="inscripcion-row"
             >
               <td class="carnet">{{ inscripcion.carnet }}</td>
-              <td class="nombres">{{ inscripcion.nombres }}</td>
-              <td class="apellidos">{{ inscripcion.apellidos }}</td>
+              <td class="nombre">{{ inscripcion.nombre }}</td>
+              <td class="apellido">{{ inscripcion.apellido }}</td>
               <td class="grado-seccion">
                 {{ inscripcion.grado_seccion_display || 'No asignado' }}
               </td>
@@ -396,8 +396,8 @@ const handleItemClick = (item) => {
         const term = searchTerm.value.toLowerCase()
         filtered = filtered.filter(inscripcion => 
           inscripcion.carnet.toLowerCase().includes(term) ||
-          inscripcion.nombres.toLowerCase().includes(term) ||
-          inscripcion.apellidos.toLowerCase().includes(term)
+          inscripcion.nombre.toLowerCase().includes(term) ||
+          inscripcion.apellido.toLowerCase().includes(term)
         )
       }
       
@@ -524,7 +524,7 @@ const handleItemClick = (item) => {
     const deleteInscripcion = (inscripcion) => {
       showConfirmationDialog({
         title: 'Confirmar Eliminación',
-        message: `¿Estás seguro de que deseas eliminar la inscripción de ${inscripcion.nombres} ${inscripcion.apellidos}?`,
+        message: `¿Estás seguro de que deseas eliminar la inscripción de ${inscripcion.nombre} ${inscripcion.apellido}?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
         type: 'danger',
@@ -550,7 +550,7 @@ const handleItemClick = (item) => {
     const activateStudent = (inscripcion) => {
       showConfirmationDialog({
         title: 'Activar Estudiante',
-        message: `¿Confirmas que deseas activar a ${inscripcion.nombres} ${inscripcion.apellidos} como estudiante activo?`,
+        message: `¿Confirmas que deseas activar a ${inscripcion.nombre} ${inscripcion.apellido} como estudiante activo?`,
         confirmText: 'Activar',
         cancelText: 'Cancelar',
         type: 'success',

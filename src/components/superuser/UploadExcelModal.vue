@@ -49,8 +49,8 @@
                   <h6>Campos requeridos:</h6>
                   <ul>
                     <li><strong>Carnet:</strong> Identificador único del estudiante</li>
-                    <li><strong>Nombres:</strong> Nombres completos</li>
-                    <li><strong>Apellidos:</strong> Apellidos completos</li>
+                    <li><strong>Nombre:</strong> Nombre completo</li>
+                    <li><strong>Apellido:</strong> Apellido completo</li>
                     <li><strong>Fecha_Nacimiento:</strong> Formato YYYY-MM-DD</li>
                     <li><strong>ID_Grado_Seccion:</strong> Ver tabla de referencia</li>
                     <li><strong>SIRE:</strong> Código SIRE del estudiante</li>
@@ -218,16 +218,16 @@
                     <tr>
                       <th>Fila</th>
                       <th>Carnet</th>
-                      <th>Nombres</th>
-                      <th>Apellidos</th>
+                      <th>Nombre</th>
+                      <th>Apellido</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="item in uploadResults.exitosos" :key="item.fila">
                       <td>{{ item.fila }}</td>
                       <td>{{ item.carnet }}</td>
-                      <td>{{ item.nombres }}</td>
-                      <td>{{ item.apellidos }}</td>
+                      <td>{{ item.nombre }}</td>
+                      <td>{{ item.apellido }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -442,7 +442,7 @@ export default {
 
     const downloadTemplate = () => {
       // Crear CSV template para descarga
-      const csvContent = `Carnet,Nombres,Apellidos,Fecha_Nacimiento,ID_Grado_Seccion,SIRE,Correo_Padres
+      const csvContent = `Carnet,Nombre,Apellido,Fecha_Nacimiento,ID_Grado_Seccion,SIRE,Correo_Padres
 12345,Juan Carlos,Pérez García,2010-03-15,1,SIRE001,padres.juan@email.com
 67890,María Elena,López Martínez,2009-07-22,2,SIRE002,padres.maria@email.com
 11111,Carlos Alberto,Rodríguez Hernández,2011-01-10,3,SIRE003,padres.carlos@email.com`

@@ -41,40 +41,40 @@
               </div>
 
               <div class="form-group">
-                <label for="nombres" class="form-label required">
-                  Nombres
+                <label for="nombre" class="form-label required">
+                  Nombre
                 </label>
                 <input
-                  id="nombres"
-                  v-model="form.nombres"
+                  id="nombre"
+                  v-model="form.nombre"
                   type="text"
                   class="form-input"
-                  :class="{ 'error': errors.nombres }"
+                  :class="{ 'error': errors.nombre }"
                   placeholder="Ej: Juan Carlos"
                   :disabled="!isEditing && inscripcion"
                   required
                 />
-                <span v-if="errors.nombres" class="error-message">
-                  {{ errors.nombres }}
+                <span v-if="errors.nombre" class="error-message">
+                  {{ errors.nombre }}
                 </span>
               </div>
 
               <div class="form-group">
-                <label for="apellidos" class="form-label required">
-                  Apellidos
+                <label for="apellido" class="form-label required">
+                  Apellido
                 </label>
                 <input
-                  id="apellidos"
-                  v-model="form.apellidos"
+                  id="apellido"
+                  v-model="form.apellido"
                   type="text"
                   class="form-input"
-                  :class="{ 'error': errors.apellidos }"
+                  :class="{ 'error': errors.apellido }"
                   placeholder="Ej: Pérez García"
                   :disabled="!isEditing && inscripcion"
                   required
                 />
-                <span v-if="errors.apellidos" class="error-message">
-                  {{ errors.apellidos }}
+                <span v-if="errors.apellido" class="error-message">
+                  {{ errors.apellido }}
                 </span>
               </div>
 
@@ -279,8 +279,8 @@ export default {
     const loading = ref(false)
     const form = ref({
       carnet: '',
-      nombres: '',
-      apellidos: '',
+      nombre: '',
+      apellido: '',
       fecha_nacimiento: '',
       id_grado_seccion: '',
       sire: '',
@@ -290,9 +290,14 @@ export default {
 
     // Computed properties
     const isFormValid = computed(() => {
-      const requiredFields = ['carnet', 'nombres', 'apellidos', 'fecha_nacimiento', 'id_grado_seccion']
-      return requiredFields.every(field => form.value[field]?.trim()) && 
-             Object.keys(errors.value).length === 0
+      const requiredFields = ['carnet', 'nombre', 'apellido', 'fecha_nacimiento', 'id_grado_seccion']
+      return requiredFields.every(field => {
+        const value = form.value[field]
+        if (field === 'id_grado_seccion') {
+          return value && value !== ''
+        }
+        return value?.trim?.() && value.trim() !== ''
+      }) && Object.keys(errors.value).length === 0
     })
 
     const maxBirthDate = computed(() => {
@@ -306,8 +311,8 @@ export default {
       if (props.inscripcion) {
         form.value = {
           carnet: props.inscripcion.carnet || '',
-          nombres: props.inscripcion.nombres || '',
-          apellidos: props.inscripcion.apellidos || '',
+          nombre: props.inscripcion.nombre || '',
+          apellido: props.inscripcion.apellido || '',
           fecha_nacimiento: props.inscripcion.fecha_nacimiento 
             ? new Date(props.inscripcion.fecha_nacimiento).toISOString().split('T')[0] 
             : '',
@@ -318,8 +323,8 @@ export default {
       } else {
         form.value = {
           carnet: '',
-          nombres: '',
-          apellidos: '',
+          nombre: '',
+          apellido: '',
           fecha_nacimiento: '',
           id_grado_seccion: '',
           sire: '',
@@ -339,18 +344,18 @@ export default {
         newErrors.carnet = 'El carnet debe tener al menos 3 caracteres'
       }
 
-      // Validar nombres
-      if (!form.value.nombres?.trim()) {
-        newErrors.nombres = 'Los nombres son requeridos'
-      } else if (form.value.nombres.length < 2) {
-        newErrors.nombres = 'Los nombres deben tener al menos 2 caracteres'
+      // Validar nombre
+      if (!form.value.nombre?.trim()) {
+        newErrors.nombre = 'El nombre es requerido'
+      } else if (form.value.nombre.length < 2) {
+        newErrors.nombre = 'El nombre debe tener al menos 2 caracteres'
       }
 
-      // Validar apellidos
-      if (!form.value.apellidos?.trim()) {
-        newErrors.apellidos = 'Los apellidos son requeridos'
-      } else if (form.value.apellidos.length < 2) {
-        newErrors.apellidos = 'Los apellidos deben tener al menos 2 caracteres'
+      // Validar apellido
+      if (!form.value.apellido?.trim()) {
+        newErrors.apellido = 'El apellido es requerido'
+      } else if (form.value.apellido.length < 2) {
+        newErrors.apellido = 'El apellido debe tener al menos 2 caracteres'
       }
 
       // Validar fecha de nacimiento
@@ -403,8 +408,8 @@ export default {
         // Preparar datos para envío
         const dataToSend = {
           carnet: form.value.carnet.trim(),
-          nombres: form.value.nombres.trim(),
-          apellidos: form.value.apellidos.trim(),
+          nombre: form.value.nombre.trim(),
+          apellido: form.value.apellido.trim(),
           fecha_nacimiento: form.value.fecha_nacimiento,
           id_grado_seccion: parseInt(form.value.id_grado_seccion),
           sire: form.value.sire?.trim() || null,
@@ -465,14 +470,14 @@ export default {
       }
     })
 
-    watch(() => form.value.nombres, () => {
-      if (errors.value.nombres) {
+    watch(() => form.value.nombre, () => {
+      if (errors.value.nombre) {
         validateForm()
       }
     })
 
-    watch(() => form.value.apellidos, () => {
-      if (errors.value.apellidos) {
+    watch(() => form.value.apellido, () => {
+      if (errors.value.apellido) {
         validateForm()
       }
     })
