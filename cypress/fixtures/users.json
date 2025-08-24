@@ -1,0 +1,26 @@
+{
+  "teacher": {
+    "id": 1,
+    "email": "teacher@test.com",
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "role": "teacher",
+    "token": "fake-jwt-token-teacher"
+  },
+  "parent": {
+    "id": 2,
+    "email": "parent@test.com",
+    "nombre": "María",
+    "apellido": "García",
+    "role": "parent",
+    "token": "fake-jwt-token-parent"
+  },
+  "admin": {
+    "id": 3,
+    "email": "admin@test.com",
+    "nombre": "Carlos",
+    "apellido": "López",
+    "role": "admin",
+    "token": "fake-jwt-token-admin"
+  }
+}

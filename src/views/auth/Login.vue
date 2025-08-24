@@ -6,13 +6,14 @@
     <main>
       <div class="login-form-wrapper">
         <img src="@/assets/logo.png" alt="logo del colegio" class="logo" />
-        <form @submit.prevent="login">
+        <form @submit.prevent="login" data-cy="login-form">
           <div class="form-group">
             <input 
               type="text" 
               v-model="email" 
               placeholder="Ingrese su correo" 
               class="form-input"
+              data-cy="email-input"
               required
             />
           </div>
@@ -23,6 +24,7 @@
                 v-model="password"
                 placeholder="Contraseña"
                 class="form-input"
+                data-cy="password-input"
                 required
               />
               <button
@@ -36,7 +38,7 @@
               </button>
             </div>
           </div>
-          <button type="submit" class="submit-button">
+          <button type="submit" class="submit-button" data-cy="login-button">
             Ingresar
           </button>
         </form>
@@ -59,6 +61,12 @@ const router = useRouter()
 const { showNotification } = useNotifications()
 
 const login = async () => {
+  // Validación básica (evitar envío si campos están vacíos)
+  if (!email.value || !password.value) {
+    // Si hay campos vacíos, no hacer nada - dejar que la validación HTML5 maneje esto
+    return;
+  }
+
   try {
     const response = await fetch('http://localhost:3000/login', {
       method: 'POST',
@@ -80,13 +88,12 @@ const login = async () => {
       console.log('Auth data stored:', {
         token: data.token ? 'exists' : 'missing',
         userId: data.user.id,
-        userRole: data.user.rol,
-        decodedToken: JSON.parse(atob(data.token.split('.')[1])) // Debug: decode token payload
+        userRole: data.user.rol
       });
 
       showNotification('success', 'Inicio de sesión exitoso', 'Bienvenido al sistema');
       
-      // Redirigir inmediatamente después del login exitoso
+      // Redirigir después del login exitoso
       setTimeout(() => {
         const homeRoute = getHomeRouteForRole(data.user.rol);
         console.log('User role:', data.user.rol);
@@ -102,11 +109,15 @@ const login = async () => {
       }, 1500); // Dar tiempo para que se vea la notificación
       
     } else {
-      showNotification('error', 'Error de autenticación', 'Credenciales incorrectas');
+      showNotification('error', 'Error de autenticación', data.error || 'Credenciales inválidas');
     }
   } catch (error) {
     console.error('Error en login:', error);
-    showNotification('error', 'Error de conexión', 'Hubo un problema al conectarse al servidor.');
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      showNotification('error', 'Error de conexión', 'No se pudo conectar con el servidor');
+    } else {
+      showNotification('error', 'Error de conexión', 'Hubo un problema al conectarse al servidor.');
+    }
   }
 };
 </script>

@@ -7,6 +7,7 @@
         class="notification-toast" 
         :class="getNotificationClass(notification.type)"
         :style="{ top: `${20 + index * 80}px` }"
+        :data-cy="`notification-${notification.type}`"
       >
         <div class="notification-content">
           <div class="notification-header">
@@ -14,8 +15,8 @@
               <component :is="getIcon(notification.type)" />
             </div>
             <div class="notification-text">
-              <h4>{{ notification.title }}</h4>
-              <p v-if="notification.message">{{ notification.message }}</p>
+              <h4 :data-cy="'notification-title'">{{ notification.title }}</h4>
+              <p v-if="notification.message" :data-cy="'notification-message'">{{ notification.message }}</p>
             </div>
             <button @click="removeNotification(notification.id)" class="notification-close">
               <X :size="16" />

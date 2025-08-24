@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "materia": "MATEMÁTICA",
+    "grado": "QUINTO",
+    "seccion": "A",
+    "id_maestro": 1,
+    "nombre_maestro": "Juan",
+    "apellido_maestro": "Pérez",
+    "id_materia": 1,
+    "id_grado_seccion": 1
+  },
+  {
+    "id": 2,
+    "materia": "CIENCIAS",
+    "grado": "SEXTO",
+    "seccion": "B",
+    "id_maestro": 1,
+    "nombre_maestro": "Juan",
+    "apellido_maestro": "Pérez",
+    "id_materia": 2,
+    "id_grado_seccion": 2
+  }
+]
