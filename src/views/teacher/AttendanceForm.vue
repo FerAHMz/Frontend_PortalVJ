@@ -3,40 +3,44 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
   
       <main class="attendance-container">
-        <!-- Encabezado -->
-        <div class="header-section">
-          <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
-          <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
-            Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
-          </div>
-        </div>
-        <div class="separator"></div>
-  
-        <!-- Filtros -->
-        <div class="filters-section">
-          <h3>Filtros</h3>
-          <div class="filter-controls">
-            <div class="filter-group">
-              <label>Estudiante:</label>
-              <input
-                type="text"
-                placeholder="Buscar estudiante..."
-                v-model="filterStudent"
-              >
-            </div>
-            <div class="filter-group">
-              <label>Estado:</label>
-              <select v-model="filterStatus">
-                <option value="all">Todos</option>
-                <option value="present">Presente</option>
-                <option value="absent">Ausente</option>
-                <option value="late">Llegada tarde</option>
-              </select>
+        <!-- Skeleton loading mientras carga -->
+        <AttendanceSkeleton v-if="loading" />
+        
+        <!-- Contenido real -->
+        <template v-else>
+          <!-- Encabezado -->
+          <div class="header-section">
+            <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
+            <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
+              Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
             </div>
           </div>
-        </div>
+          <div class="separator"></div>
   
-        <!-- Registro de Asistencia -->
+          <!-- Filtros -->
+          <div class="filters-section" v-show="!loading">
+            <h3>Filtros</h3>
+            <div class="filter-controls">
+              <div class="filter-group">
+                <label>Estudiante:</label>
+                <input
+                  type="text"
+                  placeholder="Buscar estudiante..."
+                  v-model.trim="filterStudent"
+                  @input="$event.target.value = $event.target.value.substring(0, 50)"
+                >
+              </div>
+              <div class="filter-group">
+                <label>Estado:</label>
+                <select v-model="filterStatus">
+                  <option value="all">Todos</option>
+                  <option value="present">Presente</option>
+                  <option value="absent">Ausente</option>
+                  <option value="late">Llegada tarde</option>
+                </select>
+              </div>
+            </div>
+          </div>        <!-- Registro de Asistencia -->
         <div class="attendance-form">
           <div class="form-header">
             <h3>Registrar Asistencia</h3>
@@ -51,7 +55,10 @@
           </div>
   
           <div v-if="filteredStudents.length" class="student-cards">
-            <div
+            <div v-if="studentsLoading" class="students-loading">
+              <p>Cargando estudiantes...</p>
+            </div>
+            <div v-else
               v-for="student in filteredStudents"
               :key="student.carnet"
               class="student-card"
@@ -155,15 +162,19 @@
           </div>
         </div>
         <NotificationDialog />
+        </template>
       </main>
     </div>
   </template>
   
   <script setup>
-  import { ref, onMounted, watch, computed } from 'vue'
+  import { ref, onMounted, watch, computed, nextTick } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  
+  // Importación directa para componentes críticos
   import Sidebar from '@/components/Sidebar.vue'
   import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+  import AttendanceSkeleton from '@/components/AttendanceSkeleton.vue'
   import {
     User,
     ClipboardList,
@@ -196,57 +207,86 @@
   const filterStudent = ref('')
   const filterStatus = ref('all')
   const saved = ref(false)
+  const loading = ref(false) // Cambiar a false para mostrar UI inmediatamente
+  const studentsLoading = ref(true) // Loading específico para estudiantes
   
   const reportStartDate = ref('');
   const reportEndDate = ref('');
   const reportData = ref([]);
 
-  onMounted(() => {
+  onMounted(async () => {
+    // 1. Cargar datos del curso inmediatamente (síncronos)
     if (route.state?.courseData) {
       courseData.value = route.state.courseData
     } else {
       const savedCourse = sessionStorage.getItem('currentCourse')
-      if (savedCourse) courseData.value = JSON.parse(savedCourse)
-      else router.push('/teacher/courses')
+      if (savedCourse) {
+        courseData.value = JSON.parse(savedCourse)
+      } else {
+        router.push('/teacher/courses')
+        return
+      }
     }
+    
+    // 2. Mostrar UI inmediatamente con datos del curso
+    loading.value = false
+    
+    // 3. Cargar datos de estudiantes
     fetchData()
   })
   
   watch(currentDate, () => {
     saved.value = false
+    studentsLoading.value = true
     fetchData()
   })
   
-  const filteredStudents = computed(() =>
-    students.value.filter(s => {
-      const name = `${s.nombre} ${s.apellido}`.toLowerCase()
-      const textMatch = name.includes(filterStudent.value.toLowerCase())
-      const statusMatch =
-        filterStatus.value === 'all'
-          ? true
-          : attendanceStatus.value[s.carnet] === filterStatus.value
-      return textMatch && statusMatch
+  // Memoized computed para mejor performance
+  const filteredStudents = computed(() => {
+    if (!students.value?.length) return []
+    
+    const searchTerm = filterStudent.value.toLowerCase().trim()
+    const statusFilter = filterStatus.value
+    
+    return students.value.filter(student => {
+      if (!student) return false
+      
+      const fullName = `${student.nombre || ''} ${student.apellido || ''}`.toLowerCase()
+      const matchesSearch = !searchTerm || fullName.includes(searchTerm)
+      const matchesStatus = statusFilter === 'all' || attendanceStatus.value[student.carnet] === statusFilter
+      
+      return matchesSearch && matchesStatus
     })
-  )
+  })
   
   function setStatus(carnet, status) {
     attendanceStatus.value[carnet] = status
   }
   
   async function fetchData() {
+    studentsLoading.value = true
+    
     try {
       const { students: s, attendanceStatus: a } = await attendanceService.fetchAttendance(
         route.params.courseId,
         currentDate.value
       )
+      
+      // Batch updates para minimizar re-renders
       students.value = s
+      const newStatus = {}
       s.forEach(st => {
-        attendanceStatus.value[st.carnet] = a[st.carnet] || ''
+        newStatus[st.carnet] = a[st.carnet] || ''
       })
+      attendanceStatus.value = newStatus
+      
       saved.value = Object.values(a).some(v => v === 'present' || v === 'absent' || v === 'late')
+      
     } catch (err) {
       console.error(err)
       showNotification(err.message || 'Error cargando asistencia', 'error')
+    } finally {
+      studentsLoading.value = false
     }
   }
   
@@ -435,12 +475,15 @@
     border-radius: 4px;
   }
 
-  /* Student Cards */
+  /* Student Cards - Optimizado para rendimiento */
   .student-cards {
     display: flex;
     flex-direction: column;
     gap: 1rem;
     padding: 1rem;
+    /* Optimización de rendering */
+    will-change: scroll-position;
+    contain: layout style;
   }
 
   .student-card {
@@ -451,6 +494,13 @@
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid #e9ecef;
+    /* Animación de entrada suave */
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.3s ease-out forwards;
+    /* Optimización GPU */
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .student-icon {
@@ -543,6 +593,29 @@
     text-align: center;
   }
 
+  /* Animaciones optimizadas */
+  @keyframes slideInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Optimización para filtros */
+  .filters-section {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    /* Transición suave */
+    transition: opacity 0.2s ease;
+  }
+
+  .filters-section.loading {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
   /* Save Button */
   .save-button {
     margin-top: 1rem;
@@ -570,6 +643,12 @@
   }
 
   .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+  }
+
+  .students-loading {
     text-align: center;
     padding: 2rem;
     color: #6c757d;

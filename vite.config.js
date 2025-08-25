@@ -8,7 +8,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
+    // vueDevTools()
   ],
   resolve: {
     alias: {
@@ -19,15 +19,36 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['vue', 'vue-router'],
-          icons: ['lucide-vue-next'],
-          ui: ['@/components/Sidebar.vue']
+          'vendor': ['vue', 'vue-router', 'lucide-vue-next']
         }
       }
-    }
+    },
+    target: 'esnext',
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 2000, // Aumentar límite para permitir chunks más grandes
+    cssCodeSplit: false, // Un solo archivo CSS
+    sourcemap: false // Sin sourcemaps para performance
   },
   optimizeDeps: {
-    include: ['vue', 'vue-router', 'lucide-vue-next']
+    include: ['vue', 'vue-router', 'lucide-vue-next'],
+    exclude: ['@vite/client', '@vite/env'],
+    force: true // Forzar re-optimización
+  },
+  server: {
+    hmr: {
+      overlay: false // Sin overlay de errores
+    },
+    fs: {
+      strict: false // Menos restricciones de filesystem
+    }
+  },
+  // Configuración para reducir module splitting
+  define: {
+    __VUE_OPTIONS_API__: false,
+    __VUE_PROD_DEVTOOLS__: false,
+  },
+  esbuild: {
+    drop: ['console', 'debugger'], // Eliminar logs en desarrollo
   },
   test: {
     globals: true,

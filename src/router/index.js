@@ -6,55 +6,57 @@ import { USER_ROLES } from '@/utils/constants.js'
 import Login from '@/views/auth/Login.vue'
 
 
-// Parent
-import ParentsProfile from '@/views/parent/Parents.vue'
-import ParentGrades from '@/views/parent/ParentGrades.vue'
-import ParentTasks from '@/views/parent/ParentTasks.vue'
-import ParentCalendar  from '@/views/parent/Calendar.vue'
-import ParentMessages from '@/views/parent/Messages.vue'
-import PaymentHistory from '@/views/parent/PaymentHistory.vue'
+// Parent - Lazy Loading
+const ParentsProfile = () => import('@/views/parent/Parents.vue')
+const ParentGrades = () => import('@/views/parent/ParentGrades.vue')
+const ParentTasks = () => import('@/views/parent/ParentTasks.vue')
+const ParentCalendar = () => import('@/views/parent/Calendar.vue')
+const ParentMessages = () => import('@/views/parent/Messages.vue')
+const PaymentHistory = () => import('@/views/parent/PaymentHistory.vue')
 
 
-// Teacher
+// Teacher - Importación directa para mejor performance en desarrollo
 import TeacherProfile from '@/views/teacher/TeacherProfile.vue'
 import TeacherCourses from '@/views/teacher/TeacherCourses.vue'
 import CourseDetail from '@/views/teacher/CourseDetail.vue'
-import CourseGrades from '@/views/teacher/CourseGrades.vue'
-import CreateTaskForm from '@/views/teacher/CreateTaskForm.vue'
-import ViewTasks from '@/views/teacher/ViewTasks.vue'
-import ViewGrades from '@/views/teacher/ViewGrades.vue'
-import Calendar from '@/views/teacher/Calendar.vue'
-import Observations from '@/views/teacher/Observations.vue'
-import AddObservations from '@/views/teacher/AddObservations.vue'
-import ViewObservations from '@/views/teacher/ViewObservations.vue'
 import AttendanceForm from '@/views/teacher/AttendanceForm.vue'
-import Messages from '@/views/teacher/Messages.vue'
-import ReportCardStudents from '@/views/teacher/ReportCardStudents.vue'
-import ReportCard from '@/views/teacher/ReportCard.vue'
-import CoursePlanning from '@/views/teacher/PlanningCourse.vue'
-import PlanningTasks from '@/views/teacher/PlanningTasks.vue'
-import TeacherDashboard from '@/views/teacher/TeacherDashboard.vue'
 
-// Admin
-import AdminProfile from '@/views/admin/AdminProfile.vue'
-import PaymentsDashboard from '@/views/admin/PaymentsDashboard.vue'
-import PaymentsControl from '@/views/admin/PaymentsControl.vue'
-import UploadPayments from '@/views/admin/UploadPayments.vue'
-import ManualPayments from '@/views/admin/ManualPayments.vue'
+// Lazy loading solo para vistas menos usadas
+const CourseGrades = () => import('@/views/teacher/CourseGrades.vue')
+const CreateTaskForm = () => import('@/views/teacher/CreateTaskForm.vue')
+const ViewTasks = () => import('@/views/teacher/ViewTasks.vue')
+const ViewGrades = () => import('@/views/teacher/ViewGrades.vue')
+const Calendar = () => import('@/views/teacher/Calendar.vue')
+const Observations = () => import('@/views/teacher/Observations.vue')
+const AddObservations = () => import('@/views/teacher/AddObservations.vue')
+const ViewObservations = () => import('@/views/teacher/ViewObservations.vue')
+const Messages = () => import('@/views/teacher/Messages.vue')
+const ReportCardStudents = () => import('@/views/teacher/ReportCardStudents.vue')
+const ReportCard = () => import('@/views/teacher/ReportCard.vue')
+const CoursePlanning = () => import('@/views/teacher/PlanningCourse.vue')
+const PlanningTasks = () => import('@/views/teacher/PlanningTasks.vue')
+const TeacherDashboard = () => import('@/views/teacher/TeacherDashboard.vue')
 
-// SuperUser
-import SuperUserCrud from '@/views/superuser/SuperUserCrud.vue'
-import SuperUserProfile from '@/views/superuser/SuperUserProfile.vue'
-import TeacherCoursesCrud from '@/views/superuser/TeacherCoursesCrud.vue'
-import PlanificationsByGrade from '@/views/superuser/PlanificationsByGrade.vue'
-import FamilyManagement from '@/views/superuser/FamilyManagement.vue'
-import InscripcionesManagement from '@/views/superuser/InscripcionesManagement.vue'
+// Admin - Lazy Loading
+const AdminProfile = () => import('@/views/admin/AdminProfile.vue')
+const PaymentsDashboard = () => import('@/views/admin/PaymentsDashboard.vue')
+const PaymentsControl = () => import('@/views/admin/PaymentsControl.vue')
+const UploadPayments = () => import('@/views/admin/UploadPayments.vue')
+const ManualPayments = () => import('@/views/admin/ManualPayments.vue')
 
-// Director
-import DirectorProfile from '@/views/director/DirectorProfile.vue'
-import PlanningCourseDir from '@/views/director/PlanningCourse.vue'
-import PlanningTasksDir from '@/views/director/PlanningTasks.vue'
-import AcademicManagement from '@/views/director/AcademicManagement.vue'
+// SuperUser - Lazy Loading
+const SuperUserCrud = () => import('@/views/superuser/SuperUserCrud.vue')
+const SuperUserProfile = () => import('@/views/superuser/SuperUserProfile.vue')
+const TeacherCoursesCrud = () => import('@/views/superuser/TeacherCoursesCrud.vue')
+const PlanificationsByGrade = () => import('@/views/superuser/PlanificationsByGrade.vue')
+const FamilyManagement = () => import('@/views/superuser/FamilyManagement.vue')
+const InscripcionesManagement = () => import('@/views/superuser/InscripcionesManagement.vue')
+
+// Director - Lazy Loading
+const DirectorProfile = () => import('@/views/director/DirectorProfile.vue')
+const PlanningCourseDir = () => import('@/views/director/PlanningCourse.vue')
+const PlanningTasksDir = () => import('@/views/director/PlanningTasks.vue')
+const AcademicManagement = () => import('@/views/director/AcademicManagement.vue')
 
 const routes = [
   // Rutas públicas

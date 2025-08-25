@@ -4,13 +4,15 @@
     
     <main class="course-detail-container">
       <div class="header-section">
-        <h1 class="page-title">{{ courseData?.materia }} - Calificaciones</h1>
-        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+        <h1 class="page-title" style="opacity: 1; transform: none;">
+          {{ courseData?.materia || 'Calificaciones del Curso' }}
+        </h1>
+        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion" style="opacity: 1; transform: none;">
           <span class="badge-info">Grado: {{ courseData.grado }}</span>
           <span class="badge-info">Sección: {{ courseData.seccion }}</span>
         </div>
       </div>
-      <div class="separator"></div>
+      <div class="separator" style="opacity: 1; transform: none;"></div>
       
       <CardList :items="gradeOptions" @item-clicked="handleOptionClick">
         <template #item="{ item }">
@@ -35,7 +37,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import CardList from '@/components/CardList.vue'
-import CreateTaskForm from '@/views/teacher/CreateTaskForm.vue'
 import {
   User,
   ClipboardList,
@@ -47,7 +48,38 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const courseData = ref(null)
+
+// Pre-cargar datos síncronamente antes del mount
+const getCourseData = () => {
+  const savedCourse = sessionStorage.getItem('currentCourse')
+  if (savedCourse) {
+    try {
+      return JSON.parse(savedCourse)
+    } catch (error) {
+      console.error('Error parsing course data:', error)
+    }
+  }
+  // Fallback más descriptivo para mobile
+  return { 
+    materia: 'Calificaciones del Curso', 
+    grado: '', 
+    seccion: '' 
+  }
+}
+
+// Asegurar que siempre tengamos datos válidos
+const courseData = ref(getCourseData())
+
+// Garantizar que nunca hay valores undefined que causen flasheo
+if (!courseData.value.materia) {
+  courseData.value.materia = 'Calificaciones del Curso'
+}
+if (!courseData.value.grado) {
+  courseData.value.grado = ''
+}
+if (!courseData.value.seccion) {
+  courseData.value.seccion = ''
+}
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -67,9 +99,9 @@ const gradeOptions = [
 ]
 
 onMounted(() => {
-  const savedCourse = sessionStorage.getItem('currentCourse')
-  if (savedCourse) {
-    courseData.value = JSON.parse(savedCourse)
+  // Verificar que tenemos datos del curso, si no redirigir
+  if (!courseData.value || !courseData.value.materia || courseData.value.materia === 'Calificaciones del Curso') {
+    router.push('/teacher/courses')
   }
 })
 
@@ -117,6 +149,45 @@ const handleOptionClick = (option) => {
   font-weight: bold;
   color: #000;
   margin-bottom: 0.75rem;
+  transition: opacity 0.3s ease;
+  /* Evitar reflow en mobile */
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.loading-placeholder {
+  opacity: 0.7;
+}
+
+.loading-placeholder.loaded {
+  opacity: 1;
+}
+
+/* Optimizaciones específicas para mobile */
+@media screen and (max-width: 768px) {
+  .page-title {
+    font-size: 1.6rem;
+    min-height: 2rem;
+    /* Evitar saltos de layout en mobile */
+    line-height: 1.2;
+    text-align: center;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  .course-subtitle {
+    /* Estabilizar layout mientras carga */
+    min-height: 3rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .badge-info {
+    /* Evitar shifts en mobile */
+    min-width: 80px;
+    text-align: center;
+  }
 }
 
 .course-subtitle {
@@ -124,6 +195,7 @@ const handleOptionClick = (option) => {
   gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
+  min-height: 1.5rem;
 }
 
 .badge-info {

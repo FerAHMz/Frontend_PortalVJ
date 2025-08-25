@@ -4,15 +4,17 @@
 
     <main class="planning-container">
       <div class="header-section">
-        <h1 class="page-title">Planificación del Curso</h1>
-        <div class="course-subtitle">
-          <span class="course-info">{{ courseData?.materia }}</span>
+        <h1 class="page-title" style="opacity: 1; transform: none;">
+          Planificación del Curso
+        </h1>
+        <div class="course-subtitle" style="opacity: 1; transform: none;">
+          <span class="course-info">{{ courseData?.materia || 'Materia' }}</span>
           <span class="divider">|</span>
-          <span class="course-info">Grado: {{ courseData?.grado }}</span>
+          <span class="course-info">Grado: {{ courseData?.grado || '-' }}</span>
           <span class="divider">|</span>
-          <span class="course-info">Sección: {{ courseData?.seccion }}</span>
+          <span class="course-info">Sección: {{ courseData?.seccion || '-' }}</span>
         </div>
-        <div class="separator"></div>
+        <div class="separator" style="opacity: 1; transform: none;"></div>
       </div>
 
       <!-- Formulario para crear planificación -->
@@ -45,15 +47,23 @@
       </div>
 
       <!-- Mensaje cuando no hay planificaciones -->
-      <div v-if="planificaciones.length === 0" class="no-planning">
+      <div v-if="planificaciones.length === 0 && !planificacionesLoading" class="no-planning">
         <div class="no-planning-content">
           <FileText class="no-planning-icon" />
           <p>No hay planificaciones registradas para este curso.</p>
         </div>
       </div>
 
+      <!-- Loading state -->
+      <div v-if="planificacionesLoading" class="loading-state">
+        <div class="loading-content">
+          <div class="spinner"></div>
+          <p>Cargando planificaciones...</p>
+        </div>
+      </div>
+
       <!-- Tabla responsive -->
-      <div v-else class="table-section">
+      <div v-else-if="!planificacionesLoading" class="table-section">
         <!-- Vista de tabla para desktop -->
         <div class="table-container desktop-table">
           <table class="data-table">
@@ -144,8 +154,40 @@ const route = useRoute()
 const router = useRouter()
 const { showNotification } = useNotifications()
 const confirmDialog = ref(null)
-const courseData = ref(null)
+
+// Pre-cargar datos síncronamente antes del mount
+const getCourseData = () => {
+  const savedCourse = sessionStorage.getItem('currentCourse')
+  if (savedCourse) {
+    try {
+      return JSON.parse(savedCourse)
+    } catch (error) {
+      console.error('Error parsing course data:', error)
+    }
+  }
+  // Fallback más descriptivo para mobile
+  return { 
+    materia: 'Curso', 
+    grado: 'N/A', 
+    seccion: 'N/A' 
+  }
+}
+
+// Asegurar que siempre tengamos datos válidos para evitar flasheo
+const courseData = ref(getCourseData())
+
+// Garantizar que nunca hay valores undefined que causen flasheo
+if (!courseData.value.materia) {
+  courseData.value.materia = 'Curso'
+}
+if (!courseData.value.grado) {
+  courseData.value.grado = 'N/A'
+}
+if (!courseData.value.seccion) {
+  courseData.value.seccion = 'N/A'
+}
 const planificaciones = ref([])
+const planificacionesLoading = ref(true) // Estado de loading
 const trimestre = ref('')
 const ciclo = ref('')
 
@@ -175,12 +217,15 @@ const handleItemClick = (item) => {
 }
 
 const fetchPlanning = async () => {
+  planificacionesLoading.value = true
   try {
     const data = await planningService.fetchByCourse(courseId)
     planificaciones.value = data
   } catch (error) {
     showNotification('error', 'Error', 'No se pudieron cargar las planificaciones')
     console.error(error)
+  } finally {
+    planificacionesLoading.value = false
   }
 }
 
@@ -233,10 +278,13 @@ const deletePlanning = async (planId) => {
 }
 
 onMounted(async () => {
-  const course = sessionStorage.getItem('currentCourse')
-  if (course) {
-    courseData.value = JSON.parse(course)
+  // Verificar que tenemos datos del curso, si no redirigir
+  if (!courseData.value || !courseData.value.materia || courseData.value.materia === 'Curso') {
+    router.push('/teacher/courses')
+    return
   }
+  
+  // Cargar planificaciones después
   await fetchPlanning()
 })
 </script>
@@ -267,6 +315,19 @@ onMounted(async () => {
   color: #000;
   margin-bottom: 1rem;
   line-height: 1.2;
+  transition: opacity 0.3s ease;
+  /* Evitar reflow en mobile */
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.loading-placeholder {
+  opacity: 0.7;
+}
+
+.loading-placeholder.loaded {
+  opacity: 1;
 }
 
 .course-subtitle {
@@ -276,14 +337,23 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  /* Estabilizar layout mientras carga */
+  min-height: 1.5rem;
+  transition: opacity 0.3s ease;
 }
 
 .course-info {
   white-space: nowrap;
+  /* Anti-flasheo: estabilizar altura */
+  min-height: 1.5rem;
+  display: inline-block;
 }
 
 .divider {
   color: #ccc;
+  /* Anti-flasheo: tamaño fijo */
+  min-height: 1rem;
+  line-height: 1;
 }
 
 .separator {
@@ -430,6 +500,41 @@ onMounted(async () => {
 .no-planning p {
   color: #777;
   font-style: italic;
+  margin: 0;
+}
+
+/* Loading state */
+.loading-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1b9963;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #777;
   margin: 0;
 }
 
@@ -583,16 +688,29 @@ onMounted(async () => {
   .page-title {
     font-size: 1.5rem;
     margin-top: 5.25rem;
+    /* Anti-flasheo mobile */
+    min-height: 2rem;
+    text-align: left;
   }
 
   .course-subtitle {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+    /* Estabilizar layout mobile */
+    min-height: 4rem;
   }
 
   .divider {
     display: none;
+  }
+  
+  .course-info {
+    /* Estabilizar tamaño en mobile */
+    min-height: 1.2rem;
+    padding: 0.2rem 0;
+    width: 100%;
+    word-break: break-word;
   }
 
   .form-container {
