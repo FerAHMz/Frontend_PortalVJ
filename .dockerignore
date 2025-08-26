@@ -1,0 +1,33 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Cypress files
+cypress/videos
+cypress/screenshots
+
+# Test files  
+**/*.test.*
+**/*.spec.*
+__tests__
+tests
+
+# Build artifacts
+dist
+build
+
+# Cache directories
+.npm
+.cache

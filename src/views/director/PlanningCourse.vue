@@ -105,8 +105,7 @@ const handleItemClick = (item) => {
 
 const goToTasks = (planId) => {
   router.push({
-    name: 'PlanningTasksDir',
-    params: { courseId: route.params.courseId, planId: planId },
+    path: `/director/planning/${route.params.courseId}/tasks/${planId}`,
     state: { courseData: courseData.value }
   })
 }

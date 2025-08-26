@@ -36,11 +36,73 @@
               </div>
             </div>
 
+            <!-- File Upload Section for New Planification -->
+            <div class="form-group full-width">
+              <label>Archivos de Planificación (Opcional)</label>
+              <div 
+                @drop="handleDrop"
+                @dragover.prevent
+                @dragenter.prevent
+                @click="triggerFileInput"
+                class="upload-area"
+                :class="{ 'dragover': isDragOver, 'uploading': isUploading }"
+                @dragenter="isDragOver = true"
+                @dragleave="isDragOver = false"
+              >
+                <input 
+                  ref="fileInput" 
+                  type="file" 
+                  accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  multiple
+                  @change="handleFileSelect"
+                  style="display: none"
+                />
+                
+                <div class="upload-content">
+                  <FileText class="upload-icon" />
+                  <div class="upload-text">
+                    <p class="primary-text">
+                      Arrastra archivos aquí o <span class="link-text">haz clic para seleccionar</span>
+                    </p>
+                    <p class="secondary-text">Archivos permitidos: PDF, DOC, DOCX (máx. 10MB)</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Files Preview -->
+              <div v-if="selectedFiles.length > 0" class="selected-files">
+                <h4>Archivos seleccionados:</h4>
+                <div class="files-preview">
+                  <div v-for="(file, index) in selectedFiles" :key="index" class="file-preview">
+                    <div class="file-info">
+                      <FileText class="file-icon" />
+                      <div class="file-details">
+                        <span class="file-name">{{ file.name }}</span>
+                        <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                      </div>
+                    </div>
+                    <button @click="removeSelectedFile(index)" class="remove-file-btn" type="button">
+                      <Trash class="remove-icon" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="form-actions">
-              <button class="action-btn create" type="submit">
-                <Plus class="action-icon" />
-                <span class="btn-text">Crear planificación</span>
+              <button class="action-btn create" type="submit" :disabled="isUploading">
+                <Plus v-if="!isUploading" class="action-icon" />
+                <div v-else class="spinner-small"></div>
+                <span class="btn-text">
+                  {{ isUploading ? 'Creando planificación...' : 'Crear planificación' }}
+                </span>
               </button>
+              <div v-if="isUploading && uploadProgress > 0" class="form-progress">
+                <div class="progress-bar">
+                  <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
+                </div>
+                <span class="progress-text">{{ uploadProgress }}%</span>
+              </div>
             </div>
           </form>
         </div>
@@ -79,7 +141,7 @@
             <tbody>
               <tr v-for="plan in planificaciones" :key="plan.id">
                 <td>{{ plan.id }}</td>
-                <td>{{ plan.mes }}</td>
+                <td>{{ formatTrimestre(plan.mes) }}</td>
                 <td>{{ plan.ciclo_escolar }}</td>
                 <td>
                   <span class="badge" :class="formatEstadoClass(plan.estado)">{{ plan.estado }}</span>
@@ -111,7 +173,7 @@
               <div class="card-info">
                 <div class="info-item">
                   <span class="info-label">Trimestre:</span>
-                  <span class="info-value">{{ plan.mes }}</span>
+                  <span class="info-value">{{ formatTrimestre(plan.mes) }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">Ciclo Escolar:</span>
@@ -147,7 +209,8 @@ import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus, Trash } from 'lucide-vue-next'
+import fileService from '@/services/fileService'
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus, Trash, Upload } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
 
 const route = useRoute()
@@ -191,10 +254,17 @@ const planificacionesLoading = ref(true) // Estado de loading
 const trimestre = ref('')
 const ciclo = ref('')
 
+// File upload variables
+const selectedFiles = ref([])
+const isUploading = ref(false)
+const uploadProgress = ref(0)
+const isDragOver = ref(false)
+const fileInput = ref(null)
+
 const trimestres = [
-  { value: 'I', label: 'I Trimestre (Enero - Abril)' },
-  { value: 'II', label: 'II Trimestre (Mayo - Agosto)' },
-  { value: 'III', label: 'III Trimestre (Septiembre - Diciembre)' }
+  { value: 'enero', label: 'I Trimestre (Enero - Abril)' },
+  { value: 'mayo', label: 'II Trimestre (Mayo - Agosto)' },
+  { value: 'septiembre', label: 'III Trimestre (Septiembre - Diciembre)' }
 ]
 
 const courseId = route.params.courseId
@@ -210,6 +280,15 @@ const menuItems = [
 
 const formatEstadoClass = (estado) => {
   return estado.toLowerCase().replace(/\s/g, '-');
+}
+
+const formatTrimestre = (mes) => {
+  const trimestreMap = {
+    'enero': 'I Trimestre',
+    'mayo': 'II Trimestre', 
+    'septiembre': 'III Trimestre'
+  }
+  return trimestreMap[mes] || mes
 }
 
 const handleItemClick = (item) => {
@@ -231,18 +310,46 @@ const fetchPlanning = async () => {
 
 const submitPlanning = async () => {
   try {
-    await planningService.create(courseId, { 
+    isUploading.value = true
+    uploadProgress.value = 0
+    
+    // First create the planification
+    const newPlan = await planningService.create(courseId, { 
       mes: trimestre.value,
       ciclo_escolar: ciclo.value
     })
-    showNotification('success', 'Éxito', 'Planificación creada correctamente')
+    
+    // If there are files to upload, upload them
+    if (selectedFiles.value.length > 0) {
+      uploadProgress.value = 10 // Planning created
+      
+      for (let i = 0; i < selectedFiles.value.length; i++) {
+        const file = selectedFiles.value[i]
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        await fileService.uploadPlanificationFile(courseId, newPlan.id, formData)
+        
+        // Update progress (10% for planning creation + 90% for files)
+        uploadProgress.value = 10 + Math.round(((i + 1) / selectedFiles.value.length) * 90)
+      }
+    }
+    
+    showNotification('success', 'Éxito', 'Planificación creada correctamente' + (selectedFiles.value.length > 0 ? ` con ${selectedFiles.value.length} archivo(s)` : ''))
+    
     // Reset form
     trimestre.value = ''
     ciclo.value = ''
+    selectedFiles.value = []
+    if (fileInput.value) fileInput.value.value = ''
+    
     await fetchPlanning()
   } catch (error) {
     showNotification('error', 'Error', 'No se pudo crear la planificación')
     console.error(error)
+  } finally {
+    isUploading.value = false
+    uploadProgress.value = 0
   }
 }
 
@@ -275,6 +382,66 @@ const deletePlanning = async (planId) => {
     showNotification('error', 'Error', 'No se pudo eliminar la planificación')
     console.error(error)
   }
+}
+
+// File upload methods
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = (event) => {
+  const files = Array.from(event.target.files)
+  addFiles(files)
+}
+
+const handleDrop = (event) => {
+  event.preventDefault()
+  isDragOver.value = false
+  const files = Array.from(event.dataTransfer.files)
+  addFiles(files)
+}
+
+const addFiles = (files) => {
+  // Validate files
+  const validFiles = files.filter(file => {
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx)$/i)) {
+      showNotification('error', 'Error', `Archivo ${file.name} no es válido. Solo se permiten PDF, DOC y DOCX.`)
+      return false
+    }
+    
+    if (file.size > maxSize) {
+      showNotification('error', 'Error', `Archivo ${file.name} es muy grande. Máximo 10MB.`)
+      return false
+    }
+    
+    // Check if file already selected
+    if (selectedFiles.value.some(f => f.name === file.name && f.size === file.size)) {
+      showNotification('warning', 'Advertencia', `El archivo ${file.name} ya está seleccionado.`)
+      return false
+    }
+    
+    return true
+  })
+  
+  if (validFiles.length > 0) {
+    selectedFiles.value.push(...validFiles)
+    showNotification('success', 'Éxito', `${validFiles.length} archivo(s) agregado(s)`)
+  }
+}
+
+const removeSelectedFile = (index) => {
+  selectedFiles.value.splice(index, 1)
+}
+
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 onMounted(async () => {
@@ -441,6 +608,114 @@ onMounted(async () => {
 .action-btn.create:hover {
   background-color: #158a50;
   transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Selected Files Preview */
+.selected-files {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.selected-files h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.files-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.file-icon {
+  width: 20px;
+  height: 20px;
+  color: #1b9963;
+  flex-shrink: 0;
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.file-size {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.remove-file-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.remove-file-btn:hover {
+  background: #c82333;
+}
+
+.remove-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .action-btn.view {
@@ -791,6 +1066,221 @@ onMounted(async () => {
 
   .data-table th, .data-table td {
     padding: 0.75rem;
+  }
+}
+
+/* File Upload Styles */
+.file-upload-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.upload-header {
+  margin-bottom: 1.5rem;
+}
+
+.upload-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.upload-header p {
+  margin: 0;
+  color: #666;
+}
+
+.upload-area {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.upload-area:hover {
+  border-color: #1b9963;
+  background: #f0fdf4;
+}
+
+.upload-area.dragover {
+  border-color: #1b9963;
+  background: #f0fdf4;
+  transform: scale(1.02);
+}
+
+.upload-area.uploading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  color: #1b9963;
+}
+
+.upload-text .primary-text {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0;
+}
+
+.upload-text .secondary-text {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.link-text {
+  color: #1b9963;
+  font-weight: 500;
+}
+
+.upload-progress {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #1b9963;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+/* Uploaded Files */
+.uploaded-files {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.uploaded-files h4 {
+  margin: 0 0 1rem 0;
+  color: #333;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.file-icon {
+  width: 24px;
+  height: 24px;
+  color: #1b9963;
+  flex-shrink: 0;
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.file-size, .file-date {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn.upload {
+  background: #1b9963;
+  color: white;
+}
+
+.action-btn.upload:hover {
+  background: #157347;
+}
+
+.action-btn.download {
+  background: #0d6efd;
+  color: white;
+}
+
+.action-btn.download:hover {
+  background: #0b5ed7;
+}
+
+/* Mobile file upload styles */
+@media screen and (max-width: 768px) {
+  .file-upload-section {
+    padding: 1rem;
+  }
+
+  .upload-area {
+    padding: 2rem 1rem;
+  }
+
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .file-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .upload-text .primary-text {
+    font-size: 1rem;
   }
 }
 </style>

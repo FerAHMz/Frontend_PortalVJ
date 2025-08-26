@@ -108,13 +108,13 @@
 
   // Búsqueda por nombre, apellido o carnet
   const filteredStudents = computed(() => {
-    if (!searchQuery.value && !searchGradeYear.grado && !searchGradeYear.year) {
+    if (!searchQuery.value && !searchGradeYear.value.grado && !searchGradeYear.value.year) {
       return students.value;
     }
     const query = searchQuery.value.toLowerCase();
     return students.value.filter(student =>
-      (searchGradeYear.grado ? student.grado_seccion_id === searchGradeYear.grado : true) &&
-      (searchGradeYear.year ? student.year === searchGradeYear.year : true) &&
+      (searchGradeYear.value.grado ? student.grado_seccion_id === searchGradeYear.value.grado : true) &&
+      (searchGradeYear.value.year ? student.year === searchGradeYear.value.year : true) &&
       (`${student.nombre} ${student.apellido}`.toLowerCase().includes(query) ||
       student.carnet.toString().includes(query))
     );

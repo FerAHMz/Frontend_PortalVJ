@@ -57,6 +57,7 @@ const DirectorProfile = () => import('@/views/director/DirectorProfile.vue')
 const PlanningCourseDir = () => import('@/views/director/PlanningCourse.vue')
 const PlanningTasksDir = () => import('@/views/director/PlanningTasks.vue')
 const AcademicManagement = () => import('@/views/director/AcademicManagement.vue')
+const DirectorPlanificationsByGrade = () => import('@/views/director/PlanificationsByGrade.vue')
 
 const routes = [
   // Rutas públicas
@@ -427,6 +428,15 @@ const routes = [
     path: '/director/academic',
     name: 'AcademicManagement',
     component: AcademicManagement,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/planifications',
+    name: 'DirectorPlanificationsByGrade',
+    component: DirectorPlanificationsByGrade,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.DIRECTOR]

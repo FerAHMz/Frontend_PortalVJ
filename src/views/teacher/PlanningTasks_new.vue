@@ -66,6 +66,7 @@
                   </td>
                   <td>
                     <button @click="downloadFile(file)" class="download-btn">
+                      <span>⬇️</span>
                       Descargar
                     </button>
                   </td>
@@ -248,7 +249,6 @@ const downloadFile = async (file) => {
       return
     }
 
-    // Get the presigned download URL from the backend
     const response = await fetch(`http://localhost:3000/api/teacher/planning/files/${file.id}/download`, {
       method: 'GET',
       headers: {
@@ -257,22 +257,18 @@ const downloadFile = async (file) => {
     })
 
     if (!response.ok) {
-      throw new Error('Error al obtener la URL de descarga')
+      throw new Error('Error al descargar el archivo')
     }
 
-    const data = await response.json()
-    if (!data.success) {
-      throw new Error(data.message || 'Error al obtener la URL de descarga')
-    }
-
-    // Use the presigned URL to download the file
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.style.display = 'none'
-    a.href = data.downloadUrl
-    a.download = data.fileName || file.original_name
-    a.target = '_blank' // Open in new tab as fallback
+    a.href = url
+    a.download = file.original_name
     document.body.appendChild(a)
     a.click()
+    window.URL.revokeObjectURL(url)
     document.body.removeChild(a)
   } catch (error) {
     console.error('Error downloading file:', error)

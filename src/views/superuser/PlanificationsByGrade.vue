@@ -102,10 +102,6 @@
                     <p><strong>Mes:</strong> {{ planification.mes }}</p>
                     <p><strong>Ciclo:</strong> {{ planification.ciclo_escolar }}</p>
                   </div>
-                  <div class="planification-stats">
-                    <span class="tasks-count">{{ planification.estadisticas.total_tareas }} tareas</span>
-                    <span class="points-total">{{ planification.estadisticas.total_puntos }} puntos</span>
-                  </div>
                 </div>
               </div>
 
@@ -164,28 +160,6 @@
               </div>
             </div>
 
-            <div class="tasks-section">
-              <h4>Tareas Planificadas ({{ selectedPlanification.tareas.length }})</h4>
-              <div v-if="selectedPlanification.tareas.length === 0" class="no-tasks">
-                <p>No hay tareas planificadas.</p>
-              </div>
-              <div v-else class="tasks-list">
-                <div 
-                  v-for="task in selectedPlanification.tareas" 
-                  :key="task.id"
-                  class="task-item"
-                >
-                  <div class="task-info">
-                    <h5>{{ task.tema_tarea || 'Sin tema especificado' }}</h5>
-                    <span class="task-points">{{ task.puntos_tarea }} puntos</span>
-                  </div>
-                </div>
-              </div>
-              <div class="tasks-summary">
-                <strong>Total: {{ selectedPlanification.estadisticas.total_puntos }} puntos</strong>
-              </div>
-            </div>
-
             <div v-if="selectedPlanification.revisiones.length > 0" class="reviews-section">
               <h4>Revisiones y Observaciones</h4>
               <div class="reviews-list">
@@ -204,6 +178,47 @@
                 </div>
               </div>
             </div>
+
+            <!-- Files Section -->
+            <div class="files-section">
+              <h4>Archivos de la Planificación</h4>
+              <div v-if="loadingFiles" class="files-loading">
+                <div class="loading-spinner small"></div>
+                <p>Cargando archivos...</p>
+              </div>
+              <div v-else-if="planificationFiles.length === 0" class="no-files">
+                <File class="no-files-icon" />
+                <p>No hay archivos asociados a esta planificación.</p>
+              </div>
+              <div v-else class="files-list">
+                <div 
+                  v-for="file in planificationFiles" 
+                  :key="file.id"
+                  class="file-item"
+                >
+                  <div class="file-info">
+                    <div class="file-icon">{{ getFileIcon(file.mime_type) }}</div>
+                    <div class="file-details">
+                      <h5>{{ file.original_name }}</h5>
+                      <div class="file-meta">
+                        <span class="file-type" :class="getFileType(file.mime_type).toLowerCase()">
+                          {{ getFileType(file.mime_type) }}
+                        </span>
+                        <span class="file-size">{{ formatFileSize(file.file_size) }}</span>
+                      </div>
+                      <span class="file-upload-info">
+                        Subido por {{ file.uploaded_by_name || file.uploaded_by_email }} 
+                        el {{ formatDate(file.uploaded_at) }}
+                      </span>
+                    </div>
+                  </div>
+                  <button @click="downloadFile(file)" class="download-btn">
+                    <Download class="download-icon" />
+                    Descargar
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -219,9 +234,10 @@ import { ref, computed, onMounted } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
 import { superUserPlanificationService } from '@/services/superUserPlanificationService';
+import superUserFileService from '@/services/superUserFileService';
 import { useNotifications } from '@/utils/useNotifications.js';
 import { useRouter } from 'vue-router';
-import { User, Settings, BookOpen, FileText, Users, UserPlus } from 'lucide-vue-next';
+import { User, Settings, BookOpen, FileText, Users, UserPlus, Download, File } from 'lucide-vue-next';
 
 const router = useRouter();
 const { showNotification } = useNotifications();
@@ -239,6 +255,8 @@ const showAllPlanifications = ref({});
 const showDetailModal = ref(false);
 const selectedPlanification = ref(null);
 const loadingDetail = ref(false);
+const planificationFiles = ref([]);
+const loadingFiles = ref(false);
 
 // Menu items for superuser
 const menuItems = [
@@ -317,9 +335,19 @@ const viewPlanificationDetail = async (planificationId) => {
   try {
     showDetailModal.value = true;
     loadingDetail.value = true;
+    loadingFiles.value = true;
     
-    const result = await superUserPlanificationService.getPlanificationDetail(planificationId);
-    selectedPlanification.value = result.data;
+    // Fetch planification detail and files in parallel
+    const [detailResult, filesResult] = await Promise.all([
+      superUserPlanificationService.getPlanificationDetail(planificationId),
+      superUserFileService.getPlanificationFiles(planificationId).catch(err => {
+        console.warn('Files not available for this planification:', err);
+        return { data: [] };
+      })
+    ]);
+    
+    selectedPlanification.value = detailResult.data;
+    planificationFiles.value = filesResult.data || [];
     
   } catch (err) {
     console.error('Error fetching planification detail:', err);
@@ -327,6 +355,7 @@ const viewPlanificationDetail = async (planificationId) => {
     closeDetailModal();
   } finally {
     loadingDetail.value = false;
+    loadingFiles.value = false;
   }
 };
 
@@ -334,6 +363,18 @@ const closeDetailModal = () => {
   showDetailModal.value = false;
   selectedPlanification.value = null;
   loadingDetail.value = false;
+  planificationFiles.value = [];
+  loadingFiles.value = false;
+};
+
+const downloadFile = async (file) => {
+  try {
+    await superUserFileService.downloadFile(file);
+    showNotification('success', 'Éxito', 'Archivo descargado correctamente');
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    showNotification('error', 'Error', 'Error al descargar el archivo: ' + (error.message || 'Error desconocido'));
+  }
 };
 
 const formatDate = (dateString) => {
@@ -344,6 +385,32 @@ const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   });
+};
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+const getFileIcon = (mimeType) => {
+  if (mimeType.includes('pdf')) return '📄';
+  if (mimeType.includes('word') || mimeType.includes('document')) return '📝';
+  if (mimeType.includes('image')) return '🖼️';
+  if (mimeType.includes('video')) return '🎥';
+  if (mimeType.includes('audio')) return '🎵';
+  return '📎';
+};
+
+const getFileType = (mimeType) => {
+  if (mimeType.includes('pdf')) return 'PDF';
+  if (mimeType.includes('word') || mimeType.includes('document')) return 'Word';
+  if (mimeType.includes('image')) return 'Imagen';
+  if (mimeType.includes('video')) return 'Video';
+  if (mimeType.includes('audio')) return 'Audio';
+  return 'Archivo';
 };
 
 const handleItemClick = (item) => {
@@ -643,13 +710,6 @@ onMounted(() => {
   color: #4a5568;
 }
 
-.planification-stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #718096;
-}
-
 .show-more-section {
   padding: 1rem;
   text-align: center;
@@ -780,62 +840,15 @@ onMounted(() => {
   color: #2d3748;
 }
 
-.tasks-section, .reviews-section {
+.reviews-section, .files-section {
   margin-top: 2rem;
 }
 
-.tasks-section h4, .reviews-section h4 {
+.reviews-section h4, .files-section h4 {
   margin: 0 0 1rem 0;
   color: #2d3748;
   border-bottom: 2px solid #4299e1;
   padding-bottom: 0.5rem;
-}
-
-.no-tasks {
-  text-align: center;
-  padding: 2rem;
-  color: #718096;
-  font-style: italic;
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.task-item {
-  background: #f7fafc;
-  padding: 1rem;
-  border-radius: 6px;
-  border-left: 4px solid #4299e1;
-}
-
-.task-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.task-info h5 {
-  margin: 0;
-  color: #2d3748;
-  flex: 1;
-}
-
-.task-points {
-  font-weight: bold;
-  color: #4299e1;
-  font-size: 0.875rem;
-}
-
-.tasks-summary {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #edf2f7;
-  border-radius: 6px;
-  text-align: right;
-  color: #2d3748;
 }
 
 .reviews-list {
@@ -874,6 +887,153 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+/* Files Section Styles */
+.files-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: #718096;
+}
+
+.loading-spinner.small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+.no-files {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.no-files-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.file-item {
+  background: #f7fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #38a169;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  background: #edf2f7;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.file-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.file-icon {
+  font-size: 1.5rem;
+  min-width: 2rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-details h5 {
+  margin: 0 0 0.25rem 0;
+  color: #2d3748;
+  font-size: 0.875rem;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.file-type {
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.file-type.pdf {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.file-type.word {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.file-type.imagen {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.file-upload-info {
+  font-size: 0.75rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.download-btn {
+  background: #38a169;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.download-btn:hover {
+  background: #2f855a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.download-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .planifications-container {
@@ -905,12 +1065,6 @@ onMounted(() => {
   
   .info-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .task-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
   }
   
   .modal-content {
