@@ -48,8 +48,8 @@
                     <div class="file-info">
                       <div class="file-icon">{{ getFileIcon(file.mime_type) }}</div>
                       <div class="file-details">
-                        <div class="file-name">{{ file.file_name }}</div>
-                        <div class="file-original-name">{{ file.original_name }}</div>
+                        <div class="file-name">{{ file.original_name }}</div>
+                        <div class="file-original-name">{{ file.file_name }}</div>
                       </div>
                     </div>
                   </td>
@@ -80,8 +80,8 @@
               <div class="card-header">
                 <div class="card-file-icon">{{ getFileIcon(file.mime_type) }}</div>
                 <div class="card-file-info">
-                  <h3 class="card-file-name">{{ file.file_name }}</h3>
-                  <p class="card-original-name">{{ file.original_name }}</p>
+                  <h3 class="card-file-name">{{ file.original_name }}</h3>
+                  <p class="card-original-name">{{ file.file_name }}</p>
                 </div>
               </div>
               <div class="card-body">
@@ -114,6 +114,39 @@
           </div>
         </div>
       </div>
+
+      <!-- Observations Section -->
+      <div class="observations-container">
+        <div class="observations-header">
+          <h2 class="section-title">Retroalimentación de la Dirección</h2>
+        </div>
+
+        <!-- Observations List -->
+        <div class="observations-list">
+          <div v-if="loadingObservations" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando retroalimentación...</p>
+          </div>
+          <div v-else-if="observations.length > 0">
+            <div v-for="obs in observations" :key="obs.id" class="observation-item">
+              <div class="observation-content">
+                <div class="observation-header">
+                  <span class="observation-author">{{ obs.nombre_director }} {{ obs.apellido_director }}</span>
+                  <span class="observation-date">{{ formatDate(obs.fecha) }}</span>
+                </div>
+                <div class="observation-text">
+                  <p>{{ obs.observaciones }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="no-observations">
+            <div class="no-observations-icon">💬</div>
+            <h3>No hay retroalimentación</h3>
+            <p>Aún no se ha registrado retroalimentación para esta planificación.</p>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </template>
@@ -136,6 +169,8 @@ const router = useRouter()
 const planificationData = ref(null)
 const files = ref([])
 const loading = ref(true)
+const observations = ref([])
+const loadingObservations = ref(true)
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -216,6 +251,43 @@ const fetchPlanificationFiles = async () => {
   }
 }
 
+const fetchPlanificationObservations = async () => {
+  try {
+    loadingObservations.value = true
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('No se encontró token de autenticación')
+    }
+
+    const planificationId = route.params.planId
+    const courseId = route.params.courseId
+    
+    const response = await fetch(`http://localhost:3000/api/teacher/courses/${courseId}/planning/${planificationId}/observations`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    if (response.ok) {
+      // The API returns the observations array directly
+      observations.value = data || []
+    } else {
+      throw new Error(data.message || 'Error al cargar observaciones')
+    }
+  } catch (error) {
+    console.error('Error fetching planification observations:', error)
+    observations.value = []
+  } finally {
+    loadingObservations.value = false
+  }
+}
+
 const fetchPlanificationData = async () => {
   try {
     const token = localStorage.getItem('token')
@@ -287,6 +359,7 @@ const handleItemClick = (item) => {
 onMounted(() => {
   fetchPlanificationData()
   fetchPlanificationFiles()
+  fetchPlanificationObservations()
 })
 </script>
 
@@ -739,6 +812,122 @@ onMounted(() => {
   .file-card,
   .download-btn {
     transition: all 0.3s ease;
+  }
+}
+
+/* Observations Styles */
+.observations-container {
+  margin-top: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+}
+
+.observations-header {
+  margin-bottom: 1.5rem;
+}
+
+.observations-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.observation-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.observation-item:last-child {
+  margin-bottom: 0;
+}
+
+.observation-content {
+  width: 100%;
+}
+
+.observation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.observation-author {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.95rem;
+}
+
+.observation-date {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.observation-text {
+  color: #374151;
+  line-height: 1.6;
+}
+
+.observation-text p {
+  margin: 0;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 6px;
+  border-left: 4px solid #3b82f6;
+}
+
+.no-observations {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.no-observations-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-observations h3 {
+  margin: 0 0 0.5rem 0;
+  color: #374151;
+  font-size: 1.1rem;
+}
+
+.no-observations p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Mobile responsiveness for observations */
+@media (max-width: 768px) {
+  .observations-container {
+    margin: 1rem 0;
+    padding: 1rem;
+  }
+  
+  .observation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .observation-author {
+    font-size: 0.9rem;
+  }
+  
+  .observation-date {
+    font-size: 0.8rem;
+  }
+  
+  .observation-text p {
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
 }
 </style>

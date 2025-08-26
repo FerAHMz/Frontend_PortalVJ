@@ -342,12 +342,12 @@ const viewPlanificationDetail = async (planificationId) => {
       superUserPlanificationService.getPlanificationDetail(planificationId),
       superUserFileService.getPlanificationFiles(planificationId).catch(err => {
         console.warn('Files not available for this planification:', err);
-        return { data: [] };
+        return { files: [] };
       })
     ]);
     
     selectedPlanification.value = detailResult.data;
-    planificationFiles.value = filesResult.data || [];
+    planificationFiles.value = filesResult.files || [];
     
   } catch (err) {
     console.error('Error fetching planification detail:', err);

@@ -280,7 +280,7 @@ const fetchFiles = async () => {
     loading.value = true
     error.value = null
     const filesData = await directorFileService.getPlanificationFiles(planId)
-    files.value = filesData.data || []
+    files.value = filesData.files || []
   } catch (err) {
     console.error('Error fetching files:', err)
     error.value = 'Error al cargar los archivos'
