@@ -1,6 +1,10 @@
 <template>
     <div class="profile-header">
-      <img :src="image" alt="Foto de perfil" class="profile-img" />
+      <ProfileImageUpload 
+        :current-image="image" 
+        @image-updated="handleImageUpdate"
+        @image-deleted="handleImageDelete"
+      />
       <div class="profile-info">
         <div class="profile-main">
           <h2>{{ name }}</h2>
@@ -30,8 +34,10 @@
   <script setup>
   import { LogOut } from 'lucide-vue-next'
   import { useAuth } from '@/utils/useAuth.js'
+  import ProfileImageUpload from '@/components/ProfileImageUpload.vue'
+  import { ref, defineEmits } from 'vue'
 
-  defineProps({
+  const props = defineProps({
     name: String,
     role: String,
     phone: String,
@@ -40,10 +46,20 @@
     courses: Array
   })
 
+  const emit = defineEmits(['profile-image-updated'])
+
   const { logout } = useAuth()
 
   const handleLogout = () => {
     logout()
+  }
+
+  const handleImageUpdate = (newImageUrl) => {
+    emit('profile-image-updated', newImageUrl)
+  }
+
+  const handleImageDelete = () => {
+    emit('profile-image-updated', null)
   }
   </script>
 

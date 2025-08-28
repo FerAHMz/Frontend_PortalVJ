@@ -11,7 +11,8 @@
         role="Super Usuario"
         :phone="userProfile.telefono || ''"
         :email="userProfile.email || ''"
-        :image="adminImg"
+        :image="userProfile.profileImageUrl || null"
+        @profile-image-updated="handleProfileImageUpdate"
       />
     </main>
   </div>
@@ -31,7 +32,8 @@ const userProfile = ref({
   nombre: '',
   apellido: '',
   telefono: '',
-  email: ''
+  email: '',
+  profileImageUrl: null
 })
 const loading = ref(true)
 const error = ref(null)
@@ -72,6 +74,10 @@ const fetchUserProfile = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleProfileImageUpdate = (newImageUrl) => {
+  userProfile.value.profileImageUrl = newImageUrl
 }
 
 onMounted(() => {
