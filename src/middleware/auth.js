@@ -5,15 +5,19 @@ import { isAuthenticated, canAccessRoute, getHomeRouteForRole, getCurrentUser } 
  */
 export const authMiddleware = (to, from, next) => {
   // Rutas públicas que no requieren autenticación
-  const publicRoutes = ['/', '/login']
+  const publicRoutes = ['/', '/login', '/forgot-password', '/reset-password']
 
   if (publicRoutes.includes(to.path)) {
     // Si el usuario ya está autenticado y trata de ir al login, redirigir a su dashboard
+    // EXCEPTO si viene desde las páginas de reset password
     if (to.path === '/login' && isAuthenticated()) {
-      const user = getCurrentUser()
-      if (user) {
-        next(getHomeRouteForRole(user.role))
-        return
+      const comesFromResetPages = from.path === '/forgot-password' || from.path === '/reset-password'
+      if (!comesFromResetPages) {
+        const user = getCurrentUser()
+        if (user) {
+          next(getHomeRouteForRole(user.role))
+          return
+        }
       }
     }
     next()
