@@ -11,7 +11,8 @@
         role="Padre/Madre"
         :phone="userProfile.telefono || ''"
         :email="userProfile.email || ''"
-        :image="parentImg"
+        :image="userProfile.profileImageUrl || null"
+        @profile-image-updated="handleProfileImageUpdate"
       />
 
       <!-- Información adicional para padres -->
@@ -43,7 +44,8 @@ const userProfile = ref({
   nombre: '',
   apellido: '',
   telefono: '',
-  email: ''
+  email: '',
+  profileImageUrl: null
 })
 const children = ref([])
 const selectedChild = ref(null)
@@ -105,6 +107,10 @@ const handleChildSelected = (child) => {
 
 const handleSubjectSelected = (subjectId) => {
   selectedSubjectId.value = subjectId;
+}
+
+const handleProfileImageUpdate = (newImageUrl) => {
+  userProfile.value.profileImageUrl = newImageUrl
 }
 
 onMounted(async () => {

@@ -11,8 +11,9 @@
         role="Maestro"
         :phone="userProfile.telefono || ''"
         :email="userProfile.email || ''"
-        :image="teacherImg"
+        :image="userProfile.profileImageUrl || null"
         :courses="teacherCourses"
+        @profile-image-updated="handleProfileImageUpdate"
       />
     </main>
   </div>
@@ -41,7 +42,8 @@ const userProfile = ref({
   nombre: '',
   apellido: '',
   telefono: '',
-  email: ''
+  email: '',
+  profileImageUrl: null
 })
 const teacherCourses = ref([])
 const loading = ref(true)
@@ -109,6 +111,10 @@ const fetchTeacherCourses = async () => {
     console.error('Error fetching teacher courses:', err)
     // No hacer que falle todo el perfil si no se pueden cargar los cursos
   }
+}
+
+const handleProfileImageUpdate = (newImageUrl) => {
+  userProfile.value.profileImageUrl = newImageUrl
 }
 
 onMounted(() => {
