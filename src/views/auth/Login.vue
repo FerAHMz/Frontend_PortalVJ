@@ -41,6 +41,12 @@
           <button type="submit" class="submit-button" data-cy="login-button">
             Ingresar
           </button>
+          
+          <div class="forgot-password-link">
+            <router-link to="/forgot-password" class="forgot-link">
+              ¿Olvidaste tu contraseña?
+            </router-link>
+          </div>
         </form>
       </div>
     </main>
@@ -277,6 +283,25 @@ form {
 .submit-button:focus {
   outline: 3px solid rgba(0, 140, 26, 0.3);
   outline-offset: 2px;
+}
+
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.forgot-link {
+  color: #008c1a;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.forgot-link:hover {
+  color: #00a820;
+  text-decoration: underline;
 }
 
 /* Responsive Design */

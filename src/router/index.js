@@ -4,6 +4,8 @@ import { USER_ROLES } from '@/utils/constants.js'
 
 // Auth
 import Login from '@/views/auth/Login.vue'
+import ForgotPassword from '@/views/auth/ForgotPassword.vue'
+import ResetPassword from '@/views/auth/ResetPassword.vue'
 
 
 // Parent - Lazy Loading
@@ -65,6 +67,24 @@ const routes = [
     path: '/',
     name: 'Login',
     component: Login,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/login',
+    name: 'LoginPage',
+    component: Login,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: ForgotPassword,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: ResetPassword,
     meta: { requiresAuth: false }
   },
   // PARENT ROUTES
@@ -388,7 +408,7 @@ const routes = [
   },
   {
     path: '/superuser/planifications',
-    name: 'PlanificationsByGrade',
+    name: 'PlanificacionesByGrade',
     component: PlanificationsByGrade,
     meta: {
       requiresAuth: true,
