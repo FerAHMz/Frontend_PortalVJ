@@ -5,66 +5,78 @@
     <main class="tasks-container">
       <!-- Header responsive -->
       <div class="header-section">
-        <h1 class="page-title">Archivos de Planificación</h1>
-        <div class="course-subtitle" v-if="planificationData">
-          <span class="course-info">{{ planificationData.trimestre }}</span>
+        <h1 class="page-title">{{ courseData?.materia }} - Tareas</h1>
+        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+          <span class="course-info">Grado: {{ courseData.grado }}</span>
           <span class="course-divider">|</span>
-          <span class="course-info">Ciclo: {{ planificationData.ciclo_escolar }}</span>
-          <span class="course-divider">|</span>
-          <span class="course-info">Estado: {{ planificationData.estado }}</span>
+          <span class="course-info">Sección: {{ courseData.seccion }}</span>
         </div>
       </div>
       <div class="separator"></div>
 
-      <!-- Lista de archivos -->
-      <div class="files-section">
+      <!-- Barra de búsqueda responsive -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <input 
+            type="text" 
+            v-model="searchQuery" 
+            placeholder="Buscar por título o valor..."
+            class="search-input"
+          >
+          <div class="search-icon">🔍</div>
+        </div>
+        <div class="results-count" v-if="searchQuery">
+          {{ filteredTasks.length }} resultado{{ filteredTasks.length !== 1 ? 's' : '' }} encontrado{{ filteredTasks.length !== 1 ? 's' : '' }}
+        </div>
+      </div>
+
+      <!-- Lista de tareas responsive -->
+      <div class="tasks-list">
         <div v-if="loading" class="loading">
           <div class="loading-spinner"></div>
-          <p>Cargando archivos...</p>
+          <p>Cargando tareas...</p>
         </div>
-        <div v-else-if="files.length === 0" class="no-files">
-          <div class="no-files-icon">�</div>
-          <h3>No hay archivos adjuntos</h3>
-          <p>Esta planificación no tiene archivos adjuntos.</p>
+        <div v-else-if="filteredTasks.length === 0" class="no-tasks">
+          <div class="no-tasks-icon">📋</div>
+          <h3>No se encontraron tareas</h3>
+          <p v-if="searchQuery">Intenta con otros términos de búsqueda</p>
+          <p v-else>Aún no hay tareas creadas para este curso</p>
         </div>
         <div v-else>
-          <h2 class="section-title">Archivos Adjuntos</h2>
-          
           <!-- Vista de tabla para desktop -->
           <div class="table-container desktop-view">
-            <table class="files-table">
+            <table class="tasks-table">
               <thead>
                 <tr>
-                  <th>Nombre del Archivo</th>
-                  <th>Tipo</th>
-                  <th>Tamaño</th>
-                  <th>Subido el</th>
+                  <th>Título</th>
+                  <th>Descripción</th>
+                  <th>Fecha de Entrega</th>
+                  <th>Valor</th>
+                  <th>Trimestre</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="file in files" :key="file.id">
+                <tr v-for="task in filteredTasks" :key="task.id">
                   <td>
-                    <div class="file-name">
-                      <span class="file-icon">{{ getFileIcon(file.mime_type) }}</span>
-                      {{ file.original_name }}
-                    </div>
+                    <div class="task-title">{{ task.titulo }}</div>
                   </td>
                   <td>
-                    <div class="file-type">{{ getFileType(file.mime_type) }}</div>
+                    <div class="task-description">{{ task.descripcion }}</div>
                   </td>
                   <td>
-                    <div class="file-size">{{ formatFileSize(file.file_size) }}</div>
+                    <div class="task-date">{{ formatDate(task.fecha_entrega) }}</div>
                   </td>
                   <td>
-                    <div class="file-date">{{ formatDate(file.uploaded_at) }}</div>
+                    <div class="task-value">{{ task.valor }} pts</div>
                   </td>
                   <td>
-                    <div class="file-actions">
-                      <button @click="downloadFile(file)" class="download-btn">
-                        📥 Descargar
-                      </button>
-                    </div>
+                    <div class="task-trimester">{{ task.nombre_trimestre || 'Sin asignar' }}</div>
+                  </td>
+                  <td>
+                    <button @click="viewTaskDetails(task)" class="view-btn desktop-btn">
+                      Ver detalles
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -73,30 +85,34 @@
 
           <!-- Vista de tarjetas para móvil -->
           <div class="cards-container mobile-view">
-            <div v-for="file in files" :key="file.id" class="file-card">
+            <div v-for="task in filteredTasks" :key="task.id" class="task-card">
               <div class="card-header">
-                <div class="file-name-mobile">
-                  <span class="file-icon">{{ getFileIcon(file.mime_type) }}</span>
-                  <h3 class="card-title">{{ file.original_name }}</h3>
-                </div>
-                <span class="file-size-badge">{{ formatFileSize(file.file_size) }}</span>
+                <h3 class="card-title">{{ task.titulo }}</h3>
+                <span class="card-value">{{ task.valor }} pts</span>
               </div>
               
               <div class="card-body">
                 <div class="card-field">
-                  <label>Tipo:</label>
-                  <p>{{ getFileType(file.mime_type) }}</p>
+                  <label>Descripción:</label>
+                  <p>{{ task.descripcion }}</p>
                 </div>
                 
-                <div class="card-field">
-                  <label>Subido el:</label>
-                  <p>{{ formatDate(file.uploaded_at) }}</p>
+                <div class="card-info-row">
+                  <div class="card-field">
+                    <label>Fecha de entrega:</label>
+                    <p>{{ formatDate(task.fecha_entrega) }}</p>
+                  </div>
+                  
+                  <div class="card-field">
+                    <label>Trimestre:</label>
+                    <p>{{ task.nombre_trimestre || 'Sin asignar' }}</p>
+                  </div>
                 </div>
               </div>
               
               <div class="card-actions">
-                <button @click="downloadFile(file)" class="download-btn mobile-btn">
-                  📥 Descargar archivo
+                <button @click="viewTaskDetails(task)" class="view-btn mobile-btn">
+                  Ver detalles
                 </button>
               </div>
             </div>
@@ -108,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import {
@@ -122,8 +138,8 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const planificationData = ref(null)
-const files = ref([])
+const courseData = ref(null)
+const tasks = ref([])
 const loading = ref(true)
 
 const menuItems = [
@@ -139,39 +155,11 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('es-GT', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+    day: 'numeric'
   })
 }
 
-const formatFileSize = (bytes) => {
-  if (!bytes) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
-}
-
-const getFileIcon = (mimeType) => {
-  if (mimeType.includes('pdf')) return '📄'
-  if (mimeType.includes('word') || mimeType.includes('document')) return '📝'
-  if (mimeType.includes('image')) return '🖼️'
-  if (mimeType.includes('video')) return '🎥'
-  if (mimeType.includes('audio')) return '🎵'
-  return '📎'
-}
-
-const getFileType = (mimeType) => {
-  if (mimeType.includes('pdf')) return 'PDF'
-  if (mimeType.includes('word') || mimeType.includes('document')) return 'Word'
-  if (mimeType.includes('image')) return 'Imagen'
-  if (mimeType.includes('video')) return 'Video'
-  if (mimeType.includes('audio')) return 'Audio'
-  return 'Archivo'
-}
-
-const fetchPlanificationFiles = async () => {
+const fetchTasks = async () => {
   try {
     loading.value = true
     const token = localStorage.getItem('token')
@@ -179,89 +167,39 @@ const fetchPlanificationFiles = async () => {
       throw new Error('No se encontró token de autenticación')
     }
 
-    const planificationId = route.params.planId
-    const response = await fetch(`http://localhost:3000/api/teacher/planning/${planificationId}/files`, {
+    const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+    if (response.status === 404) {
+      tasks.value = []
+      return
     }
 
-    const data = await response.json()
-    if (data.success) {
-      files.value = data.files || []
+    const responseText = await response.text()
+    console.log('Response status:', response.status)
+    console.log('Response body:', responseText)
+
+    if (responseText) {
+      const data = JSON.parse(responseText)
+      tasks.value = Array.isArray(data) ? data : []
     } else {
-      throw new Error(data.message || 'Error al cargar archivos')
+      tasks.value = []
     }
   } catch (error) {
-    console.error('Error fetching planification files:', error)
-    files.value = []
+    console.error('Error fetching tasks:', error)
+    tasks.value = []
   } finally {
     loading.value = false
   }
 }
 
-const fetchPlanificationData = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) return
-
-    const planificationId = route.params.planId
-    const courseId = route.params.courseId
-    
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${courseId}/planning/${planificationId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      planificationData.value = data
-    }
-  } catch (error) {
-    console.error('Error fetching planification data:', error)
-  }
-}
-
-const downloadFile = async (file) => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      alert('No se encontró token de autenticación')
-      return
-    }
-
-    const response = await fetch(`http://localhost:3000/api/teacher/planning/files/${file.id}/download`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('Error al descargar el archivo')
-    }
-
-    const blob = await response.blob()
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.style.display = 'none'
-    a.href = url
-    a.download = file.original_name
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-  } catch (error) {
-    console.error('Error downloading file:', error)
-    alert('Error al descargar el archivo: ' + error.message)
-  }
+const viewTaskDetails = (task) => {
+  sessionStorage.setItem('selectedTask', JSON.stringify(task))
+  router.push(`/teacher/courses/${route.params.courseId}/register-grade`)
 }
 
 const handleItemClick = (item) => {
@@ -269,8 +207,24 @@ const handleItemClick = (item) => {
 }
 
 onMounted(() => {
-  fetchPlanificationData()
-  fetchPlanificationFiles()
+  const savedCourse = sessionStorage.getItem('currentCourse')
+  if (savedCourse) {
+    courseData.value = JSON.parse(savedCourse)
+  }
+  fetchTasks()
+})
+
+const searchQuery = ref('')
+
+const filteredTasks = computed(() => {
+  if (!searchQuery.value) return tasks.value
+  
+  const query = searchQuery.value.toLowerCase()
+  return tasks.value.filter(task => 
+    task.titulo.toLowerCase().includes(query) || 
+    task.descripcion.toLowerCase().includes(query) ||
+    task.valor.toString().includes(query)
+  )
 })
 </script>
 
@@ -323,6 +277,49 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
+/* Barra de búsqueda responsive */
+.search-container {
+  margin-bottom: 2rem;
+}
+
+.search-wrapper {
+  position: relative;
+  max-width: 500px;
+  margin-bottom: 0.5rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  padding-right: 3rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1b9963;
+  box-shadow: 0 0 0 3px rgba(27, 153, 99, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+.results-count {
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 /* Estados de carga y vacío */
 .loading {
   display: flex;
@@ -349,7 +346,7 @@ onMounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-.no-files {
+.no-tasks {
   text-align: center;
   padding: 3rem;
   color: #666;
@@ -358,12 +355,12 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.no-files-icon {
+.no-tasks-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
 }
 
-.no-files h3 {
+.no-tasks h3 {
   color: #333;
   margin-bottom: 0.5rem;
 }
@@ -375,11 +372,11 @@ onMounted(() => {
 
 .mobile-view,
 .cards-container {
-  display: none !important;
+  display: none !important;  /* Esto asegura que las cards no se muestren en desktop */
 }
 
-.file-card {
-  display: none !important;
+.task-card {
+  display: none !important;  /* Ocultar todas las cards individualmente en desktop */
 }
 
 .table-container {
@@ -389,20 +386,20 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.files-table {
+.tasks-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  min-width: 900px;
 }
 
-.files-table th,
-.files-table td {
+.tasks-table th,
+.tasks-table td {
   padding: 1.25rem 1rem;
   text-align: left;
   border-bottom: 1px solid #eee;
 }
 
-.files-table th {
+.tasks-table th {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #333;
@@ -411,76 +408,43 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 
-.files-table tbody tr {
+.tasks-table tbody tr {
   transition: background-color 0.2s ease;
 }
 
-.files-table tbody tr:hover {
+.tasks-table tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.file-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-
-.file-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
+.task-title {
   font-weight: 600;
   color: #333;
-  margin-bottom: 0.25rem;
 }
 
-.file-original-name {
-  font-size: 0.85rem;
-  color: #666;
+.task-description {
+  max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.file-type {
-  padding: 0.25rem 0.5rem;
-  background: #e9ecef;
-  color: #495057;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: uppercase;
-}
-
-.file-type.pdf {
-  background: #ffe6e6;
-  color: #d63384;
-}
-
-.file-type.word {
-  background: #e6f3ff;
-  color: #0d6efd;
-}
-
-.file-size {
+.task-date {
   color: #666;
   font-size: 0.9rem;
 }
 
-.file-date {
+.task-value {
+  font-weight: 600;
+  color: #1b9963;
+}
+
+.task-trimester {
   color: #666;
   font-size: 0.9rem;
 }
 
 /* Botones */
-.download-btn {
+.view-btn {
   background: #1b9963;
   color: white;
   border: none;
@@ -490,12 +454,9 @@ onMounted(() => {
   transition: all 0.3s ease;
   font-size: 0.9rem;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
-.download-btn:hover {
+.view-btn:hover {
   background: #158a50;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(27, 153, 99, 0.3);
@@ -508,7 +469,7 @@ onMounted(() => {
   gap: 1rem;
 }
 
-.file-card {
+.task-card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -516,44 +477,34 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.file-card:hover {
+.task-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .card-header {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: start;
   padding: 1.25rem;
   background: linear-gradient(135deg, #1b9963 0%, #158a50 100%);
   color: white;
 }
 
-.card-file-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.card-file-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.card-file-name {
+.card-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 0.25rem 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin: 0;
+  flex: 1;
+  margin-right: 1rem;
 }
 
-.card-original-name {
+.card-value {
+  background: rgba(255,255,255,0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
   font-size: 0.9rem;
-  opacity: 0.9;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -608,8 +559,8 @@ onMounted(() => {
     overflow-x: auto;
   }
   
-  .files-table {
-    min-width: 700px;
+  .tasks-table {
+    min-width: 800px;
   }
 }
 
@@ -642,7 +593,7 @@ onMounted(() => {
     text-align: center;
   }
   
-  /* Cambiar a vista de tarjetas en móvil */
+  /* Cambiar a vista de tarjetas - SOLO EN MÓVIL */
   .desktop-view {
     display: none !important;
   }
@@ -652,8 +603,17 @@ onMounted(() => {
     display: block !important;
   }
   
-  .file-card {
-    display: block !important;
+  .task-card {
+    display: block !important;  /* Mostrar cards en móvil */
+  }
+  
+  /* Búsqueda móvil */
+  .search-wrapper {
+    max-width: 100%;
+  }
+  
+  .search-input {
+    font-size: 16px; 
   }
   
   /* Tarjetas móvil */
@@ -681,7 +641,7 @@ onMounted(() => {
     padding: 1rem;
   }
   
-  .card-file-name {
+  .card-title {
     font-size: 1rem;
   }
   
@@ -720,8 +680,9 @@ onMounted(() => {
 
 /* Animaciones suaves */
 @media (prefers-reduced-motion: no-preference) {
-  .file-card,
-  .download-btn {
+  .task-card,
+  .view-btn,
+  .search-input {
     transition: all 0.3s ease;
   }
 }
