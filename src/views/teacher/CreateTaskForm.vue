@@ -8,14 +8,23 @@
       </div>
       
       <!-- Header responsive -->
-      <div class="header-section">
-        <h1 class="page-title">Crear tarea</h1>
-        <div class="course-subtitle" v-if="courseData">
-          <span class="course-info">{{ courseData.materia }}</span>
-          <span class="course-divider">|</span>
-          <span class="course-info">Grado: {{ courseData.grado }}</span>
-          <span class="course-divider">|</span>
-          <span class="course-info">Sección: {{ courseData.seccion }}</span>
+      <div class="page-header">
+        <ArrowBack 
+          :disabled="formHasChanges && !isSubmitting"
+          tooltip="Guarda los cambios antes de salir"
+          @before-back="checkUnsavedChanges"
+          :show-text="true"
+          text="Cancelar"
+        />
+        <div class="header-content">
+          <h1 class="page-title">Crear tarea</h1>
+          <div class="course-subtitle" v-if="courseData">
+            <span class="course-info">{{ courseData.materia }}</span>
+            <span class="course-divider">|</span>
+            <span class="course-info">Grado: {{ courseData.grado }}</span>
+            <span class="course-divider">|</span>
+            <span class="course-info">Sección: {{ courseData.seccion }}</span>
+          </div>
         </div>
       </div>
       
@@ -91,9 +100,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import taskService from '@/services/taskService'
 import {
   User,
@@ -140,6 +150,31 @@ const taskData = ref({
   fecha_entrega: ''
 })
 
+// Estado para el manejo de cambios no guardados
+const originalData = ref({
+  titulo: '',
+  descripcion: '',
+  valor: '',
+  fecha_entrega: ''
+})
+
+const isSubmitting = ref(false)
+
+// Computed para verificar si hay cambios no guardados
+const formHasChanges = computed(() => {
+  return JSON.stringify(taskData.value) !== JSON.stringify(originalData.value)
+})
+
+// Función para verificar cambios antes de salir
+const checkUnsavedChanges = () => {
+  if (formHasChanges.value && !isSubmitting.value) {
+    const confirmed = confirm('¿Estás seguro de que quieres salir sin guardar los cambios?')
+    if (!confirmed) {
+      return false
+    }
+  }
+}
+
 const handleItemClick = (item) => {
   if (item.path) router.push(item.path)
 }
@@ -155,6 +190,7 @@ const alert = ref({
 })
 
 const handleSubmit = async () => {
+  isSubmitting.value = true
   try {
     const response = await taskService.createTask(route.params.courseId, taskData.value)
     if (response.success) {
@@ -175,6 +211,8 @@ const handleSubmit = async () => {
       type: 'error'
     }
     console.error('Error creating task:', error)
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
@@ -194,6 +232,32 @@ const handleSubmit = async () => {
   overflow: auto;
   /* Ajuste para el sidebar fijo */
   margin-left: 130px;
+}
+
+/* Header con ArrowBack */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.course-subtitle {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 /* Header responsive */

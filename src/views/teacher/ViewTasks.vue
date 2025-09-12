@@ -4,12 +4,20 @@
     
     <main class="tasks-container">
       <!-- Header responsive -->
-      <div class="header-section">
-        <h1 class="page-title">{{ courseData?.materia }} - Tareas</h1>
-        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
-          <span class="course-info">Grado: {{ courseData.grado }}</span>
-          <span class="course-divider">|</span>
-          <span class="course-info">Sección: {{ courseData.seccion }}</span>
+      <div class="page-header">
+        <ArrowBack 
+          :use-history-back="true"
+          :show-text="true"
+          text="Volver"
+          @before-back="saveViewState"
+        />
+        <div class="header-content">
+          <h1 class="page-title">{{ courseData?.materia }} - Tareas</h1>
+          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+            <span class="course-info">Grado: {{ courseData.grado }}</span>
+            <span class="course-divider">|</span>
+            <span class="course-info">Sección: {{ courseData.seccion }}</span>
+          </div>
         </div>
       </div>
       <div class="separator"></div>
@@ -127,6 +135,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import {
   User,
   ClipboardList,
@@ -141,6 +150,15 @@ const router = useRouter()
 const courseData = ref(null)
 const tasks = ref([])
 const loading = ref(true)
+const searchQuery = ref('')
+
+// Función para guardar el estado de la vista
+const saveViewState = () => {
+  localStorage.setItem('tasksViewState', JSON.stringify({
+    searchQuery: searchQuery.value,
+    scrollPosition: window.scrollY
+  }))
+}
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -214,8 +232,6 @@ onMounted(() => {
   fetchTasks()
 })
 
-const searchQuery = ref('')
-
 const filteredTasks = computed(() => {
   if (!searchQuery.value) return tasks.value
   
@@ -241,6 +257,42 @@ const filteredTasks = computed(() => {
   margin-left: 130px;
   background: #f8f9fa;
   min-height: 100vh;
+}
+
+/* Header con ArrowBack */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.course-subtitle {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.course-info {
+  font-weight: 500;
+}
+
+.course-divider {
+  color: #d1d5db;
 }
 
 /* Header responsive */

@@ -9,10 +9,17 @@
         <!-- Contenido real -->
         <template v-else>
           <!-- Encabezado -->
-          <div class="header-section">
-            <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
-            <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
-              Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          <div class="page-header">
+            <ArrowBack 
+              :show-text="true" 
+              text="Volver al Curso"
+              @before-back="saveViewState"
+            />
+            <div class="header-content">
+              <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
+              <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
+                Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+              </div>
             </div>
           </div>
           <div class="separator"></div>
@@ -175,6 +182,7 @@
   import Sidebar from '@/components/Sidebar.vue'
   import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
   import AttendanceSkeleton from '@/components/AttendanceSkeleton.vue'
+  import ArrowBack from '@/components/common/ArrowBack.vue'
   import {
     User,
     ClipboardList,
@@ -193,6 +201,16 @@
   const { showNotification } = useNotifications()
   const route = useRoute()
   const router = useRouter()
+  
+  // Función para guardar el estado de la vista antes de salir
+  const saveViewState = () => {
+    localStorage.setItem('attendanceViewState', JSON.stringify({
+      currentDate: currentDate.value,
+      filterStudent: filterStudent.value,
+      filterStatus: filterStatus.value,
+      scrollPosition: window.scrollY
+    }))
+  }
   
   function getLocalDateISO() {
     const tzoffset = (new Date()).getTimezoneOffset() * 60000; 
@@ -375,18 +393,27 @@
     margin-bottom: 1rem;
   }
 
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .header-content {
+    flex: 1;
+  }
+
   .page-title {
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    word-break: break-word;
+    margin: 0 0 8px 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1f2937;
   }
 
   .course-subtitle {
-    color: #555;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-    word-break: break-word;
+    color: #6b7280;
+    font-size: 1rem;
   }
 
   .separator {

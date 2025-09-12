@@ -3,9 +3,18 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="register-grade-container">
-      <h1 class="page-title">{{ courseData?.materia }} - Registrar Notas</h1>
-      <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
-        Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+      <div class="page-header">
+        <ArrowBack 
+          :use-history-back="true"
+          :show-text="true"
+          text="Volver"
+        />
+        <div class="header-content">
+          <h1 class="page-title">{{ courseData?.materia }} - Registrar Notas</h1>
+          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+            Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          </div>
+        </div>
       </div>
       <div class="separator"></div>
 
@@ -134,6 +143,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications'
 
@@ -353,23 +363,27 @@ const handleItemClick = (path) => {
   overflow-x: hidden;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+}
+
 .page-title {
+  margin: 0 0 8px 0;
   font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .course-subtitle {
-  color: #555;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
+  color: #6b7280;
+  font-size: 1rem;
 }
 
 /* Sección de tareas */

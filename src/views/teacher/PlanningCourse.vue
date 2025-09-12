@@ -3,19 +3,27 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="planning-container">
-      <div class="header-section">
-        <h1 class="page-title" style="opacity: 1; transform: none;">
-          Planificación del Curso
-        </h1>
-        <div class="course-subtitle" style="opacity: 1; transform: none;">
-          <span class="course-info">{{ courseData?.materia || 'Materia' }}</span>
-          <span class="divider">|</span>
-          <span class="course-info">Grado: {{ courseData?.grado || '-' }}</span>
-          <span class="divider">|</span>
-          <span class="course-info">Sección: {{ courseData?.seccion || '-' }}</span>
+      <div class="page-header">
+        <ArrowBack 
+          :to="`/teacher/courses/${route.params.courseId}`"
+          :show-text="true" 
+          text="Volver al Curso"
+          @before-back="saveViewState"
+        />
+        <div class="header-content">
+          <h1 class="page-title" style="opacity: 1; transform: none;">
+            Planificación del Curso
+          </h1>
+          <div class="course-subtitle" style="opacity: 1; transform: none;">
+            <span class="course-info">{{ courseData?.materia || 'Materia' }}</span>
+            <span class="divider">|</span>
+            <span class="course-info">Grado: {{ courseData?.grado || '-' }}</span>
+            <span class="divider">|</span>
+            <span class="course-info">Sección: {{ courseData?.seccion || '-' }}</span>
+          </div>
         </div>
-        <div class="separator" style="opacity: 1; transform: none;"></div>
       </div>
+      <div class="separator" style="opacity: 1; transform: none;"></div>
 
       <!-- Formulario para crear planificación -->
       <div class="crud-actions">
@@ -203,11 +211,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import planningService from '@/services/planningService'
 import fileService from '@/services/fileService'
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus, Trash, Upload } from 'lucide-vue-next'
@@ -238,6 +247,15 @@ const getCourseData = () => {
 
 // Asegurar que siempre tengamos datos válidos para evitar flasheo
 const courseData = ref(getCourseData())
+
+// Función para guardar el estado de la vista
+const saveViewState = () => {
+  localStorage.setItem('planningViewState', JSON.stringify({
+    trimestre: trimestre.value,
+    ciclo: ciclo.value,
+    scrollPosition: window.scrollY
+  }))
+}
 
 // Garantizar que nunca hay valores undefined que causen flasheo
 if (!courseData.value.materia) {
@@ -472,60 +490,39 @@ onMounted(async () => {
 }
 
 /* Header section */
-.header-section {
-  margin-bottom: 2rem;
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
 }
 
 .page-title {
+  margin: 0 0 8px 0;
   font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-  transition: opacity 0.3s ease;
-  /* Evitar reflow en mobile */
-  min-height: 2.5rem;
-  display: flex;
-  align-items: center;
-}
-
-.loading-placeholder {
-  opacity: 0.7;
-}
-
-.loading-placeholder.loaded {
-  opacity: 1;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .course-subtitle {
-  color: #666;
-  margin-bottom: 1.5rem;
   display: flex;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 0.5rem;
   align-items: center;
-  /* Estabilizar layout mientras carga */
-  min-height: 1.5rem;
-  transition: opacity 0.3s ease;
+  color: #6b7280;
+  font-size: 1rem;
 }
 
 .course-info {
-  white-space: nowrap;
-  /* Anti-flasheo: estabilizar altura */
-  min-height: 1.5rem;
-  display: inline-block;
+  font-weight: 500;
 }
 
 .divider {
-  color: #ccc;
-  /* Anti-flasheo: tamaño fijo */
-  min-height: 1rem;
-  line-height: 1;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
+  color: #d1d5db;
 }
 
 /* Formulario */

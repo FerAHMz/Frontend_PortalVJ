@@ -3,9 +3,19 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     
     <main class="course-detail-container">
-      <h1 class="page-title">{{ courseData?.materia }} - Calificaciones</h1>
-      <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
-        Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+      <div class="page-header">
+        <ArrowBack 
+          :use-history-back="true"
+          :show-text="true"
+          text="Volver"
+          @before-back="saveViewState"
+        />
+        <div class="header-content">
+          <h1 class="page-title">{{ courseData?.materia }} - Calificaciones</h1>
+          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+            Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          </div>
+        </div>
       </div>
       <div class="separator"></div>
 
@@ -122,6 +132,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import taskService from '@/services/taskService'
 import studentService from '@/services/studentService'
 import gradeService from '@/services/gradeService'
@@ -142,6 +153,14 @@ const students = ref([])
 const grades = ref({})
 const summaryData = ref(null)
 const selectedStudentIndex = ref(0)
+
+// Función para guardar el estado de la vista
+const saveViewState = () => {
+  localStorage.setItem('gradesViewState', JSON.stringify({
+    selectedStudentIndex: selectedStudentIndex.value,
+    scrollPosition: window.scrollY
+  }))
+}
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/teacher' },
@@ -240,24 +259,27 @@ const handleItemClick = (item) => {
   margin-left: 130px;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+}
+
 .page-title {
+  margin: 0 0 8px 0;
   font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .course-subtitle {
-  color: #555;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-  width: 100%;
+  color: #6b7280;
+  font-size: 1rem;
 }
 
 /* Resumen */

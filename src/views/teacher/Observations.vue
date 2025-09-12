@@ -4,9 +4,16 @@
 
       <main class="register-observation-container">
         <div class="page-header">
-          <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
-          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
-           Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+          <ArrowBack 
+            :to="`/teacher/courses/${route.params.courseId}`"
+            :show-text="true" 
+            text="Volver al Curso"
+          />
+          <div class="header-content">
+            <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
+            <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
+             Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
+            </div>
           </div>
         </div>
         
@@ -57,6 +64,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
   import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
+  import ArrowBack from '@/components/common/ArrowBack.vue'
   import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
   import { useNotifications } from '@/utils/useNotifications'
 
@@ -168,14 +176,21 @@
 
   /* Header de la página */
   .page-header {
-    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .header-content {
+    flex: 1;
   }
 
   .page-title {
     font-size: 2rem;
     font-weight: bold;
     color: #000;
-    margin-bottom: 0.5rem;
+    margin: 0 0 8px 0;
     line-height: 1.2;
   }
 
@@ -342,17 +357,33 @@
     .register-observation-container {
       margin-left: 0; /* Remover margen del sidebar */
       padding: 1rem;
-      padding-top: 80px; /* Espacio para el botón hamburguesa */
+      padding-top: 20px; /* Reducido para mejor visibilidad del ArrowBack */
+    }
+
+    .page-header {
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 100;
+      padding: 12px 0;
+      margin: -1rem -1rem 1rem -1rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      border-bottom: 2px solid #e5e7eb;
+      gap: 12px;
+    }
+
+    .header-content {
+      text-align: center;
     }
 
     .page-title {
-      font-size: 1.5rem;
-      margin-top: 1.25rem;
-      margin-bottom: 0.75rem;
+      font-size: 1.4rem;
+      margin: 0;
     }
 
     .course-subtitle {
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .search-input {

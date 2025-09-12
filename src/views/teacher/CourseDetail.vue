@@ -3,11 +3,18 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
       
       <main class="course-detail-container">
-        <div class="header-section">
-          <h1 class="page-title">{{ courseData.materia }}</h1>
-          <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
-            <span class="badge-info">Grado: {{ courseData.grado }}</span>
-            <span class="badge-info">Sección: {{ courseData.seccion }}</span>
+        <div class="page-header">
+          <ArrowBack 
+            :to="'/teacher/courses'" 
+            :show-text="true" 
+            text="Volver a Cursos"
+          />
+          <div class="header-content">
+            <h1 class="page-title">{{ courseData.materia }}</h1>
+            <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
+              <span class="badge-info">Grado: {{ courseData.grado }}</span>
+              <span class="badge-info">Sección: {{ courseData.seccion }}</span>
+            </div>
           </div>
         </div>
         <div class="separator"></div>
@@ -36,6 +43,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
   import CardList from '@/components/CardList.vue'
+  import ArrowBack from '@/components/common/ArrowBack.vue'
   import {
     User,
     ClipboardList,
@@ -142,22 +150,28 @@ onMounted(() => {
     transition: margin-left 0.3s ease;
   }
   
-  .header-section {
-    margin-bottom: 1rem;
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .header-content {
+    flex: 1;
   }
   
   .page-title {
+    margin: 0 0 8px 0;
     font-size: 2rem;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: #1f2937;
   }
   
   .course-subtitle {
     display: flex;
-    gap: 1rem;
+    gap: 12px;
     flex-wrap: wrap;
-    align-items: center;
   }
   
   .badge-info {

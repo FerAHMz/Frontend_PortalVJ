@@ -3,13 +3,20 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     
     <main class="course-detail-container">
-      <div class="header-section">
-        <h1 class="page-title" style="opacity: 1; transform: none;">
-          {{ courseData?.materia || 'Calificaciones del Curso' }}
-        </h1>
-        <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion" style="opacity: 1; transform: none;">
-          <span class="badge-info">Grado: {{ courseData.grado }}</span>
-          <span class="badge-info">Sección: {{ courseData.seccion }}</span>
+      <div class="page-header">
+        <ArrowBack 
+          :to="`/teacher/courses/${route.params.courseId}`"
+          :show-text="true" 
+          text="Volver al Curso"
+        />
+        <div class="header-content">
+          <h1 class="page-title" style="opacity: 1; transform: none;">
+            {{ courseData?.materia || 'Calificaciones del Curso' }}
+          </h1>
+          <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion" style="opacity: 1; transform: none;">
+            <span class="badge-info">Grado: {{ courseData.grado }}</span>
+            <span class="badge-info">Sección: {{ courseData.seccion }}</span>
+          </div>
         </div>
       </div>
       <div class="separator" style="opacity: 1; transform: none;"></div>
@@ -37,6 +44,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import CardList from '@/components/CardList.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import {
   User,
   ClipboardList,
@@ -144,16 +152,28 @@ const handleOptionClick = (option) => {
   margin-bottom: 1rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.75rem;
-  transition: opacity 0.3s ease;
-  /* Evitar reflow en mobile */
-  min-height: 2.5rem;
+.page-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.course-subtitle {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .loading-placeholder {

@@ -10,18 +10,28 @@
 
         <!-- Header responsive -->
         <div class="page-header">
-          <h1 class="page-title">Registrar observaciones</h1>
-          <div class="course-subtitle" v-if="courseData && studentData">
-            <div class="course-info-grid">
-              <span class="info-item">{{ courseData.materia }}</span>
-              <span class="info-separator">|</span>
-              <span class="info-item">Grado: {{ courseData.grado }}</span>
-              <span class="info-separator">|</span>
-              <span class="info-item">Sección: {{ courseData.seccion }}</span>
-              <span class="info-separator">|</span>
-              <span class="info-item">{{ studentData.nombre }}</span>
-              <span class="info-separator">|</span>
-              <span class="info-item">Carnet: {{ studentData.carnet }}</span>
+          <ArrowBack 
+            :use-history-back="true"
+            :disabled="formHasChanges && !isSubmitting"
+            tooltip="Guarda los cambios antes de salir"
+            @before-back="checkUnsavedChanges"
+            :show-text="true"
+            text="Cancelar"
+          />
+          <div class="header-content">
+            <h1 class="page-title">Registrar observaciones</h1>
+            <div class="course-subtitle" v-if="courseData && studentData">
+              <div class="course-info-grid">
+                <span class="info-item">{{ courseData.materia }}</span>
+                <span class="info-separator">|</span>
+                <span class="info-item">Grado: {{ courseData.grado }}</span>
+                <span class="info-separator">|</span>
+                <span class="info-item">Sección: {{ courseData.seccion }}</span>
+                <span class="info-separator">|</span>
+                <span class="info-item">{{ studentData.nombre }}</span>
+                <span class="info-separator">|</span>
+                <span class="info-item">Carnet: {{ studentData.carnet }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -86,9 +96,10 @@
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
+  import ArrowBack from '@/components/common/ArrowBack.vue'
   import {
     User,
     ClipboardList,
@@ -142,7 +153,32 @@
     observaciones: '',
     puntos_de_accion: ''
   })
-  
+
+  // Estado para el manejo de cambios no guardados
+  const originalData = ref({
+    id_tarea: null,
+    observaciones: '',
+    puntos_de_accion: ''
+  })
+
+  const isSubmitting = ref(false)
+
+  // Computed para verificar si hay cambios no guardados
+  const formHasChanges = computed(() => {
+    return JSON.stringify(obsData.value) !== JSON.stringify(originalData.value) ||
+           selectedTaskId.value !== null
+  })
+
+  // Función para verificar cambios antes de salir
+  const checkUnsavedChanges = () => {
+    if (formHasChanges.value && !isSubmitting.value) {
+      const confirmed = confirm('¿Estás seguro de que quieres salir sin guardar los cambios?')
+      if (!confirmed) {
+        return false
+      }
+    }
+  }
+
   const handleItemClick = (item) => {
     if (item.path) router.push(item.path)
   }
@@ -167,6 +203,7 @@
   
   const handleSubmit = async () => {
     try {
+      isSubmitting.value = true
       obsData.value.id_tarea = selectedTaskId.value || null
 
       const response = await observationsService.createObservations(
@@ -193,6 +230,8 @@
         type: 'error'
       }
       console.error('Error creating observation:', error)
+    } finally {
+      isSubmitting.value = false
     }
   }
 
@@ -229,37 +268,43 @@
 
   /* Header de la página */
   .page-header {
-    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 10;
   }
   
+  .header-content {
+    flex: 1;
+  }
+
   .page-title {
+    margin: 0 0 8px 0;
     font-size: 2rem;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
+    font-weight: 600;
+    color: #1f2937;
   }
   
   .course-subtitle {
-    color: #555;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    color: #6b7280;
+    font-size: 1rem;
   }
 
   .course-info-grid {
     display: flex;
+    gap: 8px;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
   }
 
   .info-item {
-    white-space: nowrap;
+    font-weight: 500;
   }
 
   .info-separator {
-    color: #999;
-    font-weight: normal;
+    color: #d1d5db;
   }
   
   .separator {
@@ -436,56 +481,50 @@
   /* Tablets pequeñas y móviles grandes - 768px y menos */
   @media screen and (max-width: 768px) {
     .add-observation-container {
-      margin-left: 0; /* Remover margen del sidebar */
+      margin-left: 0;
       padding: 1rem;
-      padding-top: 80px; /* Espacio para el botón hamburguesa */
+      padding-top: 5rem; /* Espacio para el header */
     }
-
+    
+    .page-header {
+      flex-direction: column;
+      gap: 12px;
+      background: white;
+      padding: 1rem;
+      margin: -1rem -1rem 1rem -1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    
     .page-title {
       font-size: 1.5rem;
-      margin-top: 1.25rem;
-      margin-bottom: 0.75rem;
+      text-align: center;
     }
-
-    .course-subtitle {
-      font-size: 1rem;
+    
+    .course-info-grid {
+      justify-content: center;
+      text-align: center;
     }
+  }
 
+  @media screen and (max-width: 480px) {
+    .page-header {
+      padding: 0.8rem;
+    }
+    
+    .page-title {
+      font-size: 1.3rem;
+    }
+    
     .course-info-grid {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.25rem;
+      gap: 4px;
     }
-
+    
     .info-separator {
       display: none;
-    }
-
-    .info-item {
-      display: block;
-      padding: 0.125rem 0;
-    }
-
-    .observation-form {
-      gap: 1.5rem;
-    }
-
-    .form-input {
-      padding: 0.75rem;
-    }
-
-    .textarea-input {
-      min-height: 100px;
-    }
-
-    .form-actions {
-      flex-direction: column-reverse;
-      gap: 0.75rem;
-    }
-
-    .btn {
-      width: 100%;
-      min-width: auto;
     }
   }
 
