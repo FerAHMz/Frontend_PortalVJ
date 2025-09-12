@@ -3,12 +3,12 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
       
       <main class="course-detail-container">
+        <ArrowBack 
+          :to="'/teacher/courses'" 
+          :show-text="true" 
+          text="Volver a Cursos"
+        />
         <div class="page-header">
-          <ArrowBack 
-            :to="'/teacher/courses'" 
-            :show-text="true" 
-            text="Volver a Cursos"
-          />
           <div class="header-content">
             <h1 class="page-title">{{ courseData.materia }}</h1>
             <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
@@ -151,14 +151,11 @@ onMounted(() => {
   }
   
   .page-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
     margin-bottom: 24px;
   }
   
   .header-content {
-    flex: 1;
+    width: 100%;
   }
   
   .page-title {

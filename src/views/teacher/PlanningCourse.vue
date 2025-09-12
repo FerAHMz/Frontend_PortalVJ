@@ -3,13 +3,13 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="planning-container">
+      <ArrowBack 
+        :to="`/teacher/courses/${route.params.courseId}`"
+        :show-text="true" 
+        text="Volver al Curso"
+        @before-back="saveViewState"
+      />
       <div class="page-header">
-        <ArrowBack 
-          :to="`/teacher/courses/${route.params.courseId}`"
-          :show-text="true" 
-          text="Volver al Curso"
-          @before-back="saveViewState"
-        />
         <div class="header-content">
           <h1 class="page-title" style="opacity: 1; transform: none;">
             Planificación del Curso
@@ -491,14 +491,11 @@ onMounted(async () => {
 
 /* Header section */
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
   margin-bottom: 24px;
 }
 
 .header-content {
-  flex: 1;
+  width: 100%;
 }
 
 .page-title {

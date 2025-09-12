@@ -9,12 +9,12 @@
         <!-- Contenido real -->
         <template v-else>
           <!-- Encabezado -->
+          <ArrowBack 
+            :show-text="true" 
+            text="Volver al Curso"
+            @before-back="saveViewState"
+          />
           <div class="page-header">
-            <ArrowBack 
-              :show-text="true" 
-              text="Volver al Curso"
-              @before-back="saveViewState"
-            />
             <div class="header-content">
               <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
               <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
@@ -394,14 +394,11 @@
   }
 
   .page-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
     margin-bottom: 24px;
   }
 
   .header-content {
-    flex: 1;
+    width: 100%;
   }
 
   .page-title {

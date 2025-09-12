@@ -9,15 +9,15 @@
         </div>
 
         <!-- Header responsive -->
+        <ArrowBack 
+          :use-history-back="true"
+          :disabled="formHasChanges && !isSubmitting"
+          tooltip="Guarda los cambios antes de salir"
+          @before-back="checkUnsavedChanges"
+          :show-text="true"
+          text="Cancelar"
+        />
         <div class="page-header">
-          <ArrowBack 
-            :use-history-back="true"
-            :disabled="formHasChanges && !isSubmitting"
-            tooltip="Guarda los cambios antes de salir"
-            @before-back="checkUnsavedChanges"
-            :show-text="true"
-            text="Cancelar"
-          />
           <div class="header-content">
             <h1 class="page-title">Registrar observaciones</h1>
             <div class="course-subtitle" v-if="courseData && studentData">
@@ -268,16 +268,13 @@
 
   /* Header de la página */
   .page-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
     margin-bottom: 24px;
     position: relative;
     z-index: 10;
   }
   
   .header-content {
-    flex: 1;
+    width: 100%;
   }
 
   .page-title {

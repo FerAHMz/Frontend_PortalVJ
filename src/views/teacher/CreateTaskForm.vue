@@ -8,14 +8,14 @@
       </div>
       
       <!-- Header responsive -->
+      <ArrowBack 
+        :disabled="formHasChanges && !isSubmitting"
+        tooltip="Guarda los cambios antes de salir"
+        @before-back="checkUnsavedChanges"
+        :show-text="true"
+        text="Cancelar"
+      />
       <div class="page-header">
-        <ArrowBack 
-          :disabled="formHasChanges && !isSubmitting"
-          tooltip="Guarda los cambios antes de salir"
-          @before-back="checkUnsavedChanges"
-          :show-text="true"
-          text="Cancelar"
-        />
         <div class="header-content">
           <h1 class="page-title">Crear tarea</h1>
           <div class="course-subtitle" v-if="courseData">
@@ -236,14 +236,11 @@ const handleSubmit = async () => {
 
 /* Header con ArrowBack */
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
   margin-bottom: 24px;
 }
 
 .header-content {
-  flex: 1;
+  width: 100%;
 }
 
 .page-title {

@@ -3,12 +3,12 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
       <main class="register-observation-container">
+        <ArrowBack 
+          :to="`/teacher/courses/${route.params.courseId}/grades`"
+          :show-text="true" 
+          text="Volver"
+        />
         <div class="page-header">
-          <ArrowBack 
-            :to="`/teacher/courses/${route.params.courseId}`"
-            :show-text="true" 
-            text="Volver al Curso"
-          />
           <div class="header-content">
             <h1 class="page-title">{{ courseData?.materia }} - Registrar observaciones</h1>
             <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
@@ -176,14 +176,11 @@
 
   /* Header de la página */
   .page-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
     margin-bottom: 24px;
   }
 
   .header-content {
-    flex: 1;
+    width: 100%;
   }
 
   .page-title {
@@ -370,7 +367,6 @@
       padding-left: 1rem;
       padding-right: 1rem;
       border-bottom: 2px solid #e5e7eb;
-      gap: 12px;
     }
 
     .header-content {

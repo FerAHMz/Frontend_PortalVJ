@@ -3,12 +3,12 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="register-grade-container">
+      <ArrowBack 
+        :use-history-back="true"
+        :show-text="true"
+        text="Volver"
+      />
       <div class="page-header">
-        <ArrowBack 
-          :use-history-back="true"
-          :show-text="true"
-          text="Volver"
-        />
         <div class="header-content">
           <h1 class="page-title">{{ courseData?.materia }} - Registrar Notas</h1>
           <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
@@ -364,14 +364,11 @@ const handleItemClick = (path) => {
 }
 
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
   margin-bottom: 24px;
 }
 
 .header-content {
-  flex: 1;
+  width: 100%;
 }
 
 .page-title {
