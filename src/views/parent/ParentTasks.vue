@@ -2,6 +2,15 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
+      <!-- ArrowBack solo cuando viene de calificaciones -->
+      <ArrowBack 
+        v-if="cameFromGrades"
+        :to="{ path: '/parent/grades' }"
+        :show-text="true"
+        text="Volver a Calificaciones"
+        class="back-button"
+      />
+      
       <h1 class="page-title">Tareas</h1>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
@@ -27,12 +36,13 @@
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue';
+import ArrowBack from '@/components/common/ArrowBack.vue';
 import SelectChild from './SelectChild.vue';
 import StudentTasks from './StudentTasks.vue';
 import { profileService } from '@/services/profileService.js';
 import { parentService } from '@/services/parentService.js';
 import { User, BookOpen, FileText, MessageSquare, CreditCard, CalendarDays } from 'lucide-vue-next';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
@@ -43,6 +53,11 @@ const materias = ref([]);
 const selectedSubjectId = ref("");
 const loading = ref(true);
 const error = ref(null);
+
+// Computed para detectar si viene de calificaciones
+const cameFromGrades = computed(() => {
+  return route.query.fromGrades === 'true' || (route.query.carnet && route.query.subjectId);
+});
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/parent' },
@@ -116,6 +131,10 @@ watch(selectedChild, (child) => {
   padding: 20px;
   background-color: white;
   overflow-x: auto;
+}
+
+.back-button {
+  margin-bottom: 1rem;
 }
 
 .page-title {
@@ -222,6 +241,10 @@ watch(selectedChild, (child) => {
     padding: 16px 12px;
     /* Agregar padding superior para el botón hamburguesa */
     padding-top: 80px;
+  }
+  
+  .back-button {
+    margin-bottom: 0.75rem;
   }
   
   .page-title {

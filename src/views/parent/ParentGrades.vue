@@ -61,7 +61,14 @@ const handleChildSelected = (child) => {
 
 const handleViewTasks = (subjectId) => {
   if (selectedChild.value && subjectId) {
-    router.push({ path: '/parent/tasks', query: { carnet: selectedChild.value.carnet, subjectId } });
+    router.push({ 
+      path: '/parent/tasks', 
+      query: { 
+        carnet: selectedChild.value.carnet, 
+        subjectId,
+        fromGrades: 'true'
+      } 
+    });
   }
 };
 
