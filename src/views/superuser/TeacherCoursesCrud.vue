@@ -4,7 +4,7 @@
 
     <main class="crud-container">
       <!-- Título y separador -->
-      <h1 class="page-title">Gestión de Cursos ‑ Profesores</h1>
+      <h1 class="text-page-title">Gestión de Cursos ‑ Profesores</h1>
       <div class="separator"></div>
 
       <!-- Acciones: botón + búsqueda -->
@@ -393,20 +393,6 @@ onMounted(() => {
   overflow-x: hidden;
 }
 
-/* Evita que el título quede tapado por el sidebar fijo */
-.page-title {
-  margin-top: 3.5rem;
-  margin-bottom: 1rem;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-}
-
 /*  Acciones   */
 .crud-actions {
   display: flex;
@@ -605,7 +591,7 @@ onMounted(() => {
 /*  Tablets ≤ 1023 px */
 @media (max-width: 1023px) {
   .crud-container { padding: 1.5rem; }
-  .page-title     { font-size: 1.75rem; }
+  .text-page-title     { font-size: 1.75rem; }
   .data-table th,
   .data-table td  { padding: 0.75rem; font-size: 0.95rem; }
 }
@@ -620,7 +606,7 @@ onMounted(() => {
 /*  Móviles ≤ 767 px */
 @media (max-width: 767px) {
   .crud-container { padding: 0.75rem; }
-  .page-title     { font-size: 1.5rem; margin-top: 4.75rem; margin-bottom: 0.75rem; }
+  .text-page-title { margin-top: 5.25rem; margin-bottom: 0.75rem; text-align: center; }
   .separator      { margin-bottom: 1rem; }
 
   /* Ocultar tabla y mostrar tarjetas */
@@ -651,7 +637,7 @@ onMounted(() => {
 
 /*  Móviles muy pequeños ≤ 480 px */
 @media (max-width: 480px) {
-  .page-title   { font-size: 1.25rem; }
+  .text-page-title   { margin-bottom: 0.8rem; }
   .search-input,
   .form-input   { font-size: 16px; } 
   .course-card  { padding: 1rem; }
