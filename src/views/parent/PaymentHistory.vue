@@ -2,7 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Historial de Pagos</h1>
+      <h1 class="text-page-title">Historial de Pagos</h1>
+      <div class="separator"></div>
       
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
@@ -382,18 +383,9 @@ onMounted(async () => {
 
 .profile-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   background-color: white;
   margin-left: 130px; /* Espacio para sidebar en escritorio */
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 0.5rem;
 }
 
 .loading, .error {
@@ -819,13 +811,12 @@ onMounted(async () => {
 @media screen and (max-width: 768px) {
   .profile-container {
     margin-left: 0; /* Quitar margen en móvil */
-    padding: 15px;
+    padding: 1rem;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    padding-top: 60px; /* Espacio para el botón hamburguesa */
+  .text-page-title {
+    text-align: center;
   }
 
   .parent-info {
@@ -910,12 +901,8 @@ onMounted(async () => {
 /* Pantallas pequeñas */
 @media screen and (max-width: 480px) {
   .profile-container {
-    padding: 10px;
-  }
-
-  .page-title {
-    font-size: 1.3rem;
-    padding-top: 65px;
+    padding: 0.75rem;
+    margin-bottom: 0.8rem;
   }
 
   .parent-info {

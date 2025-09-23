@@ -2,6 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
+      <h1 class="text-page-title">Tareas</h1>
+      <div class="separator"></div>
       <!-- ArrowBack solo cuando viene de calificaciones -->
       <ArrowBack 
         v-if="cameFromGrades"
@@ -11,7 +13,6 @@
         class="back-button"
       />
       
-      <h1 class="page-title">Tareas</h1>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
       <div v-if="!loading && !error" class="parent-info">
@@ -128,8 +129,9 @@ watch(selectedChild, (child) => {
 
 .profile-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   background-color: white;
+  margin-left: 130px; /* Espacio para sidebar en escritorio */
   overflow-x: auto;
 }
 
@@ -137,14 +139,7 @@ watch(selectedChild, (child) => {
   margin-bottom: 1rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 0.5rem;
-}
+
 
 .loading, .error {
   text-align: center;
@@ -216,9 +211,7 @@ watch(selectedChild, (child) => {
     padding: 16px;
   }
   
-  .page-title {
-    font-size: 1.75rem;
-  }
+  
   
   .parent-info {
     padding: 1.5rem;
@@ -238,20 +231,21 @@ watch(selectedChild, (child) => {
   }
   
   .profile-container {
-    padding: 16px 12px;
+    margin-left: 0; /* Quitar margen en móvil */
+    padding: 1rem;
     /* Agregar padding superior para el botón hamburguesa */
-    padding-top: 80px;
+    margin-top: 5.25rem;
+  }
+  
+  .text-page-title {
+    text-align: center;
   }
   
   .back-button {
     margin-bottom: 0.75rem;
   }
   
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    word-wrap: break-word;
-  }
+  
   
   .parent-info {
     padding: 1rem;
@@ -291,14 +285,13 @@ watch(selectedChild, (child) => {
 /* Estilos para móviles pequeños */
 @media screen and (max-width: 480px) {
   .profile-container {
-    padding: 12px 8px;
-    padding-top: 80px;
+    margin-left: 0; /* Quitar margen en móvil */
+    padding: 0.75rem; 
+    margin-bottom: 0.8rem;
+    margin-top: 5.25rem;
   }
   
-  .page-title {
-    font-size: 1.25rem;
-    text-align: center;
-  }
+  
   
   .parent-info {
     padding: 0.75rem;
@@ -344,3 +337,7 @@ watch(selectedChild, (child) => {
   }
 }
 </style>
+
+
+
+

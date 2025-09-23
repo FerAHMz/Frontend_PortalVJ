@@ -2,7 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="messages-container">
-      <h1 class="page-title">Comunicación</h1>
+      <h1 class="text-page-title">Comunicación</h1>
+      <div class="separator"></div>
       
       <!-- Búsqueda de usuarios - responsive -->
       <div class="search-and-results">
@@ -431,14 +432,9 @@ onUnmounted(() => {
 
 .messages-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   position: relative;
   overflow: hidden;
-}
-
-.page-title {
-  font-size: 2rem;
-  margin-bottom: 1rem;
 }
 
 /* Búsqueda de usuarios */
@@ -520,7 +516,7 @@ onUnmounted(() => {
 }
 
 .conversation-item {
-  padding: 15px;
+  padding: 1.5rem;
   background-color: #82E6B1;
   border-bottom: 1px solid #ddd;
   cursor: pointer;
@@ -617,11 +613,11 @@ onUnmounted(() => {
 .messages-scrollable {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 1rem;
 }
 
 .message-item {
-  padding: 15px;
+  padding: 1.5rem;
   margin: 10px 0;
   border-radius: 8px;
   max-width: 85%;
@@ -660,7 +656,7 @@ onUnmounted(() => {
 .new-message {
   display: flex;
   gap: 10px;
-  padding: 15px;
+  padding: 1.5rem;
   background-color: #f9f9f9;
   border-top: 1px solid #ddd;
 }
@@ -721,7 +717,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   z-index: 1001;
-  padding: 20px;
+  padding: 2rem;
 }
 
 .modal-content {
@@ -807,12 +803,12 @@ textarea.form-input {
 /* Estilos responsive para móvil */
 @media screen and (max-width: 768px) {
   .messages-container {
-    padding: 80px 15px 15px 15px; /* Espacio para el botón hamburguesa del sidebar */
+    padding: 1rem;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+  .text-page-title {
+    text-align: center;
   }
 
   .search-and-results {
@@ -893,12 +889,12 @@ textarea.form-input {
   }
 
   .message-input {
-    padding: 10px;
+    padding: 1rem;
     font-size: 16px; 
   }
 
   .send-message-btn {
-    padding: 10px 16px;
+    padding: 1rem 16px;
     font-size: 0.9rem;
   }
 
@@ -938,24 +934,21 @@ textarea.form-input {
 /* Pantallas muy pequeñas */
 @media screen and (max-width: 480px) {
   .messages-container {
-    padding: 80px 10px 10px 10px;
-  }
-
-  .page-title {
-    font-size: 1.25rem;
+    padding: 0.75rem;
+    margin-bottom: 0.8rem;
   }
 
   .conversation-item {
-    padding: 10px;
+    padding: 1rem;
   }
 
   .message-item {
-    padding: 10px;
+    padding: 1rem;
     max-width: 95%;
   }
 
   .new-message {
-    padding: 10px;
+    padding: 1rem;
     flex-direction: column;
     gap: 10px;
   }
