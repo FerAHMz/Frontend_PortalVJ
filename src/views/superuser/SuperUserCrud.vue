@@ -174,7 +174,20 @@
               class="form-group"
             >
               <label :for="header.key">{{ header.title }}</label>
+              <!-- Campo Estado para edición -->
+              <select
+                v-if="header.key === 'activo' && editingItem"
+                v-model="formData[header.key]"
+                :id="header.key"
+                class="form-input"
+                required
+              >
+                <option :value="true">Activo</option>
+                <option :value="false">Inactivo</option>
+              </select>
+              <!-- Campos normales (excluyendo activo en creación) -->
               <input
+                v-else-if="header.key !== 'activo' || editingItem"
                 :type="header.type || 'text'"
                 v-model="formData[header.key]"
                 :id="header.key"
@@ -414,9 +427,15 @@ const activateUser = async () => {
   }
 };
 
-const editableHeaders = computed(() => headers.filter(h =>
-  !['id', 'rol'].includes(h.key)
-))
+const editableHeaders = computed(() => {
+  if (editingItem.value) {
+    // En edición, mostrar todos los campos excepto ID y rol
+    return headers.filter(h => !['id', 'rol'].includes(h.key))
+  } else {
+    // En creación, ocultar el campo activo además de ID y rol
+    return headers.filter(h => !['id', 'rol', 'activo'].includes(h.key))
+  }
+})
 
 const filteredItems = computed(() => {
   let result = items.value;
@@ -464,7 +483,8 @@ const openCreateModal = () => {
     apellido: '',
     email: '',
     telefono: '',
-    password: ''
+    password: '',
+    // No incluir activo en creación - se establecerá por defecto en backend
   };
   editingItem.value = null;
   showModal.value = true;
@@ -495,6 +515,11 @@ const saveItem = async () => {
       rol: formData.value.rol,
       rolAnterior: editingItem.value?.rol
     };
+
+    // Agregar activo solo si estamos editando
+    if (editingItem.value && formData.value.activo !== undefined) {
+      userData.activo = formData.value.activo;
+    }
 
     console.log('Sending data:', userData);
 
