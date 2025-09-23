@@ -3,7 +3,8 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="planning-tasks-container">
-      <h1 class="page-title">Archivos de Planificación</h1>
+      <h1 class="text-page-title">Archivos de Planificación</h1>
+      <div class="separator"></div>
       <div v-if="planificacion" class="course-subtitle">
         <div class="course-info">
           {{ planificacion?.mes }} | Ciclo: {{ planificacion?.ciclo_escolar }}
@@ -398,7 +399,7 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
-.page-title {
+.text-page-title {
   font-size: 2rem;
   font-weight: bold;
   color: #2d3748;
@@ -856,6 +857,12 @@ onMounted(async () => {
     padding: 1rem;
   }
 
+  .text-page-title {
+    margin-top: 5.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
   .course-subtitle {
     flex-direction: column;
     align-items: flex-start;
@@ -885,6 +892,16 @@ onMounted(async () => {
 
   .btn-text {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .planning-tasks-container {
+    padding: 0.75rem;
+  }
+  
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
 }
 </style>

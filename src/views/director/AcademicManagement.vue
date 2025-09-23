@@ -3,7 +3,8 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="academic-container">
-      <h1 class="page-title">Gestión Académica</h1>
+      <h1 class="text-page-title">Gestión Académica</h1>
+      <div class="separator"></div>
 
       <div class="grades-menu">
         <button
@@ -109,13 +110,6 @@ onMounted(() => {
   min-height: 100vh;
 }
 
-.page-title {
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  color: #333;
-  font-weight: 600;
-}
-
 .grades-menu {
   display: flex;
   flex-wrap: wrap;
@@ -219,7 +213,7 @@ onMounted(() => {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
   
-  .page-title {
+  .text-page-title {
     font-size: 1.6rem;
   }
 }
@@ -228,11 +222,10 @@ onMounted(() => {
 @media screen and (max-width: 768px) {
   .academic-container {
     padding: 1rem;
-    padding-top: 5rem; /* Espacio para el botón hamburguesa */
   }
   
-  .page-title {
-    font-size: 1.4rem;
+  .text-page-title {
+    margin-top: 5.25rem;
     margin-bottom: 1rem;
     text-align: center;
   }
@@ -286,12 +279,11 @@ onMounted(() => {
 /* Estilos para móviles pequeños */
 @media screen and (max-width: 480px) {
   .academic-container {
-    padding: 0.8rem;
-    padding-top: 4.5rem;
+    padding: 0.75rem;
   }
   
-  .page-title {
-    font-size: 1.3rem;
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
   
   .grades-menu {
