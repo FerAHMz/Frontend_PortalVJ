@@ -60,10 +60,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue';
 import { User, BookOpen, CalendarDays, FileText, MessageSquare, CreditCard } from 'lucide-vue-next';
+import { getCourseColor, subscribeToColorChanges } from '@/utils/courseColors.js';
 
 const router = useRouter()
 
@@ -82,22 +83,23 @@ const courseColors = ref({})
 const loading = ref(true)
 const selectedTask = ref(null)
 
-const generateColor = () => {
-  const letters = '0123456789ABCDEF'
-  let color = '#'
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)]
-  }
-  return color
-}
+const colorOptions = [
+  '#4a5568', '#d97706', '#9f7aea', '#0891b2', '#db2777', '#ca8a04',
+  '#059669', '#dc2626', '#4f46e5', '#10b981', '#06b6d4', '#8b5cf6'
+];
+
+const generateColor = (index = 0) => {
+  return colorOptions[index % colorOptions.length];
+};
 
 const assignCourseColors = () => {
-  tasks.value.forEach((task) => {
+  tasks.value.forEach((task, index) => {
     if (!courseColors.value[task.course_id]) {
-      courseColors.value[task.course_id] = generateColor()
+      // Use the color utility to get consistent colors
+      courseColors.value[task.course_id] = getCourseColor(task.course_id, index);
     }
-  })
-}
+  });
+};
 
 const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
@@ -200,9 +202,24 @@ const tooltipContent = (task) => {
   return text
 }
 
+let unsubscribeColorChanges = null;
+
 onMounted(() => {
-  fetchTasks()
-})
+  fetchTasks();
+  
+  // Subscribe to color changes from other components (like dashboard)
+  unsubscribeColorChanges = subscribeToColorChanges((courseId, newColor) => {
+    // Update the color for this course if it exists in our tasks
+    courseColors.value[courseId] = newColor;
+  });
+});
+
+onUnmounted(() => {
+  // Clean up subscription
+  if (unsubscribeColorChanges) {
+    unsubscribeColorChanges();
+  }
+});
 </script>
 
 <style scoped>

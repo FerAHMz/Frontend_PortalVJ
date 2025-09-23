@@ -80,10 +80,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Sidebar from '@/components/Sidebar.vue';
 import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
+import { getCourseColor, subscribeToColorChanges } from '@/utils/courseColors.js';
 
 const router = useRouter();
 
@@ -102,19 +103,20 @@ const courseColors = ref({});
 const loading = ref(true);
 const selectedTask = ref(null);
 
-const generateColor = () => {
-  const colors = [
-    '#1b9963', '#fd7e14', '#dc3545', '#6f42c1', 
-    '#20c997', '#e83e8c', '#6610f2', '#007bff',
-    '#28a745', '#ffc107', '#17a2b8', '#f8f9fa'
-  ];
-  return colors[Math.floor(Math.random() * colors.length)];
+const colorOptions = [
+  '#4a5568', '#d97706', '#9f7aea', '#0891b2', '#db2777', '#ca8a04',
+  '#059669', '#dc2626', '#4f46e5', '#10b981', '#06b6d4', '#8b5cf6'
+];
+
+const generateColor = (index = 0) => {
+  return colorOptions[index % colorOptions.length];
 };
 
 const assignCourseColors = () => {
-  tasks.value.forEach((task) => {
+  tasks.value.forEach((task, index) => {
     if (!courseColors.value[task.course_id]) {
-      courseColors.value[task.course_id] = generateColor();
+      // Use the color utility to get consistent colors
+      courseColors.value[task.course_id] = getCourseColor(task.course_id, index);
     }
   });
 };
@@ -232,8 +234,23 @@ const tooltipContent = (task) => {
   return text;
 };
 
+let unsubscribeColorChanges = null;
+
 onMounted(() => {
   fetchTasks();
+  
+  // Subscribe to color changes from other components (like dashboard)
+  unsubscribeColorChanges = subscribeToColorChanges((courseId, newColor) => {
+    // Update the color for this course if it exists in our tasks
+    courseColors.value[courseId] = newColor;
+  });
+});
+
+onUnmounted(() => {
+  // Clean up subscription
+  if (unsubscribeColorChanges) {
+    unsubscribeColorChanges();
+  }
 });
 </script>
 

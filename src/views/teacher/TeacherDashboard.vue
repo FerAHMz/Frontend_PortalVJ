@@ -105,6 +105,7 @@ import {
   FileText,
   MessageSquare
 } from 'lucide-vue-next'
+import { COLOR_OPTIONS, getCourseColor, setCourseColor } from '@/utils/courseColors.js'
 
 const router = useRouter()
 const showColorPicker = ref(null)
@@ -127,20 +128,7 @@ const menuItems = [
   { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
 ]
 
-const colorOptions = [
-  { name: 'Gris Oscuro', value: '#4a5568' },
-  { name: 'Naranja', value: '#d97706' },
-  { name: 'Púrpura', value: '#9f7aea' },
-  { name: 'Azul', value: '#0891b2' },
-  { name: 'Rosa', value: '#db2777' },
-  { name: 'Amarillo', value: '#ca8a04' },
-  { name: 'Verde', value: '#059669' },
-  { name: 'Rojo', value: '#dc2626' },
-  { name: 'Índigo', value: '#4f46e5' },
-  { name: 'Esmeralda', value: '#10b981' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Violeta', value: '#8b5cf6' }
-]
+const colorOptions = COLOR_OPTIONS
 
 // Función para cargar cursos del maestro desde la API
 const loadTeacherCourses = async () => {
@@ -169,10 +157,8 @@ const loadTeacherCourses = async () => {
     
     // Transformar datos y agregar colores
     courses.value = response.data.map((course, index) => {
-      // Obtener color guardado o asignar uno por defecto
-      const savedColor = localStorage.getItem(`course_color_${course.id}`)
-      const defaultColors = colorOptions.map(c => c.value)
-      const defaultColor = savedColor || defaultColors[index % defaultColors.length]
+      // Usar utilidad de colores para consistencia
+      const color = getCourseColor(course.id, index)
       
       return {
         id: course.id,
@@ -182,7 +168,7 @@ const loadTeacherCourses = async () => {
         nombre_maestro: course.nombre_maestro,
         apellido_maestro: course.apellido_maestro,
         ciclo: new Date().getFullYear().toString(),
-        color: defaultColor,
+        color: color,
         id_maestro: course.id_maestro,
         id_materia: course.id_materia,
         id_grado_seccion: course.id_grado_seccion
@@ -221,8 +207,8 @@ const changeColor = async (courseId, newColor) => {
   if (courseIndex !== -1) {
     courses.value[courseIndex].color = newColor
     
-    // Guardar color en localStorage
-    localStorage.setItem(`course_color_${courseId}`, newColor)
+    // Usar utilidad de colores para notificar cambios a otros componentes
+    setCourseColor(courseId, newColor)
   }
   showColorPicker.value = null
 }
@@ -373,6 +359,7 @@ onUnmounted(() => {
   min-height: 2.6rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
