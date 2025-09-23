@@ -3,23 +3,23 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     
     <main class="payments-control">
-      <h1 class="page-title">Control de pagos</h1>
+      <h1 class="text-page-title">Control de pagos</h1>
       <div class="separator"></div>
 
       <div class="options">
         <ul>
           <li>
-            <router-link to="/admin/payments/control-de-pagos" class="payment-link">
+            <router-link to="/admin/payments/control-de-pagos" class="payment-link text-body">
               Control de pagos
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/payments/registro-de-pagos" class="payment-link">
+            <router-link to="/admin/payments/registro-de-pagos" class="payment-link text-body">
               Registro de pagos
             </router-link>
           </li>
           <li>
-            <router-link to="/admin/payments/upload" class="payment-link">
+            <router-link to="/admin/payments/upload" class="payment-link text-body">
               Subir información de los pagos
             </router-link>
           </li>
@@ -63,8 +63,6 @@ const handleItemClick = (item) => {
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: bold;
   color: #000;
   margin-bottom: 1rem;
 }
@@ -102,7 +100,6 @@ const handleItemClick = (item) => {
 .payment-link {
   color: #000;
   text-decoration: none;
-  font-size: 1.1rem;
   display: block; 
   padding: 0.25rem 0;
 }
@@ -118,14 +115,6 @@ const handleItemClick = (item) => {
     padding: 1.5rem;
   }
   
-  .page-title {
-    font-size: 1.75rem;
-  }
-  
-  .payment-link {
-    font-size: 1rem;
-  }
-  
   .options li {
     padding: 0.6rem 0.8rem;
   }
@@ -138,9 +127,9 @@ const handleItemClick = (item) => {
     padding-top: 5rem; /* Espacio para el botón hamburguesa */
   }
   
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.75rem;
+  .text-page-title {
+    margin-bottom: 1rem;
+    text-align: center;
   }
   
   .separator {
@@ -153,7 +142,6 @@ const handleItemClick = (item) => {
   }
   
   .payment-link {
-    font-size: 0.95rem;
     padding: 0.5rem 0;
   }
 }
@@ -165,8 +153,8 @@ const handleItemClick = (item) => {
     padding-top: 4.5rem;
   }
   
-  .page-title {
-    font-size: 1.25rem;
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
   
   .options li {
@@ -175,7 +163,6 @@ const handleItemClick = (item) => {
   }
   
   .payment-link {
-    font-size: 0.9rem;
     line-height: 1.4;
   }
   

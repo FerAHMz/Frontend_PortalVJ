@@ -3,13 +3,17 @@
     <Sidebar :items="menuItems" />
     <div class="control-de-pagos">
       <header>
-        <h1>Control de Pagos</h1>
-        <button class="generate-pdf-btn" @click="generatePDF">
+        <h1 class="text-page-title">Control de Pagos</h1>
+      </header>
+      <div class="separator"></div>
+      
+      <!-- Botón de acción principal -->
+      <div class="page-actions">
+        <button class="generate-pdf-btn text-button" @click="generatePDF">
           <span class="btn-text">Generar PDF</span>
           <span class="btn-text-mobile">PDF</span>
         </button>
-      </header>
-      <hr />
+      </div>
       
       <!-- Filtros principales -->
       <div class="filtrado">
@@ -57,14 +61,14 @@
           @click="navigateToStudentPayments(student.id)"
         >
           <div class="student-info">
-            <p class="student-details">
+            <p class="student-details text-body">
               <span class="student-id">{{ student.id }}</span>
               <span class="student-name">{{ student.name }}</span>
-              <span class="student-grade">{{ student.grade }}</span>
+              <span class="student-grade text-small">{{ student.grade }}</span>
             </p>
           </div>
           <div class="student-status">
-            <span>{{ student.status }}</span>
+            <span class="text-small">{{ student.status }}</span>
           </div>
         </div>
       </div>
@@ -289,7 +293,7 @@ onMounted(() => {
 
 .control-de-pagos {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   margin-left: 130px; /* Espacio para sidebar en desktop */
   overflow-y: auto;
   transition: margin-left 0.3s ease;
@@ -297,21 +301,20 @@ onMounted(() => {
 
 /* Header */
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
+  margin-bottom: 0;
 }
 
 header h1 {
-  font-size: clamp(2rem, 5vw, 4.5rem);
   padding: 0;
-  margin: 0;
+  margin: 0 0 1.5rem 0;
   line-height: 1.2;
-  flex: 1;
-  min-width: 200px;
+}
+
+/* Page actions */
+.page-actions {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .generate-pdf-btn {
@@ -321,8 +324,6 @@ header h1 {
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
   transition: all 0.3s ease;
   white-space: nowrap;
   min-width: 120px;
@@ -379,7 +380,6 @@ input[type='date'] {
   border-radius: 12px;
   border: 1px solid #d0d0d0;
   background-color: #f5f5f5;
-  font-size: 16px;
   transition: all 0.3s ease;
   width: 100%;
   box-sizing: border-box;
@@ -403,7 +403,6 @@ input[type='date']:focus {
   background-color: #f5f5f5;
   color: #333;
   padding: 12px 16px;
-  font-size: 16px;
   border: 1px solid #d0d0d0;
   cursor: pointer;
   border-radius: 12px;
@@ -505,8 +504,6 @@ input[type='date']:focus {
 
 .student-details {
   margin: 0;
-  font-size: 18px;
-  font-weight: 500;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -524,7 +521,6 @@ input[type='date']:focus {
 
 .student-grade {
   color: #666;
-  font-weight: 400;
 }
 
 .student-status {
@@ -537,7 +533,6 @@ input[type='date']:focus {
   border-radius: 25px;
   color: white;
   font-weight: 600;
-  font-size: 14px;
   white-space: nowrap;
 }
 
@@ -554,15 +549,7 @@ input[type='date']:focus {
 /* Tablet */
 @media screen and (max-width: 1024px) {
   .control-de-pagos {
-    padding: 15px;
-  }
-
-  header h1 {
-    font-size: clamp(1.8rem, 4vw, 3rem);
-  }
-
-  .student-details {
-    font-size: 16px;
+    padding: 1.5rem;
   }
 }
 
@@ -570,25 +557,21 @@ input[type='date']:focus {
 @media screen and (max-width: 768px) {
   .control-de-pagos {
     margin-left: 0; /* Eliminar margen del sidebar en móvil */
-    padding: 15px 10px;
-    padding-top: 80px; /* Espacio para el botón hamburguesa */
+    padding: 5rem 1rem 1rem 1rem; /* Espacio para el botón hamburguesa */
   }
 
   /* Header móvil */
-  header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
+  .text-page-title {
+    margin-bottom: 1rem;
     text-align: center;
   }
 
-  header h1 {
-    font-size: clamp(1.5rem, 6vw, 2.5rem);
-    text-align: center;
+  .page-actions {
+    justify-content: center;
+    margin-bottom: 1rem;
   }
 
   .generate-pdf-btn {
-    align-self: center;
     min-width: 100px;
   }
 
@@ -618,7 +601,6 @@ input[type='date']:focus {
   input[type='date'],
   .dropbtn {
     padding: 14px 16px;
-    font-size: 16px; 
   }
 
   /* Dropdown móvil */
@@ -648,38 +630,23 @@ input[type='date']:focus {
     flex-direction: column;
     gap: 4px;
     align-items: flex-start;
-    font-size: 16px;
-  }
-
-  .student-id {
-    font-size: 18px;
-  }
-
-  .student-name {
-    font-size: 16px;
-  }
-
-  .student-grade {
-    font-size: 14px;
   }
 
   .student-status span {
     display: inline-block;
     width: 100%;
     padding: 10px 16px;
-    font-size: 15px;
   }
 }
 
 /* Móvil pequeño */
 @media screen and (max-width: 480px) {
   .control-de-pagos {
-    padding: 10px 8px;
-    padding-top: 75px;
+    padding: 4.5rem 0.75rem 0.75rem 0.75rem; /* Espacio para el botón hamburguesa */
   }
 
-  header h1 {
-    font-size: clamp(1.3rem, 7vw, 2rem);
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
 
   .student-item {

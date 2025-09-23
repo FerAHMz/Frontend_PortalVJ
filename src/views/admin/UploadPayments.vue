@@ -3,14 +3,14 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     
     <main class="upload-container">
+      <header class="page-header">
+        <h1 class="text-page-title">Información de los pagos</h1>
+        <div class="separator"></div>
+      </header>
+      
       <div class="content-wrapper">
-        <header class="page-header">
-          <h1 class="page-title">Información de los pagos</h1>
-          <div class="separator"></div>
-        </header>
-        
         <section class="upload-section">
-          <h2 class="section-title">Archivo de Excel</h2>
+          <h2 class="text-section-title">Archivo de Excel</h2>
           
           <div class="upload-box" 
                :class="{ 'uploading': isUploading, 'dragging': isDragging }"
@@ -24,25 +24,25 @@
               </div>
               
               <div class="upload-text">
-                <p class="upload-message">
+                <p class="text-body upload-message">
                   {{ isUploading ? 'Procesando archivo...' : 'Arrastra tu archivo aquí' }}
                 </p>
-                <p class="upload-subtitle" v-if="!isUploading">
+                <p class="text-small upload-subtitle" v-if="!isUploading">
                   Formatos soportados: .xlsx, .xls, .csv
                 </p>
               </div>
               
               <div class="upload-actions">
                 <label for="file-upload" class="file-upload-btn" :class="{ 'disabled': isUploading }">
-                  <span class="btn-text">{{ isUploading ? 'Procesando...' : 'Seleccionar archivo' }}</span>
-                  <span class="btn-text-mobile">{{ isUploading ? 'Procesando...' : 'Subir' }}</span>
+                  <span class="text-button btn-text">{{ isUploading ? 'Procesando...' : 'Seleccionar archivo' }}</span>
+                  <span class="text-button btn-text-mobile">{{ isUploading ? 'Procesando...' : 'Subir' }}</span>
                 </label>
                 <input type="file" id="file-upload" accept=".xlsx, .xls, .csv" 
                   @change="handleFileUpload" :disabled="isUploading" />
               </div>
               
               <div class="upload-hint" v-if="!isUploading">
-                <p>o haz clic para seleccionar</p>
+                <p class="text-small">o haz clic para seleccionar</p>
               </div>
             </div>
           </div>
@@ -50,16 +50,16 @@
           <!-- Información adicional -->
           <div class="upload-info">
             <div class="info-card">
-              <h3>📋 Formato requerido</h3>
-              <p>El archivo debe contener las columnas: Carnet, Nombre, Grado, Monto, Mes, Fecha</p>
+              <h3 class="text-subsection-title">Formato requerido</h3>
+              <p class="text-small">El archivo debe contener las columnas: Carnet, Nombre, Grado, Monto, Mes, Fecha</p>
             </div>
             <div class="info-card">
-              <h3>📊 Tamaño máximo</h3>
-              <p>Archivos hasta 10MB</p>
+              <h3 class="text-subsection-title">Tamaño máximo</h3>
+              <p class="text-small">Archivos hasta 10MB</p>
             </div>
           </div>
         </section>
-      </div>
+        </div>
     </main>
     
     <ErrorDialog 
@@ -213,41 +213,25 @@ const handleDrop = (event) => {
 
 .upload-container {
   flex: 1;
-  padding: 0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   overflow-y: auto;
   margin-left: 130px; /* Espacio para sidebar en desktop */
   transition: margin-left 0.3s ease;
 }
 
+/* Header */
+.page-header {
+  padding: 2rem 2rem 0 2rem;
+  background: white;
+}
+
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  min-height: 100vh;
+  min-height: calc(100vh - 140px);
   display: flex;
   flex-direction: column;
-}
-
-/* Header */
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1rem;
-  text-align: center;
-  line-height: 1.2;
-}
-
-.separator {
-  height: 3px;
-  background: linear-gradient(90deg, #1b9963 0%, #22c55e 100%);
-  border-radius: 2px;
-  margin-bottom: 1.5rem;
 }
 
 /* Sección de upload */
@@ -257,14 +241,6 @@ const handleDrop = (event) => {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
-}
-
-.section-title {
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
-  font-weight: 600;
-  color: #2d3748;
-  text-align: center;
-  margin-bottom: 1rem;
 }
 
 /* Upload box */
@@ -344,19 +320,6 @@ const handleDrop = (event) => {
   gap: 0.5rem;
 }
 
-.upload-message {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #2d3748;
-  margin: 0;
-}
-
-.upload-subtitle {
-  font-size: 0.875rem;
-  color: #718096;
-  margin: 0;
-}
-
 /* Acciones de upload */
 .upload-actions {
   display: flex;
@@ -414,12 +377,6 @@ input[type="file"] {
   gap: 0.5rem;
 }
 
-.upload-hint p {
-  font-size: 0.875rem;
-  color: #718096;
-  margin: 0;
-}
-
 /* Información adicional */
 .upload-info {
   display: grid;
@@ -442,20 +399,6 @@ input[type="file"] {
 .info-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-}
-
-.info-card h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1a202c;
-  margin: 0 0 0.5rem 0;
-}
-
-.info-card p {
-  font-size: 0.875rem;
-  color: #718096;
-  margin: 0;
-  line-height: 1.5;
 }
 
 /* Animaciones */
@@ -496,21 +439,16 @@ input[type="file"] {
 @media screen and (max-width: 768px) {
   .upload-container {
     margin-left: 0; /* Eliminar margen del sidebar en móvil */
-    padding-top: 80px; /* Espacio para el botón hamburguesa */
+  }
+
+  .page-header {
+    padding: 5rem 1rem 0 1rem; /* Espacio para el botón hamburguesa */
+    text-align: center;
   }
 
   .content-wrapper {
     padding: 1rem;
-    min-height: calc(100vh - 80px);
-  }
-
-  .page-title {
-    font-size: clamp(1.5rem, 6vw, 2.2rem);
-    text-align: center;
-  }
-
-  .section-title {
-    font-size: clamp(1.125rem, 4vw, 1.375rem);
+    min-height: calc(100vh - 140px);
   }
 
   /* Upload box móvil */
@@ -530,14 +468,6 @@ input[type="file"] {
   .upload-icon {
     width: 30px;
     height: 30px;
-  }
-
-  .upload-message {
-    font-size: 1rem;
-  }
-
-  .upload-subtitle {
-    font-size: 0.8125rem;
   }
 
   /* Botón móvil */
@@ -564,14 +494,6 @@ input[type="file"] {
 
   .info-card {
     padding: 1.25rem;
-  }
-
-  .info-card h3 {
-    font-size: 1rem;
-  }
-
-  .info-card p {
-    font-size: 0.8125rem;
   }
 }
 

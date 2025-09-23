@@ -1,12 +1,159 @@
+/* Variables de tipografía normalizadas */
+:root {
+  /* Familia de fuentes */
+  --font-family-primary: 'Inter', sans-serif;
+  
+  /* Títulos principales de página */
+  --font-size-page-title: 2rem;        /* 32px */
+  --font-weight-page-title: 700;
+  --line-height-page-title: 1.2;
+  
+  /* Subtítulos de sección */
+  --font-size-section-title: 1.5rem;   /* 24px */
+  --font-weight-section-title: 600;
+  --line-height-section-title: 1.3;
+  
+  /* Subtítulos menores */
+  --font-size-subsection-title: 1.25rem; /* 20px */
+  --font-weight-subsection-title: 500;
+  --line-height-subsection-title: 1.4;
+  
+  /* Texto normal/cuerpo */
+  --font-size-body: 1rem;               /* 16px */
+  --font-weight-body: 400;
+  --line-height-body: 1.5;
+  
+  /* Texto pequeño */
+  --font-size-small: 0.875rem;         /* 14px */
+  --font-weight-small: 400;
+  --line-height-small: 1.4;
+  
+  /* Texto muy pequeño */
+  --font-size-xs: 0.75rem;             /* 12px */
+  --font-weight-xs: 400;
+  --line-height-xs: 1.3;
+  
+  /* Botones */
+  --font-size-button: 1rem;            /* 16px */
+  --font-weight-button: 500;
+  --line-height-button: 1;
+  
+  /* Botones grandes */
+  --font-size-button-large: 1.125rem;  /* 18px */
+  --font-weight-button-large: 500;
+  --line-height-button-large: 1;
+  
+  /* Colores de texto */
+  --text-color-primary: #000000;
+  --text-color-secondary: #6b7280;
+  --text-color-muted: #9ca3af;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
+}
   
-  html, body {
+html, body {
     height: 100%;
     width: 100%;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family-primary);
     background-color: white;
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-body);
+    line-height: var(--line-height-body);
+    color: var(--text-color-primary);
+}
+
+/* Clases utilitarias para tipografía */
+.text-page-title {
+  font-size: var(--font-size-page-title);
+  font-weight: var(--font-weight-page-title);
+  line-height: var(--line-height-page-title);
+  color: var(--text-color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.text-section-title {
+  font-size: var(--font-size-section-title);
+  font-weight: var(--font-weight-section-title);
+  line-height: var(--line-height-section-title);
+  color: var(--text-color-primary);
+}
+
+.text-subsection-title {
+  font-size: var(--font-size-subsection-title);
+  font-weight: var(--font-weight-subsection-title);
+  line-height: var(--line-height-subsection-title);
+  color: var(--text-color-primary);
+}
+
+.text-body {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
+  color: var(--text-color-primary);
+}
+
+.text-small {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-small);
+  line-height: var(--line-height-small);
+  color: var(--text-color-secondary);
+}
+
+.text-xs {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-xs);
+  line-height: var(--line-height-xs);
+  color: var(--text-color-muted);
+}
+
+.text-button {
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-button);
+  line-height: var(--line-height-button);
+}
+
+.text-button-large {
+  font-size: var(--font-size-button-large);
+  font-weight: var(--font-weight-button-large);
+  line-height: var(--line-height-button-large);
+}
+
+/* Línea divisora normalizada */
+.separator {
+  border-bottom: 2px solid #000;
+  margin-bottom: 2rem;
+  width: 100%;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  :root {
+    --font-size-page-title: 1.75rem;     /* 28px en móvil */
+    --font-size-section-title: 1.25rem;  /* 20px en móvil */
+    --font-size-subsection-title: 1.125rem; /* 18px en móvil */
+    --font-size-body: 0.875rem;          /* 14px en móvil */
+    --font-size-button-large: 1rem;      /* 16px en móvil */
   }
+  
+  .separator {
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --font-size-page-title: 1.5rem;      /* 24px en móvil pequeño */
+    --font-size-section-title: 1.125rem; /* 18px en móvil pequeño */
+  }
+  
+  .separator {
+    margin-bottom: 1rem;
+  }
+}
