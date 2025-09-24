@@ -38,10 +38,9 @@
           
           <div class="conversations-scroll">
             <div
-              v-for="(conversation, index) in latestConversations"
+              v-for="(conversation, index) in filteredConversations"
               :key="conversation.subject"
               class="conversation-item"
-              :class="{ 'alt-background': index % 2 === 1 }"
               @click="selectConversation(conversation.subject)"
             >
               <h3>{{ conversation.subject }}</h3>
@@ -76,10 +75,7 @@
               v-for="(message, index) in selectedConversation"
               :key="message.created_at"
               class="message-item"
-              :class="{
-                'alt-background': index % 2 === 1,
-                'sent': message.sender_id === currentUserId.value
-              }"
+              :class="{ 'sent': message.sender_id === currentUserId.value }"
             >
               <div class="message-header">
                 <span class="sender">
@@ -267,6 +263,20 @@ const handleItemClick = (item) => {
 
 const latestConversations = computed(() => {
   return conversations.value.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+});
+
+const filteredConversations = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return latestConversations.value;
+  }
+  
+  const query = searchQuery.value.toLowerCase();
+  return latestConversations.value.filter(conversation => 
+    conversation.subject.toLowerCase().includes(query) ||
+    conversation.content.toLowerCase().includes(query) ||
+    (conversation.sender_nombre && conversation.sender_nombre.toLowerCase().includes(query)) ||
+    (conversation.sender_apellido && conversation.sender_apellido.toLowerCase().includes(query))
+  );
 });
 
 const openNewConversationModal = () => {
@@ -506,12 +516,18 @@ debugAuthState();
   margin-bottom: 1rem;
 }
 
+.separator {
+  border-bottom: 2px solid #000;
+  margin-bottom: 1.5rem;
+}
+
 /* Búsqueda de usuarios */
 .search-and-results {
   position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 100%;
   margin-bottom: 1rem;
+  grid-column: 1 / -1;
 }
 
 .search-input {
@@ -549,9 +565,10 @@ debugAuthState();
 
 /* Layout de mensajes */
 .messages-layout {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
   gap: 20px;
-  height: calc(100% - 3rem);
+  height: calc(100% - 4.5rem);
 }
 
 /* Lista de conversaciones */
@@ -586,23 +603,19 @@ debugAuthState();
 
 .conversation-item {
   padding: 15px;
-  background-color: #82E6B1;
-  border-bottom: 1px solid #ddd;
+  background-color: white;
+  border-bottom: 1px solid #e0e0e0;
   cursor: pointer;
   transition: background-color 0.2s;
   position: relative;
 }
 
 .conversation-item:hover {
-  background-color: #70d9a3;
+  background-color: #f8f9fa;
 }
 
-.conversation-item.alt-background {
-  background-color: #FFFFFF;
-}
-
-.conversation-item.alt-background:hover {
-  background-color: #f5f5f5;
+.conversation-item:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .conversation-item h3 {
@@ -687,43 +700,52 @@ debugAuthState();
 
 .message-item {
   padding: 15px;
-  margin: 10px 0;
+  margin: 8px 0;
   border-radius: 8px;
   max-width: 85%;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-item + .message-item {
+  border-top: 2px solid #f0f0f0;
+  margin-top: 20px;
 }
 
 .message-item.sent {
-  background-color: #e3f2fd;
   margin-left: auto;
   margin-right: 0;
+  background-color: #ffffff;
 }
 
 .message-item:not(.sent) {
-  background-color: #f5f5f5;
   margin-right: auto;
   margin-left: 0;
+  background-color: #ffffff;
 }
 
 .message-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
   font-size: 0.9em;
   color: #666;
 }
 
 .sender {
   font-weight: 600;
+  color: #333;
 }
 
 .message-content {
   margin: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
-}
-
-.message-item.alt-background {
-  background-color: #FFFFFF;
+  color: #555;
+  line-height: 1.6;
 }
 
 .new-message {
@@ -732,6 +754,9 @@ debugAuthState();
   padding: 15px;
   background-color: #f9f9f9;
   border-top: 1px solid #ddd;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
 }
 
 .message-input {

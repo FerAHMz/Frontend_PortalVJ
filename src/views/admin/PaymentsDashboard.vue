@@ -2,6 +2,11 @@
   <div class="layout">
     <Sidebar :items="menuItems" />
     <div class="control-de-pagos">
+      <ArrowBack 
+        :to="'/admin/payments'" 
+        :show-text="true" 
+        text="Volver a Control de Pagos"
+      />
       <header>
         <h1>Control de Pagos</h1>
         <button class="generate-pdf-btn" @click="generatePDF">
@@ -82,6 +87,7 @@
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { ref, computed, onMounted } from 'vue'

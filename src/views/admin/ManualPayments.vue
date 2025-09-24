@@ -1,4 +1,14 @@
-<template>
+<  <div class="layout">
+    <Sidebar :items="menuItems" />
+
+    <main class="control-de-pagos">
+      <ArrowBack 
+        :to="'/admin/payments'" 
+        :show-text="true" 
+        text="Volver a Control de Pagos"
+      />
+      <!-- Título de la página -->
+      <h1 class="page-title">Registro de Pagos</h1>te>
   <div class="layout">
     <Sidebar :items="menuItems" />
 
@@ -205,6 +215,7 @@
 <script setup>
 /*  Importaciones y configuraciones  */
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import { manualPaymentService } from '@/services/manualPaymentService'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import ConfirmationDialogInput from '@/components/dialogs/ConfirmationDialogInput.vue'

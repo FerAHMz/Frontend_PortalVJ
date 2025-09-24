@@ -3,6 +3,11 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="planning-tasks-container">
+      <ArrowBack 
+        :to="`/director/planning/${$route.params.courseId}`" 
+        :show-text="true" 
+        text="Volver a Planificación"
+      />
       <h1 class="page-title">Archivos de Planificación</h1>
       <div v-if="planificacion" class="course-subtitle">
         <div class="course-info">
@@ -209,6 +214,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'

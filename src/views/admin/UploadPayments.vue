@@ -4,6 +4,11 @@
     
     <main class="upload-container">
       <div class="content-wrapper">
+        <ArrowBack 
+          :to="'/admin/payments'" 
+          :show-text="true" 
+          text="Volver a Control de Pagos"
+        />
         <header class="page-header">
           <h1 class="page-title">Información de los pagos</h1>
           <div class="separator"></div>
@@ -80,6 +85,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import { User, CreditCard, FileUp, Loader2 } from 'lucide-vue-next'
 import { validateExcelFile } from '@/utils/excelValidator'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'

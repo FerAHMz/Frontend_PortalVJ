@@ -3,6 +3,11 @@
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="planning-container">
+      <ArrowBack 
+        :to="'/director/planifications'" 
+        :show-text="true" 
+        text="Volver a Planificaciones"
+      />
       <h1 class="page-title">Planificación del Curso</h1>
       <div class="course-subtitle">{{ courseData?.materia }} | Grado: {{ courseData?.grado }} | Sección: {{ courseData?.seccion }}</div>
       <div class="separator"></div>
@@ -76,6 +81,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
+import ArrowBack from '@/components/common/ArrowBack.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
 import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
