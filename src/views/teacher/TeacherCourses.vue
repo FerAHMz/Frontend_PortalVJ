@@ -3,7 +3,7 @@
       <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
       
       <main class="courses-container">
-        <h1 class="page-title">Cursos</h1>
+        <h1 class="text-page-title">Cursos</h1>
         <div class="separator"></div>
         
         <div v-if="loading" class="loading">Cargando cursos...</div>
@@ -131,12 +131,7 @@
     transition: margin-left 0.3s ease;
   }
   
-  .page-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #000;
-    margin-bottom: 1rem;
-  }
+  
   
   .separator {
     border-bottom: 2px solid #000;
@@ -199,9 +194,7 @@
       padding: 1.5rem;
     }
     
-    .page-title {
-      font-size: 1.8rem;
-    }
+    
   }
   
   /* Mobile styles */
@@ -209,12 +202,10 @@
     .courses-container {
       margin-left: 0; /* Sin margen en móvil */
       padding: 1rem;
-      padding-top: 5rem; /* Espacio para el botón hamburguesa */
+      margin-top: 5.25rem; /* Espacio para el botón hamburguesa */
     }
     
-    .page-title {
-      font-size: 1.6rem;
-      margin-bottom: 0.8rem;
+    .text-page-title {
       text-align: center;
     }
     
@@ -266,9 +257,7 @@
       padding-top: 4.5rem;
     }
     
-    .page-title {
-      font-size: 1.4rem;
-    }
+    
     
     .course-item {
       padding: 1rem;
@@ -316,3 +305,5 @@
     }
   }
   </style>
+
+

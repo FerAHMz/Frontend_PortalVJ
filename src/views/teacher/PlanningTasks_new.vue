@@ -5,7 +5,7 @@
     <main class="tasks-container">
       <!-- Header responsive -->
       <div class="header-section">
-        <h1 class="page-title">Archivos de Planificación</h1>
+        <h1 class="text-page-title">Archivos de Planificación</h1>
         <div class="course-subtitle" v-if="planificationData">
           <span class="course-info">{{ planificationData.trimestre }}</span>
           <span class="course-divider">|</span>
@@ -306,12 +306,7 @@ onMounted(() => {
   margin-bottom: 1.5rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-}
+
 
 .course-subtitle {
   color: #555;
@@ -629,14 +624,14 @@ onMounted(() => {
   .tasks-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 80px;
+    margin-top: 5.25rem;
+  }
+  
+  .text-page-title {
+    text-align: center;
   }
   
   /* Header móvil */
-  .page-title {
-    font-size: 1.5rem;
-    text-align: center;
-  }
   
   .course-subtitle {
     justify-content: center;
@@ -681,9 +676,7 @@ onMounted(() => {
     padding-top: 75px;
   }
   
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
   
   .course-subtitle {
     font-size: 0.9rem;
@@ -738,3 +731,6 @@ onMounted(() => {
   }
 }
 </style>
+
+
+

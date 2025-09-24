@@ -11,7 +11,7 @@
       />
       <div class="page-header">
         <div class="header-content">
-          <h1 class="page-title" style="opacity: 1; transform: none;">
+          <h1 class="text-page-title" style="opacity: 1; transform: none;">
             Planificación del Curso
           </h1>
           <div class="course-subtitle" style="opacity: 1; transform: none;">
@@ -498,12 +498,7 @@ onMounted(async () => {
   width: 100%;
 }
 
-.page-title {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-}
+
 
 .course-subtitle {
   display: flex;
@@ -952,14 +947,11 @@ onMounted(async () => {
   .planning-container {
     padding: 1rem;
     margin-left: 0;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-top: 5.25rem;
-    /* Anti-flasheo mobile */
-    min-height: 2rem;
-    text-align: left;
+  .text-page-title {
+    text-align: center;
   }
 
   .course-subtitle {
@@ -1278,3 +1270,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

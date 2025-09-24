@@ -10,7 +10,7 @@
       />
       <div class="page-header">
         <div class="header-content">
-          <h1 class="page-title">{{ courseData?.materia }} - Registrar Notas</h1>
+          <h1 class="text-page-title">{{ courseData?.materia }} - Registrar Notas</h1>
           <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
             Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
           </div>
@@ -371,12 +371,7 @@ const handleItemClick = (path) => {
   width: 100%;
 }
 
-.page-title {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-}
+
 
 .course-subtitle {
   color: #6b7280;
@@ -598,13 +593,11 @@ const handleItemClick = (path) => {
   .register-grade-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 80px; /* Espacio para el botón hamburguesa */
+    margin-top: 5.25rem; /* Espacio para el botón hamburguesa */
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-top: 5.25rem;
-    margin-bottom: 0.5rem;
+  .text-page-title {
+    text-align: center;
   }
 
   .course-subtitle {
@@ -800,12 +793,10 @@ const handleItemClick = (path) => {
 @media screen and (max-width: 480px) {
   .register-grade-container {
     padding: 0.75rem;
-    padding-top: 70px;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
 
   .course-subtitle {
     font-size: 0.9rem;
@@ -859,3 +850,5 @@ const handleItemClick = (path) => {
   }
 }
 </style>
+
+
