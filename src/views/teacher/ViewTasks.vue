@@ -12,7 +12,7 @@
       />
       <div class="page-header">
         <div class="header-content">
-          <h1 class="page-title">{{ courseData?.materia }} - Tareas</h1>
+          <h1 class="text-page-title">{{ courseData?.materia }} - Tareas</h1>
           <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
             <span class="course-info">Grado: {{ courseData.grado }}</span>
             <span class="course-divider">|</span>
@@ -268,12 +268,7 @@ const filteredTasks = computed(() => {
   width: 100%;
 }
 
-.page-title {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-}
+
 
 .course-subtitle {
   display: flex;
@@ -297,12 +292,7 @@ const filteredTasks = computed(() => {
   margin-bottom: 1.5rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-}
+
 
 .course-subtitle {
   color: #555;
@@ -617,14 +607,15 @@ const filteredTasks = computed(() => {
   .tasks-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 80px;
+    margin-top: 5.25rem;
+  }
+  
+  .text-page-title {
+    text-align: center;
   }
   
   /* Header móvil */
-  .page-title {
-    font-size: 1.5rem;
-    text-align: center;
-  }
+  
   
   .course-subtitle {
     justify-content: center;
@@ -678,9 +669,7 @@ const filteredTasks = computed(() => {
     padding-top: 75px;
   }
   
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
   
   .course-subtitle {
     font-size: 0.9rem;
@@ -736,3 +725,5 @@ const filteredTasks = computed(() => {
   }
 }
 </style>
+
+

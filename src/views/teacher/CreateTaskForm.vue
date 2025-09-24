@@ -17,7 +17,7 @@
       />
       <div class="page-header">
         <div class="header-content">
-          <h1 class="page-title">Crear tarea</h1>
+          <h1 class="text-page-title">Crear tarea</h1>
           <div class="course-subtitle" v-if="courseData">
             <span class="course-info">{{ courseData.materia }}</span>
             <span class="course-divider">|</span>
@@ -243,12 +243,7 @@ const handleSubmit = async () => {
   width: 100%;
 }
 
-.page-title {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-}
+
 
 .course-subtitle {
   display: flex;
@@ -262,12 +257,7 @@ const handleSubmit = async () => {
   margin-bottom: 1.5rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-}
+
 
 .course-subtitle {
   color: #555;
@@ -418,9 +408,7 @@ textarea.form-input {
     max-width: 600px;
   }
   
-  .page-title {
-    font-size: 1.75rem;
-  }
+  
 }
 
 /* Estilos responsive para móviles */
@@ -430,14 +418,14 @@ textarea.form-input {
     margin-left: 0;
     padding: 1rem;
     /* Ajuste para el botón hamburguesa */
-    padding-top: 80px;
+    margin-top: 5.25rem;
+  }
+  
+  .text-page-title {
+    text-align: center;
   }
   
   /* Header móvil */
-  .page-title {
-    font-size: 1.5rem;
-    text-align: center;
-  }
   
   .course-subtitle {
     justify-content: center;
@@ -502,9 +490,7 @@ textarea.form-input {
     padding-top: 75px;
   }
   
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
   
   .course-subtitle {
     font-size: 0.9rem;
@@ -529,3 +515,5 @@ textarea.form-input {
   }
 }
 </style>
+
+

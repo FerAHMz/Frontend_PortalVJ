@@ -5,7 +5,8 @@
     <main class="crud-container">
       <!-- Título y estadísticas -->
       <div class="header-section">
-        <h1 class="page-title">Gestión de Familias</h1>
+        <h1 class="text-page-title">Gestión de Familias</h1>
+      <div class="separator"></div>
         <div class="stats-container">
           <div class="stat-card">
             <h3>Padres con Hijos</h3>
@@ -465,13 +466,6 @@ onMounted(() => {
   margin-bottom: 2rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #2d3748;
-  margin: 0 0 1.5rem 0;
-}
-
 .stats-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -926,8 +920,10 @@ onMounted(() => {
     padding: 1rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
+    margin-top: 5.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
   }
 
   .stats-container {
@@ -962,6 +958,16 @@ onMounted(() => {
 
   .btn-text {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .crud-container {
+    padding: 0.75rem;
+  }
+  
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
 }
 </style>

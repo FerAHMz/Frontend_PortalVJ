@@ -19,7 +19,7 @@
         />
         <div class="page-header">
           <div class="header-content">
-            <h1 class="page-title">Registrar observaciones</h1>
+            <h1 class="text-page-title">Registrar observaciones</h1>
             <div class="course-subtitle" v-if="courseData && studentData">
               <div class="course-info-grid">
                 <span class="info-item">{{ courseData.materia }}</span>
@@ -277,12 +277,7 @@
     width: 100%;
   }
 
-  .page-title {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
+  
   
   .course-subtitle {
     color: #6b7280;
@@ -470,9 +465,7 @@
       max-width: 100%;
     }
 
-    .page-title {
-      font-size: 1.75rem;
-    }
+    
   }
 
   /* Tablets pequeñas y móviles grandes - 768px y menos */
@@ -480,7 +473,11 @@
     .add-observation-container {
       margin-left: 0;
       padding: 1rem;
-      padding-top: 5rem; /* Espacio para el header */
+      margin-top: 5.25rem; /* Espacio para el header */
+    }
+    
+    .text-page-title {
+      text-align: center;
     }
     
     .page-header {
@@ -495,10 +492,7 @@
       z-index: 20;
     }
     
-    .page-title {
-      font-size: 1.5rem;
-      text-align: center;
-    }
+    
     
     .course-info-grid {
       justify-content: center;
@@ -511,9 +505,7 @@
       padding: 0.8rem;
     }
     
-    .page-title {
-      font-size: 1.3rem;
-    }
+    
     
     .course-info-grid {
       flex-direction: column;
@@ -529,12 +521,10 @@
   @media screen and (max-width: 480px) {
     .add-observation-container {
       padding: 0.75rem;
-      padding-top: 70px;
+      margin-top: 5.25rem;
     }
 
-    .page-title {
-      font-size: 1.25rem;
-    }
+    
 
     .course-subtitle {
       font-size: 0.95rem;
@@ -587,9 +577,7 @@
       padding-top: 65px;
     }
 
-    .page-title {
-      font-size: 1.1rem;
-    }
+    
 
     .observation-form {
       gap: 1rem;
@@ -616,10 +604,7 @@
       padding-top: 60px;
     }
 
-    .page-title {
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
-    }
+    
 
     .separator {
       margin-bottom: 1rem;
@@ -645,3 +630,5 @@
     }
   }
   </style>
+
+

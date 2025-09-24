@@ -14,12 +14,12 @@
 
     <main class="control-de-pagos">
       <!-- Título de la página -->
-      <h1 class="page-title">Registro de Pagos</h1>
+      <h1 class="text-page-title">Registro de Pagos</h1>
       <div class="separator"></div>
 
       <!-- Zona superior: acciones y búsqueda -->
       <div class="crud-actions">
-        <button @click="openCreateModal" class="action-btn create">
+        <button @click="openCreateModal" class="action-btn create text-button">
           <Plus class="action-icon" />
           <span class="btn-text">Nuevo Pago</span>
         </button>
@@ -29,7 +29,7 @@
             type="text"
             v-model="searchQuery"
             placeholder="Buscar..."
-            class="search-input"
+            class="search-input text-body"
           />
           <Search class="search-icon" />
         </div>
@@ -40,32 +40,32 @@
         <table>
           <thead>
             <tr>
-              <th>Carnet</th>
-              <th>Nombre</th>
-              <th>Fecha de Pago</th>
-              <th>Mes pagado</th>
-              <th>Número de boleta</th>
-              <th>Monto</th>
-              <th>Grado</th>
-              <th>Acciones</th>
+              <th class="text-small">Carnet</th>
+              <th class="text-small">Nombre</th>
+              <th class="text-small">Fecha de Pago</th>
+              <th class="text-small">Mes pagado</th>
+              <th class="text-small">Número de boleta</th>
+              <th class="text-small">Monto</th>
+              <th class="text-small">Grado</th>
+              <th class="text-small">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="student in filteredStudents" :key="student.id_pago">
-              <td>{{ student.id }}</td>
-              <td>{{ student.name }}</td>
-              <td>{{ student.fecha_pago }}</td>
-              <td>{{ student.mes_solvencia }}</td>
-              <td>{{ student.no_boleta }}</td>
-              <td>{{ student.monto }}</td>
-              <td>{{ student.grade }}</td>
+              <td class="text-body">{{ student.id }}</td>
+              <td class="text-body">{{ student.name }}</td>
+              <td class="text-body">{{ student.fecha_pago }}</td>
+              <td class="text-body">{{ student.mes_solvencia }}</td>
+              <td class="text-body">{{ student.no_boleta }}</td>
+              <td class="text-body">{{ student.monto }}</td>
+              <td class="text-body">{{ student.grade }}</td>
               <td class="actions">
-                <button @click="editPayment(student)" class="action-btn edit">
+                <button @click="editPayment(student)" class="action-btn edit text-button">
                   <Edit class="action-icon" />
                 </button>
                 <button
                   @click="confirmInvalidatePayment(student)"
-                  class="action-btn delete"
+                  class="action-btn delete text-button"
                 >
                   <Trash class="action-icon" />
                 </button>
@@ -83,44 +83,44 @@
           class="payment-card"
         >
           <div class="card-header">
-            <h3 class="student-name">{{ student.name }}</h3>
-            <span class="student-id">{{ student.id }}</span>
+            <h3 class="student-name text-subsection-title">{{ student.name }}</h3>
+            <span class="student-id text-small">{{ student.id }}</span>
           </div>
 
           <div class="card-body">
             <div class="card-row">
-              <span class="label">Fecha:</span>
-              <span class="value">{{ student.fecha_pago }}</span>
+              <span class="label text-small">Fecha:</span>
+              <span class="value text-body">{{ student.fecha_pago }}</span>
             </div>
             <div class="card-row">
-              <span class="label">Mes:</span>
-              <span class="value">{{ student.mes_solvencia }}</span>
+              <span class="label text-small">Mes:</span>
+              <span class="value text-body">{{ student.mes_solvencia }}</span>
             </div>
             <div class="card-row">
-              <span class="label">Boleta:</span>
-              <span class="value">{{ student.no_boleta }}</span>
+              <span class="label text-small">Boleta:</span>
+              <span class="value text-body">{{ student.no_boleta }}</span>
             </div>
             <div class="card-row">
-              <span class="label">Monto:</span>
-              <span class="value amount">{{ student.monto }}</span>
+              <span class="label text-small">Monto:</span>
+              <span class="value amount text-body">{{ student.monto }}</span>
             </div>
             <div class="card-row">
-              <span class="label">Grado:</span>
-              <span class="value">{{ student.grade }}</span>
+              <span class="label text-small">Grado:</span>
+              <span class="value text-body">{{ student.grade }}</span>
             </div>
           </div>
 
           <div class="card-actions">
             <button
               @click="editPayment(student)"
-              class="action-btn edit mobile"
+              class="action-btn edit mobile text-button"
             >
               <Edit class="action-icon" />
               <span>Editar</span>
             </button>
             <button
               @click="confirmInvalidatePayment(student)"
-              class="action-btn delete mobile"
+              class="action-btn delete mobile text-button"
             >
               <Trash class="action-icon" />
               <span>Invalidar</span>
@@ -453,7 +453,7 @@ onMounted(fetchPayments)
 
 .control-de-pagos {
   flex: 1;
-  padding: 1.25rem;
+  padding: 2rem;
   max-width: 100%;
   overflow-x: hidden;
 }
@@ -824,10 +824,10 @@ onMounted(fetchPayments)
     padding: 0.75rem;
   }
 
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
     margin-top: 5.25rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    text-align: center;
   }
 
   .separator {
@@ -882,8 +882,8 @@ onMounted(fetchPayments)
   .control-de-pagos {
     padding: 0.5rem;
   }
-  .page-title {
-    font-size: 1.25rem;
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
   .payment-card {
     padding: 1rem;

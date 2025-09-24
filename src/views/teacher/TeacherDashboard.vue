@@ -4,7 +4,7 @@
     
     <main class="dashboard-container">
       <div class="header-section">
-        <h1 class="page-title">Tablero</h1>
+        <h1 class="text-page-title">Tablero</h1>
       </div>
       <div class="separator"></div>
       
@@ -253,13 +253,6 @@ onUnmounted(() => {
 
 .header-section {
   margin-bottom: 1rem;
-}
-
-.page-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
 }
 
 .page-subtitle {
@@ -518,9 +511,7 @@ onUnmounted(() => {
     gap: 1.25rem;
   }
   
-  .page-title {
-    font-size: 2.2rem;
-  }
+  
 }
 
 /* Mobile styles */
@@ -528,18 +519,16 @@ onUnmounted(() => {
   .dashboard-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 5rem;
+    margin-top: 5.25rem;
+  }
+  
+  .text-page-title {
+    text-align: center;
   }
   
   .header-section {
     text-align: center;
     margin-bottom: 1.5rem;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-    color: #00923f;
-    margin-bottom: 0.75rem;
   }
   
   .page-subtitle {
@@ -589,10 +578,6 @@ onUnmounted(() => {
   .dashboard-container {
     padding: 0.8rem;
     padding-top: 4.5rem;
-  }
-  
-  .page-title {
-    font-size: 1.75rem;
   }
   
   .page-subtitle {
@@ -646,3 +631,5 @@ onUnmounted(() => {
 .course-card:nth-child(5) { animation-delay: 0.5s; }
 .course-card:nth-child(6) { animation-delay: 0.6s; }
 </style>
+
+

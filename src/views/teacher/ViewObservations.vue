@@ -5,7 +5,7 @@
     <main class="observations-view-container">
       <!-- Header responsive -->
       <div class="page-header">
-        <h1 class="page-title">
+        <h1 class="text-page-title">
           Observaciones de {{ studentData?.nombre }} {{ studentData?.apellido }}
         </h1>
         <div class="course-subtitle" v-if="courseData">
@@ -276,13 +276,7 @@ onMounted(async () => {
   margin-bottom: 1.5rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
-}
+
 
 .course-subtitle {
   color: #666;
@@ -561,9 +555,7 @@ onMounted(async () => {
     padding: 1.5rem;
   }
 
-  .page-title {
-    font-size: 1.75rem;
-  }
+  
 
   .observations-table th,
   .observations-table td {
@@ -576,13 +568,11 @@ onMounted(async () => {
   .observations-view-container {
     margin-left: 0; /* Remover margen del sidebar */
     padding: 1rem;
-    padding-top: 80px; /* Espacio para el botón hamburguesa */
+    margin-top: 5.25rem; /* Espacio para el botón hamburguesa */
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-top: 1.25rem;
-    margin-bottom: 0.75rem;
+  .text-page-title {
+    text-align: center;
   }
 
   .course-subtitle {
@@ -619,12 +609,10 @@ onMounted(async () => {
 @media screen and (max-width: 480px) {
   .observations-view-container {
     padding: 0.75rem;
-    padding-top: 70px;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
 
   .course-subtitle {
     font-size: 0.95rem;
@@ -682,9 +670,7 @@ onMounted(async () => {
     padding-top: 65px;
   }
 
-  .page-title {
-    font-size: 1.1rem;
-  }
+  
 
   .no-observations {
     padding: 2rem 1rem;
@@ -708,10 +694,7 @@ onMounted(async () => {
     padding-top: 60px;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
-  }
+  
 
   .separator {
     margin: 1rem 0;
@@ -743,3 +726,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

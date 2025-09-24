@@ -4,7 +4,7 @@
     
     <main class="inscripciones-management">
       <!-- Header con título -->
-      <h1 class="page-title">Gestión de Inscripciones</h1>
+      <h1 class="text-page-title">Gestión de Inscripciones</h1>
       <div class="separator"></div>
 
       <!-- Acciones principales -->
@@ -652,18 +652,6 @@ const handleItemClick = (item) => {
 }
 
 /* Header y título */
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin: 0 0 1rem 0;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-}
-
 /* Acciones principales */
 .crud-actions {
   display: flex;
@@ -1190,11 +1178,13 @@ const handleItemClick = (item) => {
 @media (max-width: 768px) {
   .inscripciones-management {
     margin-left: 0; /* Remover margen del sidebar en móvil */
-    padding: 80px 15px 15px 15px; /* Espacio para el botón hamburguesa del sidebar */
+    padding: 1rem; /* Padding normalizado */
   }
 
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
+    margin-top: 5.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
   }
 
   .crud-actions {
@@ -1233,6 +1223,16 @@ const handleItemClick = (item) => {
 
   .inscripciones-table {
     min-width: 800px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inscripciones-management {
+    padding: 0.75rem;
+  }
+  
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
 }
 </style>

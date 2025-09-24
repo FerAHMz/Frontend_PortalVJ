@@ -2,7 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Calificaciones y Asistencia</h1>
+      <h1 class="text-page-title">Calificaciones y Asistencia</h1>
+      <div class="separator"></div>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
       <div v-if="!loading && !error" class="parent-info">
@@ -95,18 +96,9 @@ onMounted(fetchUserProfile);
 
 .profile-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   background-color: white;
   overflow-x: auto;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 0.5rem;
 }
 
 .loading, .error {
@@ -149,10 +141,6 @@ onMounted(fetchUserProfile);
     padding: 16px;
   }
   
-  .page-title {
-    font-size: 1.75rem;
-  }
-  
   .parent-info {
     padding: 1.5rem;
     margin-top: 1.5rem;
@@ -167,15 +155,13 @@ onMounted(fetchUserProfile);
   }
   
   .profile-container {
-    padding: 16px 12px;
+    padding: 1rem;
     /* Agregar padding superior para el botón hamburguesa */
-    padding-top: 80px;
+    margin-top: 5.25rem;
   }
   
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    word-wrap: break-word;
+  .text-page-title {
+    text-align: center;
   }
   
   .parent-info {
@@ -202,13 +188,9 @@ onMounted(fetchUserProfile);
 /* Estilos para móviles pequeños */
 @media screen and (max-width: 480px) {
   .profile-container {
-    padding: 12px 8px;
-    padding-top: 80px;
-  }
-  
-  .page-title {
-    font-size: 1.25rem;
-    text-align: center;
+    padding: 0.75rem;
+    margin-top: 5.25rem;
+    margin-bottom: 0.8rem;
   }
   
   .parent-info {

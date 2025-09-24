@@ -2,7 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="messages-container">
-      <h1 class="page-title">Comunicación</h1>
+      <h1 class="text-page-title">Comunicación</h1>
+      <div class="separator"></div>
       
       <!-- Búsqueda de usuarios - responsive -->
       <div class="search-and-results">
@@ -506,15 +507,13 @@ debugAuthState();
 
 .messages-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
+  margin-left: 130px;
   position: relative;
   overflow: hidden;
 }
 
-.page-title {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
+
 
 .separator {
   border-bottom: 2px solid #000;
@@ -901,12 +900,13 @@ textarea.form-input {
 /* Estilos responsive para móvil */
 @media screen and (max-width: 768px) {
   .messages-container {
-    padding: 80px 15px 15px 15px; /* Espacio para el botón hamburguesa del sidebar */
+    margin-left: 0;
+    padding: 1rem;
+    margin-top: 5.25rem; /* Espacio para el botón hamburguesa del sidebar */
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+  .text-page-title {
+    text-align: center;
   }
 
   .search-and-results {
@@ -1035,9 +1035,7 @@ textarea.form-input {
     padding: 80px 10px 10px 10px;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
 
   .conversation-item {
     padding: 10px;
@@ -1094,3 +1092,5 @@ textarea.form-input {
   }
 }
 </style>
+
+

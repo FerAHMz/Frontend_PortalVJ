@@ -11,7 +11,7 @@
       />
       <div class="page-header">
         <div class="header-content">
-          <h1 class="page-title">{{ courseData?.materia }} - Calificaciones</h1>
+          <h1 class="text-page-title">{{ courseData?.materia }} - Calificaciones</h1>
           <div class="course-subtitle" v-if="courseData?.grado && courseData?.seccion">
             Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
           </div>
@@ -267,12 +267,7 @@ const handleItemClick = (item) => {
   width: 100%;
 }
 
-.page-title {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1f2937;
-}
+
 
 .course-subtitle {
   color: #6b7280;
@@ -541,12 +536,11 @@ const handleItemClick = (item) => {
   .course-detail-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 80px; /* Espacio para hamburguesa */
+    margin-top: 5.25rem; /* Espacio para hamburguesa */
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-top: 1.25rem;
+  .text-page-title {
+    text-align: center;
   }
 
   .course-subtitle {
@@ -600,12 +594,10 @@ const handleItemClick = (item) => {
 @media screen and (max-width: 480px) {
   .course-detail-container {
     padding: 0.75rem;
-    padding-top: 70px;
+    margin-top: 5.25rem;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
 
   .student-detail-card {
     border-radius: 8px;
@@ -641,3 +633,5 @@ const handleItemClick = (item) => {
   }
 }
 </style>
+
+

@@ -7,7 +7,7 @@
         {{ alert.message }}
       </div>
       
-      <h1 class="page-title">Boleta de calificaciones</h1>
+      <h1 class="text-page-title">Boleta de calificaciones</h1>
       <div class="separator"></div>
       
       <!-- Botón PDF responsive -->
@@ -252,13 +252,7 @@ const exportarPDF = () => {
 }
 
 /* Título y separador */
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 0.5rem;
-  text-align: left;
-}
+
 
 .separator {
   width: 100%;
@@ -472,9 +466,7 @@ const exportarPDF = () => {
     padding: 1.5rem;
   }
 
-  .page-title {
-    font-size: 1.75rem;
-  }
+  
 
   .subtitle-grid {
     font-size: 1rem;
@@ -499,11 +491,11 @@ const exportarPDF = () => {
   .report-card-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 5rem; /* Espacio para el botón hamburguesa */
+    margin-top: 5.25rem; /* Espacio para el botón hamburguesa */
   }
 
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
+    text-align: center;
   }
 
   /* Botón PDF adaptado */
@@ -582,9 +574,7 @@ const exportarPDF = () => {
     padding-top: 4.5rem;
   }
 
-  .page-title {
-    font-size: 1.25rem;
-  }
+  
 
   .btn-pdf {
     padding: 0.6rem 1rem;
@@ -672,3 +662,5 @@ const exportarPDF = () => {
   }
 }
 </style>
+
+

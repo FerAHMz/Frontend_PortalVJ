@@ -4,7 +4,7 @@
 
     <main class="crud-container">
       <!-- Título -->
-      <h1 class="page-title">Panel de Super Usuario</h1>
+      <h1 class="text-page-title">Panel de Super Usuario</h1>
       <div class="separator"></div>
 
       <!-- Acciones (botón + buscador) -->
@@ -174,7 +174,20 @@
               class="form-group"
             >
               <label :for="header.key">{{ header.title }}</label>
+              <!-- Campo Estado para edición -->
+              <select
+                v-if="header.key === 'activo' && editingItem"
+                v-model="formData[header.key]"
+                :id="header.key"
+                class="form-input"
+                required
+              >
+                <option :value="true">Activo</option>
+                <option :value="false">Inactivo</option>
+              </select>
+              <!-- Campos normales (excluyendo activo en creación) -->
               <input
+                v-else-if="header.key !== 'activo' || editingItem"
                 :type="header.type || 'text'"
                 v-model="formData[header.key]"
                 :id="header.key"
@@ -414,9 +427,15 @@ const activateUser = async () => {
   }
 };
 
-const editableHeaders = computed(() => headers.filter(h =>
-  !['id', 'rol'].includes(h.key)
-))
+const editableHeaders = computed(() => {
+  if (editingItem.value) {
+    // En edición, mostrar todos los campos excepto ID y rol
+    return headers.filter(h => !['id', 'rol'].includes(h.key))
+  } else {
+    // En creación, ocultar el campo activo además de ID y rol
+    return headers.filter(h => !['id', 'rol', 'activo'].includes(h.key))
+  }
+})
 
 const filteredItems = computed(() => {
   let result = items.value;
@@ -464,7 +483,8 @@ const openCreateModal = () => {
     apellido: '',
     email: '',
     telefono: '',
-    password: ''
+    password: '',
+    // No incluir activo en creación - se establecerá por defecto en backend
   };
   editingItem.value = null;
   showModal.value = true;
@@ -495,6 +515,11 @@ const saveItem = async () => {
       rol: formData.value.rol,
       rolAnterior: editingItem.value?.rol
     };
+
+    // Agregar activo solo si estamos editando
+    if (editingItem.value && formData.value.activo !== undefined) {
+      userData.activo = formData.value.activo;
+    }
 
     console.log('Sending data:', userData);
 
@@ -635,16 +660,6 @@ const handleItemClick = (item) => {
   max-width: 100%;
   overflow-x: hidden;
 }
-
-.page-title {
-  margin-top: 3.5rem;          /* evita que lo tape el menú */
-  margin-bottom: 1rem;
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-}
-
-.separator { border-bottom: 2px solid #000; margin-bottom: 1.5rem; }
 
 /*  Acciones  */
 .crud-actions {
@@ -841,7 +856,7 @@ const handleItemClick = (item) => {
 /* Tablets ≤ 1023 px */
 @media (max-width: 1023px) {
   .crud-container { padding: 1.5rem; }
-  .page-title     { font-size: 1.75rem; }
+  .text-page-title     { font-size: 1.75rem; }
   .data-table th,
   .data-table td  { padding: 0.75rem; font-size: 0.95rem; }
 }
@@ -856,7 +871,7 @@ const handleItemClick = (item) => {
 /* Móviles ≤ 767 px */
 @media (max-width: 767px) {
   .crud-container { padding: 0.75rem; }
-  .page-title     { font-size: 1.5rem; margin-top: 5.25rem; margin-bottom: 0.75rem; }
+  .text-page-title     { margin-top: 5.25rem; margin-bottom: 0.75rem; text-align: center; }
   .separator      { margin-bottom: 1rem; }
 
   /* Ocultar tabla → mostrar tarjetas */
@@ -887,7 +902,7 @@ const handleItemClick = (item) => {
 
 /* Móviles muy pequeños ≤ 480 px */
 @media (max-width: 480px) {
-  .page-title   { font-size: 1.25rem; }
+  .text-page-title   { margin-bottom: 0.8rem; }
   .search-input,
   .form-input   { font-size: 16px; } 
   .user-card    { padding: 1rem; }

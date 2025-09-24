@@ -2,7 +2,8 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick"/>
     <main class="profile-container">
-      <h1 class="page-title">Perfil del Maestro</h1>
+      <h1 class="text-page-title">Perfil del Maestro</h1>
+      <div class="separator"></div>
       <div v-if="loading" class="loading">Cargando información...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
       <ProfileCard
@@ -130,18 +131,10 @@ onMounted(() => {
 
 .profile-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   background-color: white;
+  margin-left: 130px; /* Espacio para sidebar en escritorio */
   overflow-y: auto;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 0.5rem;
 }
 
 .loading, .error {
@@ -167,9 +160,7 @@ onMounted(() => {
     padding: 15px;
   }
   
-  .page-title {
-    font-size: 1.8rem;
-  }
+  
 }
 
 @media (max-width: 768px) {
@@ -178,15 +169,14 @@ onMounted(() => {
   }
   
   .profile-container {
-    padding: 10px;
+    margin-left: 0; /* Quitar margen en móvil */
+    padding: 1rem;
     height: auto;
     min-height: calc(100vh - 60px); 
+    margin-top: 5.25rem;
   }
   
-  .page-title {
-    font-size: 1.5rem;
-    margin-top: 5.25rem;
-    margin-bottom: 1rem;
+  .text-page-title {
     text-align: center;
   }
   
@@ -198,11 +188,8 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .profile-container {
-    padding: 8px;
-  }
-  
-  .page-title {
-    font-size: 1.3rem;
+    margin-left: 0; /* Quitar margen en móvil */
+    padding: 0.75rem;
     margin-bottom: 0.8rem;
   }
   
@@ -219,11 +206,10 @@ onMounted(() => {
 /* Para pantallas muy pequeñas */
 @media (max-width: 320px) {
   .profile-container {
+    margin-left: 0; /* Quitar margen en móvil */
     padding: 5px;
-  }
-  
-  .page-title {
-    font-size: 1.2rem;
   }
 }
 </style>
+
+

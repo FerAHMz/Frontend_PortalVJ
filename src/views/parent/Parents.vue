@@ -2,9 +2,10 @@
   <div class="layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="profile-container">
-      <h1 class="page-title">Perfil de Padre/Madre</h1>
-      <div v-if="loading" class="loading">Cargando información...</div>
-      <div v-else-if="error" class="error">{{ error }}</div>
+      <h1 class="text-page-title">Perfil de Padre/Madre</h1>
+      <div class="separator"></div>
+      <div v-if="loading" class="text-body loading">Cargando información...</div>
+      <div v-else-if="error" class="text-body error">{{ error }}</div>
       <ProfileCard
         v-else
         :name="(userProfile.nombre || '') + ' ' + (userProfile.apellido || '')"
@@ -126,24 +127,14 @@ onMounted(async () => {
 
 .profile-container {
   flex: 1;
-  padding: 20px;
+  padding: 2rem;
   background-color: white;
   overflow-y: auto;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000000;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 0.5rem;
 }
 
 .loading, .error {
   text-align: center;
   padding: 2rem;
-  font-size: 1.1rem;
 }
 
 .loading {
@@ -206,11 +197,7 @@ onMounted(async () => {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .profile-container {
-    padding: 15px;
-  }
-  
-  .page-title {
-    font-size: 1.8rem;
+    padding: 1.5rem;
   }
   
   .parent-info {
@@ -229,13 +216,12 @@ onMounted(async () => {
   }
   
   .profile-container {
-    padding: 10px;
+    padding: 1rem;
     height: auto;
     min-height: calc(100vh - 60px);
   }
   
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
     margin-top: 5.25rem;
     margin-bottom: 1rem;
     text-align: center;
@@ -273,11 +259,10 @@ onMounted(async () => {
 
 @media (max-width: 480px) {
   .profile-container {
-    padding: 8px;
+    padding: 0.75rem;
   }
   
-  .page-title {
-    font-size: 1.3rem;
+  .text-page-title {
     margin-bottom: 0.8rem;
   }
   
@@ -322,10 +307,6 @@ onMounted(async () => {
 @media (max-width: 320px) {
   .profile-container {
     padding: 5px;
-  }
-  
-  .page-title {
-    font-size: 1.2rem;
   }
   
   .parent-info {

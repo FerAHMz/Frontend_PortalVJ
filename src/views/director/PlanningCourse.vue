@@ -9,6 +9,7 @@
         text="Volver a Planificaciones"
       />
       <h1 class="page-title">Planificación del Curso</h1>
+      <h1 class="text-page-title">Planificación del Curso</h1>
       <div class="course-subtitle">{{ courseData?.materia }} | Grado: {{ courseData?.grado }} | Sección: {{ courseData?.seccion }}</div>
       <div class="separator"></div>
 
@@ -144,7 +145,7 @@ onMounted(async () => {
   min-height: 100vh;
 }
 
-.page-title {
+.text-page-title {
   font-size: 2rem;
   font-weight: bold;
   color: #000;
@@ -361,7 +362,7 @@ onMounted(async () => {
     padding: 1.5rem;
   }
   
-  .page-title {
+  .text-page-title {
     font-size: 1.8rem;
   }
   
@@ -374,11 +375,11 @@ onMounted(async () => {
 @media screen and (max-width: 768px) {
   .planning-container {
     padding: 1rem;
-    padding-top: 5rem; /* Espacio para el botón hamburguesa */
   }
   
-  .page-title {
-    font-size: 1.5rem;
+  .text-page-title {
+    margin-top: 5.25rem;
+    margin-bottom: 1rem;
     text-align: center;
   }
   
@@ -406,12 +407,10 @@ onMounted(async () => {
 
 @media screen and (max-width: 480px) {
   .planning-container {
-    padding: 0.8rem;
-    padding-top: 4.5rem;
+    padding: 0.75rem;
   }
   
-  .page-title {
-    font-size: 1.3rem;
+  .text-page-title {
     margin-bottom: 0.8rem;
   }
   

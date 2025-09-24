@@ -16,7 +16,7 @@
           />
           <div class="page-header">
             <div class="header-content">
-              <h1 class="page-title">{{ courseData.materia }} - Asistencia</h1>
+              <h1 class="text-page-title">{{ courseData.materia }} - Asistencia</h1>
               <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
                 Grado: {{ courseData.grado }} | Sección: {{ courseData.seccion }}
               </div>
@@ -383,6 +383,7 @@
   .attendance-container {
     flex: 1;
     padding: 2rem;
+    margin-left: 130px;
     background: white;
     max-width: 100%;
     overflow-x: hidden;
@@ -401,12 +402,7 @@
     width: 100%;
   }
 
-  .page-title {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
+  
 
   .course-subtitle {
     color: #6b7280;
@@ -772,12 +768,13 @@
   /* Mobile Responsive Styles */
   @media screen and (max-width: 768px) {
     .attendance-container {
+      margin-left: 0;
       padding: 1rem;
+      margin-top: 5.25rem;
     }
 
-    .page-title {
-      font-size: 1.5rem;
-      margin-top: 5.25rem;
+    .text-page-title {
+      text-align: center;
     }
 
     .course-subtitle {
@@ -899,3 +896,5 @@
     }
   }
   </style>
+
+

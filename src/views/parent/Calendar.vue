@@ -2,7 +2,7 @@
   <div class="calendar-layout">
     <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <main class="calendar-container">
-      <h1 class="page-title">Calendario de Tareas de Mis Hijos</h1>
+      <h1 class="text-page-title">Calendario de Tareas de Mis Hijos</h1>
       <div class="separator"></div>
       <div class="calendar">
         <div class="calendar-header">
@@ -235,18 +235,6 @@ onUnmounted(() => {
   transition: margin-left 0.3s ease;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 1rem;
-}
-
-.separator {
-  border-bottom: 2px solid #000;
-  margin-bottom: 1.5rem;
-}
-
 .calendar {
   background: white;
   border-radius: 8px;
@@ -452,10 +440,6 @@ onUnmounted(() => {
     padding: 1.5rem;
   }
   
-  .page-title {
-    font-size: 1.8rem;
-  }
-  
   .day-cell {
     min-height: 80px;
   }
@@ -470,12 +454,12 @@ onUnmounted(() => {
   .calendar-container {
     margin-left: 0;
     padding: 1rem;
-    padding-top: 80px; /* Espacio para el botón hamburguesa */
   }
 
-  .page-title {
-    font-size: 1.5rem;
-    margin-bottom: 0.75rem;
+  .text-page-title {
+    margin-top: 5.25rem;
+    margin-bottom: 1rem;
+    text-align: center;
   }
 
   .calendar {
@@ -538,11 +522,10 @@ onUnmounted(() => {
 @media screen and (max-width: 480px) {
   .calendar-container {
     padding: 0.75rem;
-    padding-top: 70px;
   }
 
-  .page-title {
-    font-size: 1.3rem;
+  .text-page-title {
+    margin-bottom: 0.8rem;
   }
 
   .calendar {

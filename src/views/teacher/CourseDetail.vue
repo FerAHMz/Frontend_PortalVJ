@@ -10,7 +10,7 @@
         />
         <div class="page-header">
           <div class="header-content">
-            <h1 class="page-title">{{ courseData.materia }}</h1>
+            <h1 class="text-page-title">{{ courseData.materia }}</h1>
             <div class="course-subtitle" v-if="courseData.grado && courseData.seccion">
               <span class="badge-info">Grado: {{ courseData.grado }}</span>
               <span class="badge-info">Sección: {{ courseData.seccion }}</span>
@@ -158,12 +158,7 @@ onMounted(() => {
     width: 100%;
   }
   
-  .page-title {
-    margin: 0 0 8px 0;
-    font-size: 2rem;
-    font-weight: 600;
-    color: #1f2937;
-  }
+  
   
   .course-subtitle {
     display: flex;
@@ -240,9 +235,7 @@ onMounted(() => {
       padding: 1.5rem;
     }
     
-    .page-title {
-      font-size: 1.8rem;
-    }
+    
     
     .option-item {
       padding: 1.25rem;
@@ -258,18 +251,16 @@ onMounted(() => {
     .course-detail-container {
       margin-left: 0; /* Sin margen en móvil */
       padding: 1rem;
-      padding-top: 5rem; /* Espacio para el botón hamburguesa */
+      margin-top: 5.25rem; /* Espacio para el botón hamburguesa */
+    }
+    
+    .text-page-title {
+      text-align: center;
     }
     
     .header-section {
       text-align: center;
       margin-bottom: 1.5rem;
-    }
-    
-    .page-title {
-      font-size: 1.6rem;
-      margin-bottom: 1rem;
-      color: #00923f;
     }
     
     .course-subtitle {
@@ -322,9 +313,7 @@ onMounted(() => {
       padding-top: 4.5rem;
     }
     
-    .page-title {
-      font-size: 1.4rem;
-    }
+    
     
     .course-subtitle {
       flex-direction: column;
@@ -379,3 +368,5 @@ onMounted(() => {
     }
   }
   </style>
+
+
