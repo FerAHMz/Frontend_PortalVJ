@@ -625,6 +625,7 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
+  height: calc(100% - 70px);
 }
 
 .message-item {
@@ -680,7 +681,8 @@ onUnmounted(() => {
 .new-message {
   display: flex;
   gap: 10px;
-  padding: 1.5rem;
+  padding: 1rem;
+  padding-bottom: 70px;
   background-color: #f9f9f9;
   border-top: 1px solid #ddd;
   position: sticky;

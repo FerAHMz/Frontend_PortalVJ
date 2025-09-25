@@ -750,7 +750,8 @@ debugAuthState();
 .new-message {
   display: flex;
   gap: 10px;
-  padding: 15px;
+  padding: 1rem;
+  padding-bottom: 70px;
   background-color: #f9f9f9;
   border-top: 1px solid #ddd;
   position: sticky;
