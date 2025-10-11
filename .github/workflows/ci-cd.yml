@@ -129,6 +129,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Validate Docker credentials
+        if: >
+          github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/master'
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "❌ Error: DOCKER_USERNAME secret is not set"
+            echo "Please configure DOCKER_USERNAME in repository secrets"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "❌ Error: DOCKER_PASSWORD secret is not set"
+            echo "Please configure DOCKER_PASSWORD in repository secrets"
+            exit 1
+          fi
+          echo "✅ Docker credentials are configured"
+
       - name: Login to Docker Hub (Production only)
         if: >
           github.ref == 'refs/heads/main' ||
@@ -152,8 +169,10 @@ jobs:
 
       - name: Build and push Docker image (production)
         if: >
-          github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/master'
+          (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/master') &&
+          secrets.DOCKER_USERNAME != '' &&
+          secrets.DOCKER_PASSWORD != ''
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -172,6 +191,44 @@ jobs:
               github.event.head_commit.timestamp }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build Docker image without push (when credentials missing)
+        if: >
+          (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/master') &&
+          (secrets.DOCKER_USERNAME == '' ||
+          secrets.DOCKER_PASSWORD == '')
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          platforms: linux/amd64
+          tags: |
+            portalvj-frontend:latest
+            portalvj-frontend:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.title=PortalVJ Frontend
+            org.opencontainers.image.description=Frontend UI for PortalVJ
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{
+              github.event.head_commit.timestamp }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Docker credentials warning
+        if: >
+          (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/master') &&
+          (secrets.DOCKER_USERNAME == '' ||
+          secrets.DOCKER_PASSWORD == '')
+        run: |
+          echo "⚠️  WARNING: Docker credentials not configured"
+          echo "Docker image was built but not pushed to registry"
+          echo "To enable Docker push, configure these secrets:"
+          echo "  - DOCKER_USERNAME: Your Docker Hub username"
+          echo "  - DOCKER_PASSWORD: Your Docker Hub password or access token"
 
   # ==============================
   # E2E TESTS
