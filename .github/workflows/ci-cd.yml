@@ -169,10 +169,8 @@ jobs:
 
       - name: Build and push Docker image (production)
         if: >
-          (github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/master') &&
-          secrets.DOCKER_USERNAME != '' &&
-          secrets.DOCKER_PASSWORD != ''
+          github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/master'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -193,11 +191,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build Docker image without push (when credentials missing)
-        if: >
-          (github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/master') &&
-          (secrets.DOCKER_USERNAME == '' ||
-          secrets.DOCKER_PASSWORD == '')
+        if: failure()
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -218,11 +212,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Docker credentials warning
-        if: >
-          (github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/master') &&
-          (secrets.DOCKER_USERNAME == '' ||
-          secrets.DOCKER_PASSWORD == '')
+        if: failure()
         run: |
           echo "⚠️  WARNING: Docker credentials not configured"
           echo "Docker image was built but not pushed to registry"
