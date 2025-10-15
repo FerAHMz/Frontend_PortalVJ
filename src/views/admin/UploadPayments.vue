@@ -9,7 +9,6 @@
       </header>
       
       <div class="content-wrapper">
-      <div class="content-wrapper">
         <ArrowBack 
           :to="'/admin/payments'" 
           :show-text="true" 

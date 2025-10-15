@@ -1,14 +1,4 @@
-<  <div class="layout">
-    <Sidebar :items="menuItems" />
-
-    <main class="control-de-pagos">
-      <ArrowBack 
-        :to="'/admin/payments'" 
-        :show-text="true" 
-        text="Volver a Control de Pagos"
-      />
-      <!-- Título de la página -->
-      <h1 class="page-title">Registro de Pagos</h1>te>
+<template>
   <div class="layout">
     <Sidebar :items="menuItems" />
 
