@@ -59,7 +59,8 @@ const DirectorProfile = () => import('@/views/director/DirectorProfile.vue')
 const PlanningCourseDir = () => import('@/views/director/PlanningCourse.vue')
 const PlanningTasksDir = () => import('@/views/director/PlanningTasks.vue')
 const AcademicManagement = () => import('@/views/director/AcademicManagement.vue')
-const DirectorPlanificationsByGrade = () => import('@/views/director/PlanificationsByGrade.vue')
+const DirectorReports = () => import('@/views/director/Reports.vue')
+const DirectorStaff = () => import('@/views/director/Staff.vue')
 
 const routes = [
   // Rutas públicas
@@ -454,15 +455,6 @@ const routes = [
     }
   },
   {
-    path: '/director/planifications',
-    name: 'DirectorPlanificationsByGrade',
-    component: DirectorPlanificationsByGrade,
-    meta: {
-      requiresAuth: true,
-      roles: [USER_ROLES.DIRECTOR]
-    }
-  },
-  {
     path: '/director/planning/:courseId',
     name: 'PlanningCourseDir',
     component: PlanningCourseDir,
@@ -475,6 +467,24 @@ const routes = [
     path: '/director/planning/:courseId/tasks/:planId',
     name: 'PlanningTasksDir',
     component: PlanningTasksDir,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/reports',
+    name: 'DirectorReports',
+    component: DirectorReports,
+    meta: {
+      requiresAuth: true,
+      roles: [USER_ROLES.DIRECTOR]
+    }
+  },
+  {
+    path: '/director/staff',
+    name: 'DirectorStaff',
+    component: DirectorStaff,
     meta: {
       requiresAuth: true,
       roles: [USER_ROLES.DIRECTOR]

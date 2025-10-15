@@ -999,6 +999,927 @@ const monthlyReport = {
 
 ---
 
+## 🔒 PLAN DE PRUEBAS DE SEGURIDAD OWASP TOP 10 2021
+
+### **📋 Información General de Pruebas de Seguridad**
+
+| Campo | Descripción |
+|-------|-------------|
+| **Estándar de Referencia** | OWASP Top 10 2021 |
+| **Tipo de Pruebas** | Pruebas No Funcionales - Seguridad |
+| **Metodología** | Análisis de Vulnerabilidades, Pruebas de Penetración, Auditoría de Código |
+| **Herramientas** | OWASP ZAP, Burp Suite, Manual Testing |
+| **Cobertura Mínima** | 4 áreas críticas del OWASP Top 10 2021 |
+
+---
+
+### **🎯 Áreas de Seguridad a Evaluar**
+
+#### **A01:2021 - Pérdida de Control de Acceso**
+#### **A03:2021 - Inyección**
+#### **A05:2021 - Configuración de Seguridad Incorrecta**
+#### **A07:2021 - Fallas de Identificación y Autenticación**
+
+---
+
+## 🔐 A01:2021 - PÉRDIDA DE CONTROL DE ACCESO
+
+### **Descripción:**
+Validación de que los controles de acceso implementen correctamente las políticas de autorización, evitando que los usuarios actúen fuera de sus permisos asignados.
+
+### **Módulos del Sistema a Evaluar:**
+- Sistema de autenticación y autorización
+- Dashboard de roles (Teacher, Director, Admin, SuperUser, Parent)
+- API endpoints de backend
+- Acceso a rutas del frontend
+
+---
+
+### **Casos de Prueba - Control de Acceso**
+
+#### **🧪 Caso PS-A01-001: Validación de Acceso por Roles**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A01-001 |
+| **Título** | Verificar acceso restringido por roles de usuario |
+| **Prioridad** | Alta |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Iniciar sesión como usuario "Parent" (padre de familia)
+2. Intentar acceder directamente a la URL `/teacher/dashboard`
+3. Intentar acceder directamente a la URL `/director/planning-course`
+4. Intentar acceder directamente a la URL `/admin/manual-payments`
+5. Verificar que todas las rutas restringidas redirijan al login o muestren error 403
+
+**Parámetros de Entrada:**
+- Usuario: parent@test.com / password123
+- URLs no autorizadas: `/teacher/*`, `/director/*`, `/admin/*`, `/superuser/*`
+
+**Resultados Esperados:**
+- ❌ Acceso denegado a rutas no autorizadas
+- ✅ Redirección automática al login o página de error
+- ✅ Mensaje de error claro sobre falta de permisos
+- ✅ No exposición de información sensible en respuestas de error
+
+---
+
+#### **🧪 Caso PS-A01-002: Manipulación de URLs y Parámetros**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A01-002 |
+| **Título** | Verificar protección contra manipulación de URLs |
+| **Prioridad** | Alta |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Iniciar sesión como usuario "Teacher"
+2. Acceder a la gestión de estudiantes: `/teacher/students`
+3. Modificar parámetros en la URL: `/teacher/students?userId=123&role=director`
+4. Intentar acceder a datos de otros usuarios: `/api/users/456` (ID no propio)
+5. Verificar que no se puedan ver datos de otros usuarios
+
+**Parámetros de Entrada:**
+- Usuario legítimo: teacher@test.com
+- IDs de usuarios no autorizados: 456, 789, admin_id
+- Parámetros maliciosos: `?role=admin`, `?permissions=all`
+
+**Resultados Esperados:**
+- ❌ No acceso a datos de otros usuarios
+- ✅ Validación servidor-side de permisos
+- ✅ Respuesta con error 403 o datos vacíos
+- ✅ Log de intento de acceso no autorizado
+
+---
+
+#### **🧪 Caso PS-A01-003: Validación de Tokens JWT**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A01-003 |
+| **Título** | Verificar integridad y validación de tokens JWT |
+| **Prioridad** | Crítica |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Interceptar token JWT válido usando herramientas de desarrollo
+2. Modificar el payload del token (cambiar rol de "teacher" a "admin")
+3. Realizar petición a API con token modificado
+4. Verificar que el servidor rechace el token alterado
+5. Probar con token expirado
+
+**Parámetros de Entrada:**
+- Token JWT válido original
+- Token JWT con payload modificado
+- Token JWT expirado
+- Token JWT con firma inválida
+
+**Resultados Esperados:**
+- ❌ Rechazo de tokens modificados
+- ❌ Rechazo de tokens expirados
+- ✅ Error 401 Unauthorized
+- ✅ Limpieza automática de sesión inválida
+
+---
+
+## 💉 A03:2021 - INYECCIÓN
+
+### **Descripción:**
+Validación de que la aplicación esté protegida contra ataques de inyección SQL, NoSQL, comandos del sistema operativo y otras formas de inyección de código malicioso.
+
+### **Módulos del Sistema a Evaluar:**
+- Formularios de login y registro
+- Búsquedas de estudiantes, maestros y cursos
+- Carga masiva de datos desde Excel/CSV
+- API endpoints que reciben parámetros de usuario
+
+---
+
+### **Casos de Prueba - Inyección**
+
+#### **🧪 Caso PS-A03-001: Inyección SQL en Formularios de Login**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A03-001 |
+| **Título** | Verificar protección contra inyección SQL en login |
+| **Prioridad** | Crítica |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Acceder al formulario de login
+2. Introducir payloads de inyección SQL en campo email:
+   - `admin@test.com' OR '1'='1' --`
+   - `'; DROP TABLE users; --`
+   - `admin@test.com' UNION SELECT * FROM users --`
+3. Introducir payloads en campo password
+4. Verificar que el sistema rechace todos los intentos
+
+**Parámetros de Entrada:**
+- Email malicioso: `admin' OR '1'='1' --`
+- Password malicioso: `password' OR 1=1 --`
+- Combinaciones con UNION, DROP, INSERT, UPDATE
+
+**Resultados Esperados:**
+- ❌ No bypass de autenticación
+- ✅ Error de credenciales inválidas
+- ✅ Sanitización de entrada implementada
+- ✅ Uso de consultas parametrizadas/prepared statements
+
+---
+
+#### **🧪 Caso PS-A03-002: Inyección en Búsquedas de Sistema**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A03-002 |
+| **Título** | Verificar protección contra inyección en búsquedas |
+| **Prioridad** | Alta |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Iniciar sesión como usuario autorizado
+2. Acceder a funcionalidad de búsqueda de estudiantes
+3. Introducir payloads de inyección en campo de búsqueda:
+   - `'; SELECT * FROM payments --`
+   - `student" UNION SELECT password FROM users --`
+4. Repetir en búsquedas de maestros y cursos
+
+**Parámetros de Entrada:**
+- Búsqueda: `Juan'; DROP TABLE students; --`
+- Filtros: `grade=1' OR '1'='1`
+- Parámetros GET/POST con inyección SQL
+
+**Resultados Esperados:**
+- ❌ No ejecución de comandos SQL maliciosos
+- ✅ Resultados de búsqueda normales o vacíos
+- ✅ Validación y sanitización de entrada
+- ✅ Escape de caracteres especiales
+
+---
+
+#### **🧪 Caso PS-A03-003: Inyección en Carga de Archivos**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A03-003 |
+| **Título** | Verificar protección en procesamiento de archivos CSV/Excel |
+| **Prioridad** | Alta |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Crear archivo CSV con datos maliciosos:
+   - Nombres con caracteres SQL: `Juan'; DROP TABLE --`
+   - Emails con inyección: `user@test.com'; UPDATE users --`
+2. Subir archivo usando funcionalidad de carga masiva
+3. Verificar que el sistema sanitice los datos antes de insertar
+4. Confirmar que no se ejecuten comandos maliciosos
+
+**Parámetros de Entrada:**
+- Archivo CSV con payloads de inyección
+- Datos con caracteres especiales: `<>'"&`
+- Comandos de sistema en campos de texto
+
+**Resultados Esperados:**
+- ✅ Sanitización de datos del archivo
+- ❌ No ejecución de comandos maliciosos
+- ✅ Validación de formato y contenido
+- ✅ Log de errores sin exposición de estructura DB
+
+---
+
+## ⚙️ A05:2021 - CONFIGURACIÓN DE SEGURIDAD INCORRECTA
+
+### **Descripción:**
+Evaluación de configuraciones de seguridad en servidores web, aplicaciones, bases de datos y servicios en la nube para identificar configuraciones inseguras.
+
+### **Módulos del Sistema a Evaluar:**
+- Configuración de Docker containers
+- Configuración de servidor web (nginx/apache)
+- Headers de seguridad HTTP
+- Configuración de base de datos PostgreSQL
+- Configuración de Cloudflare R2
+
+---
+
+### **Casos de Prueba - Configuración de Seguridad**
+
+#### **🧪 Caso PS-A05-001: Validación de Headers de Seguridad HTTP**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A05-001 |
+| **Título** | Verificar implementación de headers de seguridad |
+| **Prioridad** | Media |
+| **Tipo** | Positiva |
+
+**Pasos de Ejecución:**
+1. Realizar petición HTTP al dominio principal
+2. Inspeccionar headers de respuesta usando herramientas de desarrollo
+3. Verificar presencia de headers de seguridad críticos
+4. Validar configuración correcta de cada header
+
+**Parámetros de Entrada:**
+- URL del sistema: `https://portal-vanguardia.com`
+- Herramientas: Browser DevTools, curl, OWASP ZAP
+
+**Resultados Esperados:**
+- ✅ `Content-Security-Policy` configurado
+- ✅ `X-Frame-Options: DENY` o `SAMEORIGIN`
+- ✅ `X-Content-Type-Options: nosniff`
+- ✅ `Strict-Transport-Security` con HTTPS
+- ✅ `X-XSS-Protection: 1; mode=block`
+- ❌ No exposición de `Server` header con versión
+
+---
+
+#### **🧪 Caso PS-A05-002: Verificación de Configuración de Base de Datos**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A05-002 |
+| **Título** | Validar configuración segura de PostgreSQL |
+| **Prioridad** | Alta |
+| **Tipo** | Positiva/Negativa |
+
+**Pasos de Ejecución:**
+1. Verificar que la BD no esté expuesta públicamente
+2. Confirmar uso de contraseñas fuertes para usuarios de BD
+3. Validar que no existan usuarios por defecto activos
+4. Verificar cifrado de conexiones (SSL/TLS)
+5. Confirmar logs de acceso habilitados
+
+**Parámetros de Entrada:**
+- Host de BD: no debe ser accesible desde internet
+- Usuarios por defecto: postgres, admin, root
+- Puertos: 5432 (no debe estar abierto públicamente)
+
+**Resultados Esperados:**
+- ❌ No acceso directo desde internet a BD
+- ✅ Autenticación requerida para acceso
+- ✅ Cifrado SSL/TLS habilitado
+- ❌ No usuarios con contraseñas por defecto
+- ✅ Logs de auditoría activos
+
+---
+
+#### **🧪 Caso PS-A05-003: Configuración de Contenedores Docker**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A05-003 |
+| **Título** | Verificar configuración segura de contenedores |
+| **Prioridad** | Media |
+| **Tipo** | Positiva |
+
+**Pasos de Ejecución:**
+1. Inspeccionar Dockerfile para mejores prácticas
+2. Verificar que contenedores no corran como root
+3. Confirmar que puertos innecesarios no estén expuestos
+4. Validar que secretos no estén hardcodeados
+5. Verificar actualizaciones de imágenes base
+
+**Parámetros de Entrada:**
+- Archivos: Dockerfile, docker-compose.yml
+- Comandos: `docker inspect`, `docker ps`
+
+**Resultados Esperados:**
+- ✅ Usuario no-root para procesos de aplicación
+- ❌ No exposición de puertos innecesarios
+- ✅ Variables de entorno para configuración sensible
+- ✅ Imágenes base actualizadas
+- ✅ Uso de multi-stage builds cuando aplique
+
+---
+
+## 🔑 A07:2021 - FALLAS DE IDENTIFICACIÓN Y AUTENTICACIÓN
+
+### **Descripción:**
+Evaluación de los mecanismos de autenticación, gestión de sesiones y políticas de contraseñas para identificar debilidades que podrían permitir ataques automatizados o compromiso de cuentas.
+
+### **Módulos del Sistema a Evaluar:**
+- Sistema de login/logout
+- Gestión de sesiones JWT
+- Recuperación de contraseñas
+- Políticas de contraseñas
+- Autenticación multi-factor (si aplicable)
+
+---
+
+### **Casos de Prueba - Identificación y Autenticación**
+
+#### **🧪 Caso PS-A07-001: Validación de Políticas de Contraseñas**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A07-001 |
+| **Título** | Verificar implementación de políticas de contraseñas fuertes |
+| **Prioridad** | Alta |
+| **Tipo** | Positiva/Negativa |
+
+**Pasos de Ejecución:**
+1. Intentar crear cuenta con contraseñas débiles:
+   - `123456`
+   - `password`
+   - `admin`
+   - `qwerty`
+2. Verificar que el sistema rechace contraseñas comunes
+3. Validar requisitos mínimos de complejidad
+4. Confirmar que no se reutilicen contraseñas anteriores
+
+**Parámetros de Entrada:**
+- Contraseñas débiles: lista top 10,000 contraseñas más comunes
+- Contraseñas cortas: menos de 8 caracteres
+- Contraseñas sin complejidad: solo letras o solo números
+
+**Resultados Esperados:**
+- ❌ Rechazo de contraseñas en lista negra
+- ✅ Requisito mínimo: 8+ caracteres
+- ✅ Combinación de letras, números y símbolos
+- ✅ Validación tanto frontend como backend
+- ✅ Mensajes claros sobre requisitos
+
+---
+
+#### **🧪 Caso PS-A07-002: Protección contra Ataques de Fuerza Bruta**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A07-002 |
+| **Título** | Verificar protección contra ataques automatizados |
+| **Prioridad** | Crítica |
+| **Tipo** | Negativa |
+
+**Pasos de Ejecución:**
+1. Identificar cuenta de usuario válida: `teacher@test.com`
+2. Realizar intentos de login fallidos consecutivos (10-15 intentos)
+3. Verificar implementación de rate limiting
+4. Confirmar bloqueo temporal de cuenta o IP
+5. Validar que se generen logs de seguridad
+
+**Parámetros de Entrada:**
+- Usuario válido: `teacher@test.com`
+- Contraseñas incorrectas: lista de 20 contraseñas comunes
+- Frecuencia: 1 intento por segundo
+- Origen: misma IP para verificar bloqueo
+
+**Resultados Esperados:**
+- ✅ Bloqueo después de 5-10 intentos fallidos
+- ✅ Incremento progresivo de tiempo de espera
+- ✅ Log de intentos sospechosos
+- ✅ Notificación al administrador
+- ❌ No denegación de servicio para otros usuarios
+
+---
+
+#### **🧪 Caso PS-A07-003: Gestión Segura de Sesiones**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A07-003 |
+| **Título** | Verificar gestión segura de tokens y sesiones |
+| **Prioridad** | Alta |
+| **Tipo** | Positiva |
+
+**Pasos de Ejecución:**
+1. Iniciar sesión y obtener token JWT
+2. Verificar que token tenga tiempo de expiración
+3. Realizar logout y confirmar invalidación de token
+4. Intentar usar token después de logout
+5. Verificar renovación automática de token antes de expiración
+
+**Parámetros de Entrada:**
+- Credenciales válidas de prueba
+- Tokens JWT generados
+- Diferentes navegadores/dispositivos
+
+**Resultados Esperados:**
+- ✅ Tokens con tiempo de vida limitado (< 24 horas)
+- ✅ Invalidación efectiva en logout
+- ❌ Tokens inválidos rechazados por API
+- ✅ Renovación automática antes de expiración
+- ✅ Un token por sesión (no reutilización)
+
+---
+
+#### **🧪 Caso PS-A07-004: Recuperación Segura de Contraseñas**
+| Campo | Detalle |
+|-------|---------|
+| **ID del Caso** | PS-A07-004 |
+| **Título** | Verificar proceso seguro de recuperación de contraseñas |
+| **Prioridad** | Media |
+| **Tipo** | Positiva |
+
+**Pasos de Ejecución:**
+1. Usar función "Olvidé mi contraseña"
+2. Verificar que no se revele información sobre existencia de usuario
+3. Confirmar que token de recuperación expire en tiempo razonable
+4. Validar que token solo sea utilizable una vez
+5. Verificar que nueva contraseña cumpla políticas
+
+**Parámetros de Entrada:**
+- Email existente en sistema
+- Email no existente en sistema
+- Tokens de recuperación generados
+
+**Resultados Esperados:**
+- ✅ Mensaje genérico sin revelar existencia de usuario
+- ✅ Token de recuperación de una sola vez
+- ✅ Expiración de token en 15-30 minutos
+- ✅ Invalidación de sesiones activas al cambiar contraseña
+- ✅ Notificación por email de cambio de contraseña
+
+---
+
+## 📊 RESUMEN DE COBERTURA DE PRUEBAS DE SEGURIDAD
+
+### **Estadísticas de Casos de Prueba**
+
+| Categoría OWASP | Casos de Prueba | Prioridad Crítica | Prioridad Alta | Prioridad Media |
+|-----------------|----------------|-------------------|----------------|-----------------|
+| **A01 - Control de Acceso** | 3 | 1 | 2 | 0 |
+| **A03 - Inyección** | 3 | 1 | 2 | 0 |
+| **A05 - Configuración** | 3 | 0 | 1 | 2 |
+| **A07 - Autenticación** | 4 | 1 | 2 | 1 |
+| **TOTAL** | **13** | **3** | **7** | **3** |
+
+---
+
+### **Herramientas de Seguridad Recomendadas**
+
+#### **🔧 Herramientas Automatizadas**
+- **OWASP ZAP:** Proxy de interceptación y scanner de vulnerabilidades
+- **Burp Suite Community:** Análisis manual de seguridad web
+- **SQLMap:** Detección y explotación de inyección SQL
+- **Nmap:** Escaneo de puertos y servicios
+- **OWASP Dependency Check:** Análisis de componentes vulnerables
+
+#### **🔧 Herramientas de Análisis de Código**
+- **SonarQube:** Análisis estático de calidad y seguridad
+- **ESLint Security Plugin:** Reglas de seguridad para JavaScript
+- **Bandit:** Análisis de seguridad para código Python (si aplicable)
+
+#### **🔧 Herramientas de Configuración**
+- **Docker Security Scanning:** Análisis de vulnerabilidades en imágenes
+- **SSL Labs Test:** Evaluación de configuración HTTPS
+- **Mozilla Observatory:** Análisis de headers de seguridad
+
+---
+
+### **Cronograma de Ejecución de Pruebas de Seguridad**
+
+| Fase | Semana | Actividades | Responsable |
+|------|--------|-------------|-------------|
+| **Preparación** | 1 | Configuración de herramientas y entorno de pruebas | Equipo QA |
+| **A01 - Control de Acceso** | 2 | Ejecución de casos PS-A01-001 a PS-A01-003 | Security Tester |
+| **A03 - Inyección** | 3 | Ejecución de casos PS-A03-001 a PS-A03-003 | Security Tester |
+| **A05 - Configuración** | 4 | Ejecución de casos PS-A05-001 a PS-A05-003 | DevOps + QA |
+| **A07 - Autenticación** | 5 | Ejecución de casos PS-A07-001 a PS-A07-004 | Security Tester |
+| **Análisis y Reporte** | 6 | Compilación de resultados y recomendaciones | Equipo QA |
+| **Remediación** | 7-8 | Corrección de vulnerabilidades identificadas | Desarrollo |
+| **Re-testing** | 9 | Verificación de correcciones implementadas | Equipo QA |
+
+---
+
+### **Criterios de Aceptación de Seguridad**
+
+#### **✅ Criterios de Éxito**
+- **100%** de casos críticos deben pasar
+- **≥ 95%** de casos de alta prioridad deben pasar
+- **≥ 90%** de casos de media prioridad deben pasar
+- **Cero vulnerabilidades críticas** en producción
+- **Implementación completa** de headers de seguridad
+
+#### **📋 Entregables de Seguridad**
+1. **Reporte de Vulnerabilidades:** Detalle de todas las vulnerabilidades encontradas
+2. **Plan de Remediación:** Priorización y cronograma de correcciones
+3. **Configuración de Seguridad:** Documentación de configuraciones seguras
+4. **Guía de Buenas Prácticas:** Recomendaciones para el equipo de desarrollo
+
+---
+
+### **Gestión de Riesgos de Seguridad**
+
+#### **🔴 Riesgo Alto**
+- **Acceso no autorizado a datos sensibles:** Implementar controles de acceso estrictos
+- **Inyección SQL exitosa:** Utilizar prepared statements y validación de entrada
+- **Sesiones comprometidas:** Implementar gestión segura de tokens JWT
+
+#### **🟡 Riesgo Medio**
+- **Configuraciones inseguras:** Establecer hardening de servidores
+- **Headers de seguridad faltantes:** Implementar CSP y otros headers
+- **Contraseñas débiles:** Aplicar políticas de contraseñas robustas
+
+#### **🟢 Riesgo Bajo**
+- **Exposición de información de versiones:** Ocultar headers de servidor
+- **Logs insuficientes:** Mejorar logging de eventos de seguridad
+
+---
+
+## 👨‍👩‍👧‍👦 PRUEBAS DE EXPERIENCIA DE USUARIO (UX) - PERFIL PADRES
+
+### **📋 Información General de Pruebas UX**
+
+| Campo | Descripción |
+|-------|-------------|
+| **Tipo de Pruebas** | Experiencia de Usuario (UX Testing) |
+| **Usuario Objetivo** | Padres de Familia |
+| **Metodología** | Task-based Testing, Think Aloud Protocol |
+| **Métricas UX** | Task Success Rate, Time on Task, User Satisfaction (SUS) |
+| **Dispositivos** | Desktop, Tablet, Mobile |
+| **Criterio de Éxito** | ≥85% Task Success Rate, ≥4.0/5.0 Satisfaction Score |
+
+---
+
+### **📝 RESUMEN EJECUTIVO DE CASOS UX - PADRES**
+
+| ID Caso | Título Corto | Descripción Resumida | Tiempo | Prioridad |
+|---------|--------------|---------------------|---------|-----------|
+| **UX-P001** | Consulta de Calificaciones | Padre revisa notas de su hijo, interpreta sistema de calificaciones y descarga reporte académico en PDF desde móvil | 7-12 min | Alta |
+| **UX-P002** | Comunicación con Maestros | Padre envía mensaje al maestro sobre dificultades académicas, responde mensajes recibidos y programa reunión virtual | 9-14 min | Alta |
+| **UX-P003** | Gestión de Pagos Escolares | Madre consulta estado financiero de 2 hijos, realiza pago online con tarjeta y genera reporte de gastos para empleador | 11-17 min | Media |
+
+---
+
+### **🎯 Objetivos de las Pruebas UX para Padres**
+
+**Objetivo Principal:**
+Validar que los padres de familia puedan completar sus tareas principales de manera intuitiva, eficiente y satisfactoria en el sistema educativo.
+
+**Objetivos Específicos:**
+- ✅ Verificar facilidad de navegación en funcionalidades clave
+- ✅ Evaluar comprensibilidad de la información académica presentada  
+- ✅ Validar eficiencia en procesos de comunicación con maestros
+- ✅ Confirmar usabilidad en dispositivos móviles (principal dispositivo de acceso)
+- ✅ Identificar puntos de fricción en el flujo de usuario
+
+### **⚡ TAREAS RESUMIDAS POR CASO**
+
+| Caso | Tarea 1 | Tarea 2 | Tarea 3 |
+|------|---------|---------|---------|
+| **UX-P001** | Login y navegación a calificaciones (2-3 min) | Interpretar notas y buscar comentarios del maestro (3-5 min) | Descargar reporte académico en PDF (2-4 min) |
+| **UX-P002** | Enviar mensaje nuevo al maestro de matemáticas (3-5 min) | Responder mensaje y adjuntar foto de tarea (2-3 min) | Programar reunión virtual con horarios disponibles (4-6 min) |
+| **UX-P003** | Consultar estado financiero de 2 hijos (3-4 min) | Realizar pago de matrícula con tarjeta (5-8 min) | Generar reporte anual para empleador (3-5 min) |
+
+---
+
+## 📱 CASO UX-P001: CONSULTA DE CALIFICACIONES Y PROGRESO ACADÉMICO
+
+### **🎯 Escenario de Prueba**
+**Título:** "Consulta integral del rendimiento académico de mi hijo/a"
+
+**Contexto:** 
+María Rodríguez es madre de familia, tiene 35 años y usa principalmente su teléfono móvil para acceder a internet. Quiere revisar las calificaciones de su hijo Juan (grado 5°) porque se acercan las reuniones de padres y necesita prepararse.
+
+**Usuario Tipo:** Padre/Madre trabajador(a), nivel tecnológico básico-intermedio
+
+---
+
+### **📋 Tareas de Prueba UX-P001**
+
+#### **Tarea 1: Acceso inicial al sistema**
+**Objetivo:** Evaluar la facilidad de login y orientación inicial
+**Tiempo Esperado:** 2-3 minutos
+
+**Pasos del Usuario:**
+1. Abrir navegador móvil y acceder al portal
+2. Introducir credenciales de acceso (email y contraseña)
+3. Navegar hasta encontrar información de su hijo Juan
+4. Localizar sección de calificaciones/notas
+
+**Métricas a Evaluar:**
+- **Task Success Rate:** ¿Logra acceder exitosamente? (Sí/No)
+- **Time on Task:** Tiempo total para completar login y llegar a calificaciones
+- **Error Rate:** Número de clics incorrectos o páginas erróneas visitadas
+- **User Confidence:** Escala 1-5 sobre confianza durante el proceso
+
+**Criterios de Éxito:**
+- ✅ Acceso exitoso en ≤ 3 minutos
+- ✅ Máximo 2 errores de navegación
+- ✅ Confianza del usuario ≥ 4/5
+
+#### **Tarea 2: Interpretación de calificaciones**
+**Objetivo:** Validar comprensibilidad de la información académica
+**Tiempo Esperado:** 3-5 minutos
+
+**Pasos del Usuario:**
+1. Revisar calificaciones del mes actual
+2. Identificar materia con calificación más baja
+3. Buscar comentarios o observaciones del maestro
+4. Comparar rendimiento con período anterior
+
+**Métricas a Evaluar:**
+- **Information Findability:** ¿Encuentra la información buscada? (Tiempo)
+- **Comprehension Rate:** ¿Entiende el sistema de calificaciones? (Test de comprensión)
+- **Visual Clarity:** ¿Los gráficos/tablas son claros? (Escala 1-5)
+- **Actionable Insights:** ¿Puede identificar áreas de mejora? (Sí/No)
+
+**Criterios de Éxito:**
+- ✅ Identificación correcta de materia más baja en ≤ 2 minutos
+- ✅ Comprensión del sistema de calificación ≥ 80%
+- ✅ Claridad visual ≥ 4/5
+
+#### **Tarea 3: Descarga de reporte académico**
+**Objetivo:** Evaluar facilidad para obtener documentos oficiales
+**Tiempo Esperado:** 2-4 minutos
+
+**Pasos del Usuario:**
+1. Buscar opción para generar/descargar reporte de calificaciones
+2. Seleccionar período académico (último trimestre)
+3. Generar y descargar documento PDF
+4. Verificar que el archivo se descargó correctamente
+
+**Métricas a Evaluar:**
+- **Feature Discoverability:** ¿Encuentra la función de descarga fácilmente?
+- **Process Completion:** ¿Completa la descarga exitosamente?
+- **Mobile Usability:** ¿El proceso funciona bien en móvil?
+- **File Quality:** ¿El PDF generado es legible y completo?
+
+**Criterios de Éxito:**
+- ✅ Descarga exitosa en ≤ 4 minutos
+- ✅ Proceso intuitivo (máximo 1 ayuda requerida)
+- ✅ PDF legible y con información completa
+
+---
+
+## 💬 CASO UX-P002: COMUNICACIÓN CON MAESTROS
+
+### **🎯 Escenario de Prueba**
+**Título:** "Comunicación efectiva con el maestro sobre el desempeño de mi hijo/a"
+
+**Contexto:**
+Carlos Méndez es padre soltero, trabaja en horarios rotativos y necesita comunicarse con la maestra de su hija Ana (grado 3°) sobre algunas dificultades que ha observado en matemáticas. Prefiere usar mensajes escritos porque no siempre puede llamar.
+
+**Usuario Tipo:** Padre ocupado, necesidad de comunicación asíncrona
+
+---
+
+### **📋 Tareas de Prueba UX-P002**
+
+#### **Tarea 1: Envío de mensaje nuevo**
+**Objetivo:** Evaluar facilidad para iniciar comunicación con maestros
+**Tiempo Esperado:** 3-5 minutos
+
+**Pasos del Usuario:**
+1. Acceder a la sección de mensajes/comunicación
+2. Buscar al maestro de matemáticas de su hija Ana
+3. Redactar mensaje sobre dificultades observadas en casa
+4. Enviar mensaje y confirmar que se envió correctamente
+
+**Métricas a Evaluar:**
+- **Navigation Efficiency:** Tiempo para llegar a la función de mensajes
+- **Teacher Findability:** Facilidad para encontrar al maestro correcto
+- **Message Composition:** Claridad del editor de mensajes
+- **Send Confirmation:** Feedback claro sobre envío exitoso
+
+**Criterios de Éxito:**
+- ✅ Envío de mensaje en ≤ 5 minutos
+- ✅ Identificación correcta del maestro
+- ✅ Confirmación clara de envío recibida
+
+#### **Tarea 2: Respuesta a mensaje del maestro**
+**Objetivo:** Validar flujo de comunicación bidireccional
+**Tiempo Esperado:** 2-3 minutos
+
+**Pasos del Usuario:**
+1. Verificar si hay mensajes nuevos (notificación)
+2. Leer respuesta del maestro con recomendaciones
+3. Responder confirmando que implementará las sugerencias
+4. Adjuntar foto de tarea donde se ve la dificultad
+
+**Métricas a Evaluar:**
+- **Notification Visibility:** ¿Las notificaciones son claras?
+- **Message Threading:** ¿Se entiende la conversación completa?
+- **File Attachment:** ¿Es fácil adjuntar archivos desde móvil?
+- **Response Speed:** Tiempo para completar la respuesta
+
+**Criterios de Éxito:**
+- ✅ Notificación de mensaje nuevo visible
+- ✅ Respuesta exitosa con archivo adjunto en ≤ 3 minutos
+- ✅ Hilo de conversación claro y organizado
+
+#### **Tarea 3: Programación de reunión virtual**
+**Objetivo:** Evaluar funcionalidad de coordinación de citas
+**Tiempo Esperado:** 4-6 minutos
+
+**Pasos del Usuario:**
+1. Solicitar reunión virtual con el maestro
+2. Ver horarios disponibles del maestro
+3. Seleccionar horario que coincida con su disponibilidad
+4. Confirmar cita y recibir detalles de acceso (link, hora)
+
+**Métricas a Evaluar:**
+- **Scheduling Interface:** Claridad del calendario/horarios
+- **Availability Display:** ¿Se muestran claramente los horarios disponibles?
+- **Booking Completion:** ¿El proceso de reserva es exitoso?
+- **Confirmation Details:** ¿Recibe toda la información necesaria?
+
+**Criterios de Éxito:**
+- ✅ Reserva de cita exitosa en ≤ 6 minutos
+- ✅ Horarios disponibles claramente visibles
+- ✅ Confirmación con detalles completos (fecha, hora, link)
+
+---
+
+## 💳 CASO UX-P003: CONSULTA Y GESTIÓN DE PAGOS ESCOLARES
+
+### **🎯 Escenario de Prueba**
+**Título:** "Gestión completa de pagos y obligaciones financieras escolares"
+
+**Contexto:**
+Ana López es madre de dos hijos (Sofía en grado 8° y Diego en grado 2°) y necesita revisar los pagos pendientes del mes, verificar el historial de pagos realizados, y generar un comprobante para su empleador que le reembolsa gastos educativos.
+
+**Usuario Tipo:** Madre organizada, maneja múltiples hijos, necesita documentación formal
+
+---
+
+### **📋 Tareas de Prueba UX-P003**
+
+#### **Tarea 1: Consulta de estado financiero**
+**Objetivo:** Evaluar claridad en la presentación de información financiera
+**Tiempo Esperado:** 3-4 minutos
+
+**Pasos del Usuario:**
+1. Acceder a la sección de pagos/finanzas
+2. Ver resumen de estado financiero de ambos hijos
+3. Identificar pagos pendientes y fechas de vencimiento
+4. Revisar montos y conceptos de cada pago
+
+**Métricas a Evaluar:**
+- **Information Architecture:** ¿La información está bien organizada?
+- **Multi-Child Management:** ¿Es fácil alternar entre hijos?
+- **Payment Status Clarity:** ¿Se distingue claramente pendiente vs pagado?
+- **Amount Visibility:** ¿Los montos son prominentes y claros?
+
+**Criterios de Éxito:**
+- ✅ Identificación de todos los pagos pendientes en ≤ 4 minutos
+- ✅ Claridad en diferenciación entre hijos
+- ✅ Comprensión completa del estado financiero
+
+#### **Tarea 2: Realización de pago online**
+**Objetivo:** Validar proceso de pago digital
+**Tiempo Esperado:** 5-8 minutos
+
+**Pasos del Usuario:**
+1. Seleccionar pago pendiente de matrícula de Sofía
+2. Elegir método de pago (tarjeta de crédito)
+3. Introducir datos de tarjeta de forma segura
+4. Confirmar pago y recibir comprobante digital
+
+**Métricas a Evaluar:**
+- **Payment Flow:** ¿El proceso es intuitivo y sin fricciones?
+- **Security Perception:** ¿Se siente seguro introduciendo datos financieros?
+- **Error Prevention:** ¿El sistema previene errores comunes?
+- **Receipt Generation:** ¿Recibe comprobante inmediato?
+
+**Criterios de Éxito:**
+- ✅ Pago completado exitosamente en ≤ 8 minutos
+- ✅ Proceso percibido como seguro (≥4/5 confianza)
+- ✅ Comprobante generado automáticamente
+
+#### **Tarea 3: Generación de reporte financiero**
+**Objetivo:** Evaluar funcionalidad de reportes para reembolsos
+**Tiempo Esperado:** 3-5 minutos
+
+**Pasos del Usuario:**
+1. Acceder a historial de pagos del año actual
+2. Generar reporte de gastos educativos por hijo
+3. Descargar reporte en formato PDF para empleador
+4. Verificar que incluya todos los datos requeridos (fechas, montos, conceptos)
+
+**Métricas a Evaluar:**
+- **Report Customization:** ¿Puede filtrar por período y tipo de gasto?
+- **Data Completeness:** ¿El reporte incluye toda la información necesaria?
+- **Export Functionality:** ¿La descarga funciona correctamente?
+- **Professional Format:** ¿El documento es apropiado para uso oficial?
+
+**Criterios de Éxito:**
+- ✅ Generación de reporte en ≤ 5 minutos
+- ✅ Reporte incluye todos los datos requeridos
+- ✅ Formato profesional adecuado para empleador
+
+---
+
+## 📊 MÉTRICAS Y EVALUACIÓN DE PRUEBAS UX
+
+### **🎯 Métricas Cuantitativas**
+
+| Métrica | Objetivo | Herramienta de Medición |
+|---------|----------|------------------------|
+| **Task Success Rate** | ≥ 85% | Observación directa |
+| **Time on Task** | Dentro de rangos esperados | Cronómetro |
+| **Error Rate** | ≤ 2 errores por tarea | Conteo de clics erróneos |
+| **Navigation Efficiency** | ≤ 3 clics para funciones principales | Screen recording |
+| **Mobile Usability** | ≥ 90% funcionalidad móvil | Testing en dispositivos |
+
+### **🎯 Métricas Cualitativas**
+
+| Aspecto | Escala de Evaluación | Criterio de Éxito |
+|---------|---------------------|-------------------|
+| **User Satisfaction (SUS)** | 1-5 puntos | ≥ 4.0 promedio |
+| **Perceived Security** | 1-5 puntos | ≥ 4.0 en pagos |
+| **Information Clarity** | 1-5 puntos | ≥ 4.0 promedio |
+| **Visual Design** | 1-5 puntos | ≥ 3.8 promedio |
+| **Overall Experience** | 1-5 puntos | ≥ 4.0 promedio |
+
+---
+
+### **👥 Perfil de Usuarios de Prueba**
+
+#### **Participante Tipo A: "Padre Tecnológico"**
+- **Edad:** 28-40 años
+- **Nivel Tecnológico:** Intermedio-Avanzado
+- **Dispositivos:** Smartphone, laptop, tablet
+- **Expectativas:** Eficiencia, funciones avanzadas
+
+#### **Participante Tipo B: "Madre Ocupada"**
+- **Edad:** 35-45 años  
+- **Nivel Tecnológico:** Básico-Intermedio
+- **Dispositivos:** Principalmente smartphone
+- **Expectativas:** Simplicidad, información clara
+
+#### **Participante Tipo C: "Padre Poco Tecnológico"**
+- **Edad:** 40-55 años
+- **Nivel Tecnológico:** Básico
+- **Dispositivos:** Smartphone básico, acceso ocasional a PC
+- **Expectativas:** Facilidad extrema, soporte claro
+
+---
+
+### **🔄 Metodología de Ejecución**
+
+#### **Preparación:**
+1. **Reclutamiento:** 6-9 padres (2-3 por perfil)
+2. **Ambiente:** Laboratorio UX + testing remoto
+3. **Dispositivos:** iPhone, Android, Desktop
+4. **Duración:** 45-60 minutos por sesión
+
+#### **Ejecución:**
+1. **Brief inicial:** Explicación del contexto (5 min)
+2. **Tareas moderated:** Think-aloud protocol (35 min)
+3. **Cuestionario post-test:** SUS y satisfaction (10 min)
+4. **Entrevista corta:** Feedback cualitativo (10 min)
+
+#### **Análisis:**
+1. **Análisis cuantitativo:** Métricas de rendimiento
+2. **Análisis cualitativo:** Patrones de comportamiento
+3. **Identificación de pain points:** Fricciones principales
+4. **Recomendaciones de mejora:** Priorizadas por impacto
+
+---
+
+### **📈 Entregables de Pruebas UX**
+
+#### **Reporte Ejecutivo:**
+- **Resumen de hallazgos principales**
+- **Task success rates por escenario**
+- **Ranking de usabilidad por funcionalidad**
+- **Recomendaciones prioritarias**
+
+#### **Reporte Detallado:**
+- **Análisis por tarea y métrica**
+- **Heatmaps y user journeys**
+- **Quotes representativos de usuarios**
+- **Mockups de mejoras sugeridas**
+
+#### **Plan de Mejoras:**
+- **Quick wins** (implementación inmediata)
+- **Mejoras de mediano plazo** (1-3 meses)
+- **Iniciativas estratégicas** (6+ meses)
+- **Métricas de seguimiento** para validar mejoras
+
+---
+
 **Aprobado por:** Equipo de Desarrollo  
 **Fecha de Aprobación:** 29 de Agosto, 2025  
 **Próxima Revisión:** 29 de Septiembre, 2025

@@ -4,11 +4,10 @@
 
     <main class="planning-container">
       <ArrowBack 
-        :to="'/director/planifications'" 
+        :to="'/director/academic'" 
         :show-text="true" 
-        text="Volver a Planificaciones"
+        text="Volver a Gestión Académica"
       />
-      <h1 class="page-title">Planificación del Curso</h1>
       <h1 class="text-page-title">Planificación del Curso</h1>
       <div class="course-subtitle">{{ courseData?.materia }} | Grado: {{ courseData?.grado }} | Sección: {{ courseData?.seccion }}</div>
       <div class="separator"></div>
@@ -177,11 +176,11 @@ onMounted(async () => {
 
 /* Vista de tabla para desktop */
 .desktop-view {
-  display: block;
+  display: block !important;
 }
 
 .mobile-view {
-  display: none;
+  display: none !important;
 }
 
 .table-container {
@@ -357,7 +356,8 @@ onMounted(async () => {
 }
 
 /* Responsive breakpoints */
-@media screen and (max-width: 1024px) {
+/* Tablets - still show desktop view but adjust spacing */
+@media screen and (max-width: 1024px) and (min-width: 769px) {
   .planning-container {
     padding: 1.5rem;
   }
@@ -369,6 +369,15 @@ onMounted(async () => {
   .data-table th, .data-table td {
     padding: 0.8rem;
     font-size: 0.9rem;
+  }
+  
+  /* Ensure desktop view is shown on tablets */
+  .desktop-view {
+    display: block !important;
+  }
+  
+  .mobile-view {
+    display: none !important;
   }
 }
 
@@ -391,11 +400,11 @@ onMounted(async () => {
   
   /* Ocultar tabla en móvil y mostrar tarjetas */
   .desktop-view {
-    display: none;
+    display: none !important;
   }
   
   .mobile-view {
-    display: block;
+    display: block !important;
   }
   
   .no-planning {
