@@ -206,21 +206,18 @@ onUnmounted(() => {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-.menu li.active {
-  background-color: rgba(255, 255, 255, 0.3);
-  position: relative;
+/* Mejora del texto en hover para textos largos */
+.menu li span {
+  font-size: 0.8rem;
+  line-height: 1.1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
-.menu li.active::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  background-color: white;
-  border-radius: 2px;
+.menu li.active {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .icon.large {
@@ -275,6 +272,12 @@ onUnmounted(() => {
     width: 40px;
     height: 40px;
     margin-bottom: 8px;
+  }
+
+  /* En móvil, texto más legible */
+  .menu li span {
+    font-size: 14px;
+    line-height: 1.2;
   }
 }
 
