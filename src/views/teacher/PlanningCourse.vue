@@ -219,8 +219,9 @@ import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import ArrowBack from '@/components/common/ArrowBack.vue'
 import planningService from '@/services/planningService'
 import fileService from '@/services/fileService'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Plus, Trash, Upload } from 'lucide-vue-next'
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Info, Plus, Trash, Upload } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,7 +294,8 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const formatEstadoClass = (estado) => {
@@ -310,7 +312,11 @@ const formatTrimestre = (mes) => {
 }
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 const fetchPlanning = async () => {

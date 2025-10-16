@@ -29,8 +29,10 @@ import {
   BookOpen,
   CalendarDays,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Info
 } from 'lucide-vue-next'
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
 
 import teacherImg from '@/assets/maestro.png'
 import { ref, onMounted } from 'vue'
@@ -56,11 +58,14 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }

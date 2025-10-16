@@ -105,13 +105,15 @@ import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import ArrowBack from '@/components/common/ArrowBack.vue'
 import taskService from '@/services/taskService'
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
 import {
   User,
   ClipboardList,
   BookOpen,
   CalendarDays,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Info
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -140,7 +142,8 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const taskData = ref({
@@ -176,7 +179,11 @@ const checkUnsavedChanges = () => {
 }
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 const handleCancel = () => {

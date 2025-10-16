@@ -83,7 +83,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Sidebar from '@/components/Sidebar.vue';
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Info } from 'lucide-vue-next';
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF';
 import { getCourseColor, subscribeToColorChanges } from '@/utils/courseColors.js';
 
 const router = useRouter();
@@ -94,7 +95,8 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ];
 
 const currentDate = ref(new Date());
@@ -204,7 +206,11 @@ const nextMonth = () => {
 };
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path);
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF();
+  } else if (item.path) {
+    router.push(item.path);
+  }
 };
 
 // Mostrar detalles de tarea (especialmente útil en móvil)

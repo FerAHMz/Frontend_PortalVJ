@@ -183,7 +183,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Sidebar from '@/components/Sidebar.vue';
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue';
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next';
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Info } from 'lucide-vue-next';
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF';
 import { messageService } from '@/services/messageService';
 import { useNotifications } from '@/utils/useNotifications.js';
 import { useRouter } from 'vue-router';
@@ -203,6 +204,7 @@ const menuItems = [
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
   { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' },
 ];
 
 const conversations = ref([]);
@@ -257,7 +259,9 @@ const selectConversation = async (subject) => {
 };
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF();
+  } else if (item.path) {
     router.push(item.path);
   }
 };

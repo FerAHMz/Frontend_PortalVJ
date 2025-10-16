@@ -85,9 +85,10 @@
   import { useRoute, useRouter } from 'vue-router'
   import Sidebar from '@/components/Sidebar.vue'
   import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-  import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+  import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Info } from 'lucide-vue-next'
   import reportCardService from '@/services/reportCardService'
   import { useNotifications } from '@/utils/useNotifications'
+  import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
 
   const { showNotification } = useNotifications()
   const route = useRoute()
@@ -103,7 +104,8 @@
     { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
     { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
     { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-    { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+    { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+    { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
   ]
 
   // Búsqueda por nombre, apellido o carnet
@@ -214,9 +216,11 @@
     }
   });
 
-  const handleItemClick = (path) => {
-    if (path) {
-      router.push(path)
+  const handleItemClick = (item) => {
+    if (item.action === 'downloadInstructive') {
+      downloadInstructivePDF()
+    } else if (item.path) {
+      router.push(item.path)
     }
   }
 </script>

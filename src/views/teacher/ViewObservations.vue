@@ -147,8 +147,9 @@ import { useRoute, useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import observationsService from '@/services/observationsService'
-import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare } from 'lucide-vue-next'
+import { User, ClipboardList, BookOpen, CalendarDays, FileText, MessageSquare, Info } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
 
 const route = useRoute()
 const router = useRouter()
@@ -163,11 +164,16 @@ const menuItems = [
   { label: 'Cursos', icon: BookOpen, path: '/teacher/courses' },
   { label: 'Calendario', icon: CalendarDays, path: '/teacher/calendar' },
   { label: 'Boleta de calificaciones', icon: FileText, path: '/teacher/report-card' },
-  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' }
+  { label: 'Comunicación', icon: MessageSquare, path: '/teacher/messages' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 const fetchObservations = async () => {
