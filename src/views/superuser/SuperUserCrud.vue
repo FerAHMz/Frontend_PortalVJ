@@ -257,7 +257,8 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users, UserPlus } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users, UserPlus, Info } from 'lucide-vue-next'
+import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
 import { useNotifications } from '@/utils/useNotifications.js'
@@ -274,7 +275,8 @@ const menuItems = [
     { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
     { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
     { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
-    { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
+    { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' },
+    { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const headers = [
@@ -644,7 +646,9 @@ onMounted(async () => {
 })
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadSuperUserInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }

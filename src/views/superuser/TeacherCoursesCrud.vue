@@ -206,12 +206,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import {
-  Settings, Plus, Search, Trash, BookOpen, User, FileText, Users, UserPlus
+  Settings, Plus, Search, Trash, BookOpen, User, FileText, Users, UserPlus, Info
 } from 'lucide-vue-next'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { courseService } from '@/services/courseService'
 import { useNotifications } from '@/utils/useNotifications'
+import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF'
 
 const { showNotification } = useNotifications()
 const router = useRouter()
@@ -223,11 +224,16 @@ const menuItems = [
   { label: 'Gestión de Cursos',    icon: BookOpen, path: '/superuser/teacher-courses' },
   { label: 'Planificaciones',      icon: FileText, path: '/superuser/planifications' },
   { label: 'Gestión de Familias',  icon: Users,    path: '/superuser/families' },
-  { label: 'Inscripciones',        icon: UserPlus, path: '/superuser/inscripciones' }
+  { label: 'Inscripciones',        icon: UserPlus, path: '/superuser/inscripciones' },
+  { label: 'Instructivo',          icon: Info,     action: 'downloadInstructive' }
 ]
 
 const handleItemClick = item => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadSuperUserInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 /*  Encabezados de tabla  */

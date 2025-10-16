@@ -238,7 +238,8 @@ import { superUserPlanificationService } from '@/services/superUserPlanification
 import superUserFileService from '@/services/superUserFileService';
 import { useNotifications } from '@/utils/useNotifications.js';
 import { useRouter } from 'vue-router';
-import { User, Settings, BookOpen, FileText, Users, UserPlus, Download, File } from 'lucide-vue-next';
+import { User, Settings, BookOpen, FileText, Users, UserPlus, Download, File, Info } from 'lucide-vue-next';
+import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF';
 
 const router = useRouter();
 const { showNotification } = useNotifications();
@@ -266,7 +267,8 @@ const menuItems = [
   { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
   { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
   { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
-  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
+  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ];
 
 // Computed properties
@@ -415,7 +417,9 @@ const getFileType = (mimeType) => {
 };
 
 const handleItemClick = (item) => {
-  if (item.action === 'logout') {
+  if (item.action === 'downloadInstructive') {
+    downloadSuperUserInstructivePDF()
+  } else if (item.action === 'logout') {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     localStorage.removeItem('userId');

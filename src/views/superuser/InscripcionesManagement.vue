@@ -322,8 +322,9 @@ import {
   User, Settings, BookOpen, FileText, Users,
   Plus, Upload, Search, Edit, Trash, CheckCircle, XCircle,
   X, Clock, UserCheck, List, Inbox, ArrowUpDown, Eye,
-  ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight
+  ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Info
 } from 'lucide-vue-next'
+import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF'
 
 const router = useRouter()
 
@@ -334,11 +335,14 @@ const menuItems = [
   { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
   { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
   { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
-  { label: 'Inscripciones', icon: Users, path: '/superuser/inscripciones' }
+  { label: 'Inscripciones', icon: Users, path: '/superuser/inscripciones' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadSuperUserInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }

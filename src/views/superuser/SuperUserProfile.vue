@@ -22,7 +22,8 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, Settings, BookOpen, FileText, Users, UserPlus } from 'lucide-vue-next'
+import { User, Settings, BookOpen, FileText, Users, UserPlus, Info } from 'lucide-vue-next'
+import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF'
 import adminImg from '@/assets/maestro.png' // Usando la misma imagen por ahora
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -45,11 +46,14 @@ const menuItems = [
   { label: 'Gestión de Cursos', icon: BookOpen, path: '/superuser/teacher-courses' },
   { label: 'Planificaciones', icon: FileText, path: '/superuser/planifications' },
   { label: 'Gestión de Familias', icon: Users, path: '/superuser/families' },
-  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' }
+  { label: 'Inscripciones', icon: UserPlus, path: '/superuser/inscripciones' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadSuperUserInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }
