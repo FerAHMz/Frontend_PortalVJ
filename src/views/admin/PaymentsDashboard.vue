@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" />
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
     <div class="control-de-pagos">
       <ArrowBack 
         :to="'/admin/payments'" 
@@ -95,7 +95,8 @@ import ArrowBack from '@/components/common/ArrowBack.vue'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { ref, computed, onMounted } from 'vue'
-import { User, CreditCard } from 'lucide-vue-next'
+import { User, CreditCard, Info } from 'lucide-vue-next'
+import { downloadAdminInstructivePDF } from '@/composables/useAdminInstructivePDF.js'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useRouter } from 'vue-router'
@@ -116,8 +117,17 @@ const getAuthToken = () => {
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
-  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
+
+const handleItemClick = (item) => {
+  if (item.action === 'downloadInstructive') {
+    downloadAdminInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
+}
 
 const dropdownVisible = ref(false)
 const searchQuery = ref('')

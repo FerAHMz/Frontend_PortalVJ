@@ -32,7 +32,7 @@ import {
   MessageSquare,
   Info
 } from 'lucide-vue-next'
-import { downloadInstructivePDF } from '@/composables/useInstructivePDF'
+import { downloadTeacherInstructivePDF } from '@/composables/useTeacherInstructivePDF.js'
 
 import teacherImg from '@/assets/maestro.png'
 import { ref, onMounted } from 'vue'
@@ -64,7 +64,7 @@ const menuItems = [
 
 const handleItemClick = (item) => {
   if (item.action === 'downloadInstructive') {
-    downloadInstructivePDF()
+    downloadTeacherInstructivePDF()
   } else if (item.path) {
     router.push(item.path)
   }

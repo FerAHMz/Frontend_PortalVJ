@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <Sidebar :items="menuItems" />
+    <Sidebar :items="menuItems" @item-clicked="handleItemClick" />
 
     <main class="control-de-pagos">
       <!-- Título de la página -->
@@ -210,20 +210,31 @@ import { manualPaymentService } from '@/services/manualPaymentService'
 import ErrorDialog from '@/components/dialogs/ErrorDialog.vue'
 import ConfirmationDialogInput from '@/components/dialogs/ConfirmationDialogInput.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { User, CreditCard } from 'lucide-vue-next'
+import { User, CreditCard, Info } from 'lucide-vue-next'
+import { downloadAdminInstructivePDF } from '@/composables/useAdminInstructivePDF.js'
 import { ref, computed, onMounted } from 'vue'
 import { Plus, Edit, Trash, Search } from 'lucide-vue-next'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useNotifications } from '@/utils/useNotifications.js'
 
 const { showNotification } = useNotifications()
 const route = useRoute()
+const router = useRouter()
 
 /*  Menú lateral  */
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
-  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
+
+const handleItemClick = (item) => {
+  if (item.action === 'downloadInstructive') {
+    downloadAdminInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
+}
 
 /*  Datos para formularios   */
 const headers = [

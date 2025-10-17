@@ -84,8 +84,9 @@ import Sidebar from '@/components/Sidebar.vue'
 import ArrowBack from '@/components/common/ArrowBack.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import planningService from '@/services/planningService'
-import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users, Info } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -98,7 +99,8 @@ const menuItems = [
   { label: 'Perfil', icon: User, path: '/director' },
   { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
   { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
-  { label: 'Personal', icon: Users, path: '/director/staff' }
+  { label: 'Personal', icon: Users, path: '/director/staff' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const formatEstadoClass = (estado) => {
@@ -106,7 +108,11 @@ const formatEstadoClass = (estado) => {
 }
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadDirectorInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 const goToTasks = (planId) => {

@@ -22,7 +22,8 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, CreditCard } from 'lucide-vue-next'
+import { User, CreditCard, Info } from 'lucide-vue-next'
+import { downloadAdminInstructivePDF } from '@/composables/useAdminInstructivePDF.js'
 import secretariaImg from '@/assets/secretaria.jpg'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -41,11 +42,14 @@ const error = ref(null)
 
 const menuItems = [
   { label: 'Perfil', icon: User, path: '/admin' },
-  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' }
+  { label: 'Control de pagos', icon: CreditCard, path: '/admin/payments' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadAdminInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }

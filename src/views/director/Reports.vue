@@ -167,8 +167,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { User, BookOpen, BarChart3, Users, Download, FileText } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users, Download, FileText, Info } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
 
 const router = useRouter()
 const { showNotification } = useNotifications()
@@ -210,11 +211,14 @@ const menuItems = [
   { label: 'Perfil', icon: User, path: '/director' },
   { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
   { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
-  { label: 'Personal', icon: Users, path: '/director/staff' }
+  { label: 'Personal', icon: Users, path: '/director/staff' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadDirectorInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }

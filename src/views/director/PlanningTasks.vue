@@ -220,7 +220,8 @@ import ConfirmDialog from '@/components/dialogs/ConfirmDialog.vue'
 import planningService from '@/services/planningService'
 import directorFileService from '@/services/directorFileService'
 import { useNotifications } from '@/utils/useNotifications.js'
-import { User, BookOpen, BarChart3, Users, Download, Edit, Trash, Check, X } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users, Download, Edit, Trash, Check, X, Info } from 'lucide-vue-next'
+import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -245,11 +246,16 @@ const menuItems = [
   { label: 'Perfil', icon: User, path: '/director' },
   { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
   { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
-  { label: 'Personal', icon: Users, path: '/director/staff' }
+  { label: 'Personal', icon: Users, path: '/director/staff' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) router.push(item.path)
+  if (item.action === 'downloadInstructive') {
+    downloadDirectorInstructivePDF()
+  } else if (item.path) {
+    router.push(item.path)
+  }
 }
 
 const formatEstadoClass = (estado) => {

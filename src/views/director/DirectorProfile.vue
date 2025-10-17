@@ -22,10 +22,11 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import ProfileCard from '@/components/ProfileCard.vue'
-import { User, BookOpen, BarChart3, Users } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users, Info } from 'lucide-vue-next'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { profileService } from '@/services/profileService.js'
+import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
 import directorImg from '@/assets/maestro.png' // Usando la misma imagen por ahora
 
 const router = useRouter()
@@ -43,11 +44,14 @@ const menuItems = [
   { label: 'Perfil', icon: User, path: '/director' },
   { label: 'Gestión Académica', icon: BookOpen, path: '/director/academic' },
   { label: 'Reportes', icon: BarChart3, path: '/director/reports' },
-  { label: 'Personal', icon: Users, path: '/director/staff' }
+  { label: 'Personal', icon: Users, path: '/director/staff' },
+  { label: 'Instructivo', icon: Info, action: 'downloadInstructive' }
 ]
 
 const handleItemClick = (item) => {
-  if (item.path) {
+  if (item.action === 'downloadInstructive') {
+    downloadDirectorInstructivePDF()
+  } else if (item.path) {
     router.push(item.path)
   }
 }
