@@ -78,6 +78,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { passwordResetService } from '@/services/passwordResetService.js'
 
 const email = ref('')
 const loading = ref(false)
@@ -94,29 +95,17 @@ const requestReset = async () => {
   loading.value = true
 
   try {
-    const response = await fetch('http://localhost:3000/api/password/request-reset', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email: email.value })
-    })
-
-    const data = await response.json()
-
-    if (data.success) {
-      emailSent.value = true
-      // Solo para desarrollo
-      if (data.developmentToken) {
-        developmentToken.value = data.developmentToken
-      }
-      showNotification('success', 'Éxito', data.message)
-    } else {
-      showNotification('error', 'Error', data.message || 'Error al procesar la solicitud')
+    const data = await passwordResetService.requestReset(email.value)
+    
+    emailSent.value = true
+    // Solo para desarrollo
+    if (data.developmentToken) {
+      developmentToken.value = data.developmentToken
     }
+    showNotification('success', 'Éxito', data.message)
   } catch (error) {
     console.error('Error requesting password reset:', error)
-    showNotification('error', 'Error de conexión', 'No se pudo conectar con el servidor')
+    showNotification('error', 'Error', error.message || 'No se pudo conectar con el servidor')
   } finally {
     loading.value = false
   }
