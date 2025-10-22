@@ -60,16 +60,41 @@ const handleChildSelected = (child) => {
   selectedChild.value = child;
 };
 
-const handleViewTasks = (subjectId) => {
+const handleViewTasks = async (subjectId) => {
   if (selectedChild.value && subjectId) {
-    router.push({ 
-      path: '/parent/tasks', 
-      query: { 
-        carnet: selectedChild.value.carnet, 
-        subjectId,
-        fromGrades: 'true'
-      } 
-    });
+    // Verificar solvencia antes de navegar
+    try {
+      const { parentService } = await import('@/services/parentService.js');
+      const solvencyRes = await parentService.checkPaymentSolvency(selectedChild.value.carnet);
+      
+      if (solvencyRes.success && solvencyRes.solvency.isSolvent) {
+        router.push({ 
+          path: '/parent/tasks', 
+          query: { 
+            carnet: selectedChild.value.carnet, 
+            subjectId,
+            fromGrades: 'true'
+          } 
+        });
+      } else {
+        // Si no está solvente, redirigir a pagos
+        router.push({
+          name: 'PaymentHistory',
+          query: { studentId: selectedChild.value.carnet }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking solvency for navigation:', error);
+      // En caso de error, permitir navegación
+      router.push({ 
+        path: '/parent/tasks', 
+        query: { 
+          carnet: selectedChild.value.carnet, 
+          subjectId,
+          fromGrades: 'true'
+        } 
+      });
+    }
   }
 };
 

@@ -47,6 +47,32 @@
           </div>
         </div>
 
+        <!-- Estado de solvencia -->
+        <div v-if="selectedChild && solvencyStatus" class="solvency-indicator">
+          <div class="solvency-header">
+            <h3>Estado de Solvencia</h3>
+            <button @click="refreshSolvencyStatus" class="refresh-btn" :disabled="loadingSolvency">
+              {{ loadingSolvency ? 'Verificando...' : 'Verificar' }}
+            </button>
+          </div>
+          <div class="solvency-card" :class="solvencyStatus.isSolvent ? 'solvent' : 'not-solvent'">
+            <div class="solvency-icon">
+              {{ solvencyStatus.isSolvent ? '✅' : '⚠️' }}
+            </div>
+            <div class="solvency-info">
+              <div class="solvency-status">
+                {{ solvencyStatus.isSolvent ? 'Al día con los pagos' : 'Pagos pendientes' }}
+              </div>
+              <div class="solvency-details">
+                {{ solvencyStatus.message }}
+              </div>
+              <div class="solvency-percentage">
+                Solvencia: {{ solvencyStatus.solvencyPercentage }}%
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Resumen de pagos -->
         <div v-if="selectedChild && paymentSummary" class="payment-summary">
           <h3>Resumen de Pagos</h3>
@@ -216,6 +242,8 @@ const selectedChild = ref(null)
 const payments = ref([])
 const paymentSummary = ref(null)
 const pendingPayments = ref([])
+const solvencyStatus = ref(null)
+const loadingSolvency = ref(false)
 const startDate = ref('')
 const endDate = ref('')
 
@@ -297,17 +325,40 @@ const fetchPendingPayments = async () => {
   }
 }
 
+const refreshSolvencyStatus = async () => {
+  if (!selectedChild.value) return
+  
+  try {
+    loadingSolvency.value = true
+    const response = await parentService.checkPaymentSolvency(selectedChild.value.carnet)
+    
+    if (response.success) {
+      solvencyStatus.value = response.solvency
+    } else {
+      console.error('Error checking solvency:', response.error)
+      solvencyStatus.value = null
+    }
+  } catch (err) {
+    console.error('Error checking solvency:', err)
+    solvencyStatus.value = null
+  } finally {
+    loadingSolvency.value = false
+  }
+}
+
 const handleChildSelected = async (child) => {
   selectedChild.value = child
   if (child) {
     await Promise.all([
       fetchPaymentHistory(),
-      fetchPendingPayments()
+      fetchPendingPayments(),
+      refreshSolvencyStatus()
     ])
   } else {
     payments.value = []
     paymentSummary.value = null
     pendingPayments.value = []
+    solvencyStatus.value = null
   }
 }
 
@@ -804,6 +855,94 @@ onMounted(async () => {
 .no-payments p, .select-child-message p {
   color: #999;
   margin: 0;
+  font-size: 0.9rem;
+}
+
+/* Indicador de solvencia */
+.solvency-indicator {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.solvency-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.solvency-header h3 {
+  margin: 0;
+  color: #1b9963;
+  font-size: 1.2rem;
+}
+
+.refresh-btn {
+  background: #1b9963;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #157a50;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.solvency-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid;
+}
+
+.solvency-card.solvent {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border-color: #28a745;
+  color: #155724;
+}
+
+.solvency-card.not-solvent {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.solvency-icon {
+  font-size: 2rem;
+}
+
+.solvency-info {
+  flex: 1;
+}
+
+.solvency-status {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.solvency-details {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 0.5rem;
+}
+
+.solvency-percentage {
+  font-weight: 500;
   font-size: 0.9rem;
 }
 

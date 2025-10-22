@@ -34,5 +34,9 @@ export const parentService = {
   async getChildPendingPayments(studentId) {
     const res = await axios.get(`${API_URL}/${studentId}/payments/pending`, getAuthHeaders());
     return res.data;
+  },
+  async checkPaymentSolvency(studentId) {
+    const res = await axios.get(`${API_URL}/${studentId}/solvency`, getAuthHeaders());
+    return res.data;
   }
 };

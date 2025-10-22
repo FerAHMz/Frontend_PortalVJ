@@ -3,7 +3,24 @@
     <h2>Calificaciones por Tarea/Actividad</h2>
     <div v-if="loading" class="loading">Cargando tareas...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
+    
+    <!-- Bloqueo por falta de solvencia -->
+    <SolvencyBlock 
+      v-else-if="solvencyData && !solvencyData.isSolvent"
+      :solvency-percentage="solvencyData.solvencyPercentage"
+      :pending-months="solvencyData.pendingMonths"
+      :total-months="solvencyData.totalMonthsToCheck"
+      :pending-months-list="solvencyData.pendingMonthsList"
+      @view-payments="handleViewPayments"
+      @refresh-solvency="checkSolvency"
+    />
+    
     <div v-else>
+      <div v-if="solvencyData && solvencyData.isSolvent" class="solvency-status">
+        <div class="solvency-badge">
+          ✅ Estudiante solvente - Acceso completo
+        </div>
+      </div>
       <table class="tasks-table">
         <thead>
           <tr>
@@ -36,13 +53,17 @@
 
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { parentService } from '@/services/parentService.js';
+import SolvencyBlock from '@/components/SolvencyBlock.vue';
 
+const router = useRouter();
 const props = defineProps({
   student: Object,
   subjectId: [String, Number]
 });
 const tasks = ref([]);
+const solvencyData = ref(null);
 const loading = ref(false);
 const error = ref(null);
 
@@ -63,22 +84,50 @@ const averageGrade = computed(() => {
   return (totalPoints.value / tasks.value.length) * 10;
 });
 
+const checkSolvency = async () => {
+  if (!props.student) return;
+  try {
+    const res = await parentService.checkPaymentSolvency(props.student.carnet);
+    if (res.success) {
+      solvencyData.value = res.solvency;
+    }
+  } catch (err) {
+    console.error('Error checking solvency:', err);
+    // Si no se puede verificar solvencia, permitir acceso
+    solvencyData.value = { isSolvent: true };
+  }
+};
+
 const fetchTasks = async () => {
   if (!props.student || !props.subjectId) return;
   loading.value = true;
   error.value = null;
-  try {
-    const res = await parentService.getStudentTaskGrades(props.student.carnet, props.subjectId);
-    if (res.success) {
-      tasks.value = res.tasks;
-    } else {
-      error.value = 'No se pudieron obtener las tareas.';
+  
+  // Primero verificar solvencia
+  await checkSolvency();
+  
+  // Solo cargar tareas si está solvente
+  if (solvencyData.value && solvencyData.value.isSolvent) {
+    try {
+      const res = await parentService.getStudentTaskGrades(props.student.carnet, props.subjectId);
+      if (res.success) {
+        tasks.value = res.tasks;
+      } else {
+        error.value = res.error || 'Error al cargar tareas';
+      }
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      error.value = 'Error al cargar tareas';
     }
-  } catch (err) {
-    error.value = 'Error al obtener tareas.';
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
+};
+
+const handleViewPayments = () => {
+  router.push({
+    name: 'PaymentHistory',
+    query: { studentId: props.student.carnet }
+  });
 };
 
 watch(() => [props.student, props.subjectId], fetchTasks, { immediate: true });
@@ -107,11 +156,29 @@ watch(() => [props.student, props.subjectId], fetchTasks, { immediate: true });
   font-weight: bold;
 }
 .average-row {
-  background: #e3f2fd;
+  background: #e9ecef;
   font-weight: bold;
-  border-top: 2px solid #1b9963;
 }
-.total-row td, .average-row td {
-  border-top: 2px solid #dee2e6;
+.loading, .error {
+  text-align: center;
+  padding: 1rem;
+}
+.error {
+  color: #dc3545;
+}
+
+.solvency-status {
+  margin-bottom: 1.5rem;
+}
+
+.solvency-badge {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
 }
 </style>
