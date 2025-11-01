@@ -17,7 +17,8 @@
           <select v-model="roleFilter" class="filter-select">
             <option value="">Todos los roles</option>
             <option value="maestro">Maestros</option>
-            <option value="director">Directores</option>
+            <option value="estudiante">Estudiantes</option>
+            <option value="padre">Padres</option>
           </select>
 
           <div class="search-container">
@@ -279,6 +280,80 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal de perfil de usuario -->
+      <div v-if="showProfileModal" class="modal-overlay">
+        <div class="modal-content profile">
+          <div class="profile-header">
+            <div class="profile-avatar">
+              <User class="avatar-icon" />
+            </div>
+            <div class="profile-title">
+              <h2>{{ selectedProfile?.nombre }} {{ selectedProfile?.apellido }}</h2>
+              <span class="role-badge" :class="getRoleClass(selectedProfile?.rol)">
+                {{ getRoleDisplayName(selectedProfile?.rol) }}
+              </span>
+            </div>
+            <button @click="closeProfileModal" class="close-btn">
+              <X class="close-icon" />
+            </button>
+          </div>
+
+          <div class="profile-body">
+            <div class="profile-section">
+              <h3>Información Personal</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>ID:</label>
+                  <span>{{ selectedProfile?.id }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Nombre Completo:</label>
+                  <span>{{ selectedProfile?.nombre }} {{ selectedProfile?.apellido }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Correo Electrónico:</label>
+                  <span>{{ selectedProfile?.email }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Teléfono:</label>
+                  <span>{{ selectedProfile?.telefono || 'No especificado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-section">
+              <h3>Estado de la Cuenta</h3>
+              <div class="status-info">
+                <div class="status-item">
+                  <label>Estado:</label>
+                  <span 
+                    :class="['status-badge', selectedProfile?.activo ? 'active' : 'inactive']"
+                  >
+                    {{ selectedProfile?.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+                <div class="status-item">
+                  <label>Rol:</label>
+                  <span class="role-badge" :class="getRoleClass(selectedProfile?.rol)">
+                    {{ getRoleDisplayName(selectedProfile?.rol) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <button @click="editItem(selectedProfile)" class="modal-btn edit">
+              <Edit class="btn-icon" />
+              Editar Información
+            </button>
+            <button @click="closeProfileModal" class="modal-btn cancel">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <NotificationDialog />
@@ -290,9 +365,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { User, BookOpen, BarChart3, Users, Plus, Search, Edit, Eye, UserX, UserCheck, Info } from 'lucide-vue-next'
+import { User, BookOpen, BarChart3, Users, Plus, Search, Edit, Eye, UserX, UserCheck, Info, X } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
 import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
+import teacherService from '@/services/teacherService.js'
 
 const router = useRouter()
 const { showNotification } = useNotifications()
@@ -305,9 +381,11 @@ const roleFilter = ref('')
 const items = ref([])
 const showModal = ref(false)
 const showConfirmDialog = ref(false)
+const showProfileModal = ref(false)
 const editingItem = ref(null)
 const itemToConfirm = ref(null)
 const confirmAction = ref('')
+const selectedProfile = ref(null)
 
 // Form data
 const formData = ref({
@@ -337,7 +415,8 @@ const editableHeaders = computed(() =>
 
 const allowedRoles = [
   { label: 'Maestro', value: 'maestro' },
-  { label: 'Director', value: 'director' }
+  { label: 'Estudiante', value: 'estudiante' },
+  { label: 'Padre', value: 'padre' }
 ]
 
 const menuItems = [
@@ -383,7 +462,8 @@ const handleItemClick = (item) => {
 const getRoleClass = (role) => {
   const roleClasses = {
     maestro: 'teacher',
-    director: 'director'
+    estudiante: 'student',
+    padre: 'parent'
   }
   return roleClasses[role] || 'default'
 }
@@ -391,7 +471,8 @@ const getRoleClass = (role) => {
 const getRoleDisplayName = (role) => {
   const roleNames = {
     maestro: 'Maestro',
-    director: 'Director'
+    estudiante: 'Estudiante',
+    padre: 'Padre'
   }
   return roleNames[role] || role
 }
@@ -411,6 +492,11 @@ const openCreateModal = () => {
 }
 
 const editItem = (item) => {
+  // Close profile modal if it's open
+  if (showProfileModal.value) {
+    closeProfileModal()
+  }
+  
   editingItem.value = item
   formData.value = {
     ...item,
@@ -420,8 +506,13 @@ const editItem = (item) => {
 }
 
 const viewProfile = (item) => {
-  showNotification('info', 'Perfil', `Viendo perfil de ${item.nombre} ${item.apellido}`)
-  // Implement profile view logic
+  selectedProfile.value = item
+  showProfileModal.value = true
+}
+
+const closeProfileModal = () => {
+  showProfileModal.value = false
+  selectedProfile.value = null
 }
 
 const closeModal = () => {
@@ -445,24 +536,24 @@ const saveItem = async () => {
       }
     }
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
     if (editingItem.value) {
       // Update existing item
+      const result = await teacherService.updateStaff(editingItem.value.id, formData.value)
+      
+      // Update local data
       const index = items.value.findIndex(item => item.id === editingItem.value.id)
       if (index !== -1) {
         items.value[index] = { ...formData.value, id: editingItem.value.id }
       }
+      
       showNotification('success', 'Éxito', 'Personal actualizado correctamente')
     } else {
       // Create new item
-      const newId = Math.max(...items.value.map(item => item.id), 0) + 1
-      items.value.push({
-        ...formData.value,
-        id: newId,
-        activo: true
-      })
+      const result = await teacherService.createStaff(formData.value)
+      
+      // Refresh the list to get the new item with correct ID
+      await fetchStaff()
+      
       showNotification('success', 'Éxito', 'Nuevo personal creado correctamente')
     }
 
@@ -495,21 +586,28 @@ const cancelAction = () => {
 
 const executeAction = async () => {
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const isActivate = confirmAction.value === 'activate'
+    
+    // Call the service to toggle status
+    await teacherService.toggleStaffStatus(
+      itemToConfirm.value.id, 
+      itemToConfirm.value.rol, 
+      isActivate
+    )
 
+    // Update local data
     const index = items.value.findIndex(item => item.id === itemToConfirm.value.id)
     if (index !== -1) {
-      items.value[index].activo = confirmAction.value === 'activate'
+      items.value[index].activo = isActivate
       
-      const actionText = confirmAction.value === 'activate' ? 'activado' : 'desactivado'
+      const actionText = isActivate ? 'activado' : 'desactivado'
       showNotification('success', 'Éxito', `Personal ${actionText} correctamente`)
     }
 
     cancelAction()
   } catch (error) {
     console.error('Error executing action:', error)
-    showNotification('error', 'Error', 'No se pudo completar la acción')
+    showNotification('error', 'Error', error.message || 'No se pudo completar la acción')
   }
 }
 
@@ -517,42 +615,14 @@ const fetchStaff = async () => {
   try {
     loading.value = true
 
-    // Simulate API call to fetch staff data
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Obtener todo el personal (maestros, estudiantes y padres) desde la base de datos
+    const staff = await teacherService.getAllStaff()
+    items.value = staff
 
-    // Mock data
-    items.value = [
-      {
-        id: 1,
-        nombre: 'María',
-        apellido: 'González',
-        email: 'maria.gonzalez@vanguardia.edu',
-        telefono: '+504 9876-5432',
-        rol: 'maestro',
-        activo: true
-      },
-      {
-        id: 2,
-        nombre: 'Carlos',
-        apellido: 'Rodríguez',
-        email: 'carlos.rodriguez@vanguardia.edu',
-        telefono: '+504 8765-4321',
-        rol: 'maestro',
-        activo: true
-      },
-      {
-        id: 3,
-        nombre: 'Ana',
-        apellido: 'López',
-        email: 'ana.lopez@vanguardia.edu',
-        telefono: '+504 7654-3210',
-        rol: 'director',
-        activo: false
-      }
-    ]
+    console.log('Personal cargado:', staff.length, 'miembros')
   } catch (error) {
     console.error('Error fetching staff:', error)
-    showNotification('error', 'Error', 'No se pudo cargar la información del personal')
+    showNotification('error', 'Error', error.message || 'No se pudo cargar la información del personal')
   } finally {
     loading.value = false
   }
@@ -782,9 +852,14 @@ onMounted(() => {
   color: #004085;
 }
 
-.role-badge.director {
-  background-color: #d1ecf1;
-  color: #0c5460;
+.role-badge.student {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.role-badge.parent {
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
 .role-badge.default {
@@ -943,6 +1018,159 @@ onMounted(() => {
 .modal-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Profile Modal Styles */
+.modal-content.profile {
+  max-width: 600px;
+  width: 90%;
+}
+
+.profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  width: 40px;
+  height: 40px;
+  color: white;
+}
+
+.profile-title {
+  flex: 1;
+}
+
+.profile-title h2 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f1f3f4;
+}
+
+.close-icon {
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.profile-body {
+  margin-bottom: 2rem;
+}
+
+.profile-section {
+  margin-bottom: 2rem;
+}
+
+.profile-section:last-child {
+  margin-bottom: 0;
+}
+
+.profile-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #333;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.info-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.info-item label {
+  font-weight: 600;
+  color: #666;
+  margin: 0;
+}
+
+.info-item span {
+  color: #333;
+  text-align: right;
+}
+
+.status-info {
+  display: flex;
+  gap: 2rem;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-item label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.modal-btn.edit {
+  background-color: #007bff;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-btn.edit:hover {
+  background-color: #0056b3;
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /* Responsive Design */

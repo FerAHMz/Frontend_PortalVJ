@@ -84,7 +84,7 @@
               </div>
               <div class="stat-item">
                 <span class="stat-label">Días Lectivos:</span>
-                <span class="stat-value">{{ attendanceStats.dias || '--' }}</span>
+                <span class="stat-value">{{ attendanceStats.diasClase || '--' }}</span>
               </div>
             </div>
           </div>
@@ -170,9 +170,18 @@ import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
 import { User, BookOpen, BarChart3, Users, Download, FileText, Info } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
 import { downloadDirectorInstructivePDF } from '@/composables/useDirectorInstructivePDF.js'
+import { useDirectorReportsPDF } from '@/composables/useDirectorReportsPDF.js'
+import directorReportsService from '@/services/directorReportsService.js'
+import gradeDirectorService from '@/services/gradeDirectorService.js'
 
 const router = useRouter()
 const { showNotification } = useNotifications()
+const { 
+  generateAcademicReport, 
+  generateAttendanceReport, 
+  generatePlanningReport, 
+  generateExecutiveReport 
+} = useDirectorReportsPDF()
 
 const loading = ref(false)
 const error = ref(null)
@@ -183,28 +192,27 @@ const filters = ref({
   periodo: ''
 })
 
-const grados = ref([
-  { id: 1, grado: '1° Grado' },
-  { id: 2, grado: '2° Grado' },
-  { id: 3, grado: '3° Grado' },
-  { id: 4, grado: '4° Grado' },
-  { id: 5, grado: '5° Grado' },
-  { id: 6, grado: '6° Grado' }
-])
+const grados = ref([])
 
 const academicStats = ref({
-  promedio: 8.5,
-  estudiantes: 180
+  promedio: null,
+  estudiantes: null,
+  cursos: null,
+  materias: null
 })
 
 const attendanceStats = ref({
-  promedio: 92,
-  dias: 45
+  promedio: null,
+  diasClase: null,
+  estudiantesPresentes: null,
+  estudiantesAusentes: null
 })
 
 const planningStats = ref({
-  completadas: 12,
-  progreso: 8
+  total: null,
+  completadas: null,
+  progreso: null,
+  porcentaje: null
 })
 
 const menuItems = [
@@ -228,30 +236,19 @@ const generateReports = async () => {
     loading.value = true
     error.value = null
     
-    // Simular llamada a API para generar reportes
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Obtener estadísticas reales del servicio
+    const allStats = await directorReportsService.getAllStatistics(filters.value)
     
-    // Actualizar estadísticas simuladas
-    academicStats.value = {
-      promedio: Math.round((Math.random() * 2 + 7.5) * 10) / 10,
-      estudiantes: Math.floor(Math.random() * 50 + 150)
-    }
+    // Actualizar estadísticas con datos reales
+    academicStats.value = allStats.academic
+    attendanceStats.value = allStats.attendance
+    planningStats.value = allStats.planning
     
-    attendanceStats.value = {
-      promedio: Math.floor(Math.random() * 10 + 85),
-      dias: Math.floor(Math.random() * 10 + 40)
-    }
-    
-    planningStats.value = {
-      completadas: Math.floor(Math.random() * 5 + 10),
-      progreso: Math.floor(Math.random() * 5 + 5)
-    }
-    
-    lastUpdate.value = new Date()
+    lastUpdate.value = allStats.lastUpdate
     showNotification('success', 'Éxito', 'Reportes generados correctamente')
   } catch (err) {
     console.error('Error generating reports:', err)
-    error.value = 'Error al generar los reportes'
+    error.value = err.message || 'Error al generar los reportes'
     showNotification('error', 'Error', 'No se pudieron generar los reportes')
   } finally {
     loading.value = false
@@ -262,28 +259,66 @@ const downloadReport = async (reportType) => {
   try {
     loading.value = true
     
-    // Simular descarga de reporte
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    const reportNames = {
-      academic: 'Reporte_Rendimiento_Academico',
-      attendance: 'Reporte_Asistencia',
-      planning: 'Estado_Planificaciones',
-      executive: 'Reporte_Ejecutivo_Completo'
+    // Preparar filtros con nombres de grado para el PDF
+    const filtersWithNames = { ...filters.value }
+    if (filters.value.grado) {
+      const gradoSeleccionado = grados.value.find(g => g.id == filters.value.grado)
+      if (gradoSeleccionado) {
+        filtersWithNames.gradoNombre = gradoSeleccionado.grado
+      }
     }
     
-    showNotification('success', 'Descarga Iniciada', `Descargando ${reportNames[reportType]}.pdf`)
+    let result
+    switch (reportType) {
+      case 'academic':
+        result = await generateAcademicReport(filtersWithNames)
+        break
+      case 'attendance':
+        result = await generateAttendanceReport(filtersWithNames)
+        break
+      case 'planning':
+        result = await generatePlanningReport(filtersWithNames)
+        break
+      case 'executive':
+        result = await generateExecutiveReport(filtersWithNames)
+        break
+      default:
+        throw new Error('Tipo de reporte no válido')
+    }
+    
+    if (result.success) {
+      showNotification('success', 'Descarga Completada', `${result.fileName} se ha descargado exitosamente`)
+    }
   } catch (err) {
     console.error('Error downloading report:', err)
-    showNotification('error', 'Error', 'No se pudo descargar el reporte')
+    showNotification('error', 'Error', err.message || 'No se pudo generar el reporte PDF')
   } finally {
     loading.value = false
   }
 }
 
 const fetchData = async () => {
-  // Implementar lógica de carga de datos si es necesario
-  lastUpdate.value = new Date()
+  // Cargar grados disponibles y estadísticas iniciales
+  try {
+    loading.value = true
+    error.value = null
+    
+    // Cargar grados del director
+    const gradosData = await gradeDirectorService.getGradosDelDirector()
+    grados.value = gradosData
+    
+    // Cargar estadísticas iniciales
+    const allStats = await directorReportsService.getAllStatistics()
+    academicStats.value = allStats.academic
+    attendanceStats.value = allStats.attendance
+    planningStats.value = allStats.planning
+    lastUpdate.value = allStats.lastUpdate
+  } catch (err) {
+    console.error('Error fetching initial data:', err)
+    error.value = err.message || 'Error al cargar los datos'
+  } finally {
+    loading.value = false
+  }
 }
 
 const formatDate = (date) => {
