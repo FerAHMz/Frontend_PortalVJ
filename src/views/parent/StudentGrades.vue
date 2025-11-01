@@ -3,7 +3,24 @@
     <h2>Calificaciones por Asignatura y Trimestre</h2>
     <div v-if="loading" class="loading">Cargando calificaciones...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
+    
+    <!-- Bloqueo por falta de solvencia -->
+    <SolvencyBlock 
+      v-else-if="solvencyData && !solvencyData.isSolvent"
+      :solvency-percentage="solvencyData.solvencyPercentage"
+      :pending-months="solvencyData.pendingMonths"
+      :total-months="solvencyData.totalMonthsToCheck"
+      :pending-months-list="solvencyData.pendingMonthsList"
+      @view-payments="handleViewPayments"
+      @refresh-solvency="checkSolvency"
+    />
+    
     <div v-else>
+      <div v-if="solvencyData && solvencyData.isSolvent" class="solvency-status">
+        <div class="solvency-badge">
+          ✅ Estudiante solvente - Acceso completo
+        </div>
+      </div>
       <table class="grades-table">
         <thead>
           <tr>
@@ -30,32 +47,64 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { parentService } from '@/services/parentService.js';
+import SolvencyBlock from '@/components/SolvencyBlock.vue';
 
+const router = useRouter();
 const props = defineProps({
   student: Object
 });
 const grades = ref([]);
+const solvencyData = ref(null);
 const loading = ref(false);
 const error = ref(null);
 const emit = defineEmits(['subject-selected']);
+
+const checkSolvency = async () => {
+  if (!props.student) return;
+  try {
+    const res = await parentService.checkPaymentSolvency(props.student.carnet);
+    if (res.success) {
+      solvencyData.value = res.solvency;
+    }
+  } catch (err) {
+    console.error('Error checking solvency:', err);
+    // Si no se puede verificar solvencia, permitir acceso
+    solvencyData.value = { isSolvent: true };
+  }
+};
 
 const fetchGrades = async () => {
   if (!props.student) return;
   loading.value = true;
   error.value = null;
-  try {
-    const res = await parentService.getStudentGrades(props.student.carnet);
-    if (res.success) {
-      grades.value = res.grades;
-    } else {
-      error.value = 'No se pudieron obtener las calificaciones.';
+  
+  // Primero verificar solvencia
+  await checkSolvency();
+  
+  // Solo cargar calificaciones si está solvente
+  if (solvencyData.value && solvencyData.value.isSolvent) {
+    try {
+      const res = await parentService.getStudentGrades(props.student.carnet);
+      if (res.success) {
+        grades.value = res.grades;
+      } else {
+        error.value = res.error || 'Error al cargar calificaciones';
+      }
+    } catch (err) {
+      console.error('Error fetching grades:', err);
+      error.value = 'Error al cargar calificaciones';
     }
-  } catch (err) {
-    error.value = 'Error al obtener calificaciones.';
-  } finally {
-    loading.value = false;
   }
+  loading.value = false;
+};
+
+const handleViewPayments = () => {
+  router.push({
+    name: 'PaymentHistory',
+    query: { studentId: props.student.carnet }
+  });
 };
 
 const viewTasks = (subjectId) => {
@@ -93,5 +142,29 @@ button {
 }
 button:hover {
   background: #158a56;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 1rem;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.solvency-status {
+  margin-bottom: 1.5rem;
+}
+
+.solvency-badge {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  color: #155724;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #28a745;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
 }
 </style>

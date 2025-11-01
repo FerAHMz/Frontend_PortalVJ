@@ -119,6 +119,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { useNotifications } from '@/utils/useNotifications.js'
+import { passwordResetService } from '@/services/passwordResetService.js'
 
 const route = useRoute()
 const { showNotification } = useNotifications()
@@ -157,18 +158,12 @@ const validateToken = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/password/validate-token/${token.value}`)
-    const data = await response.json()
-    
+    const data = await passwordResetService.validateToken(token.value)
     tokenValid.value = data.success
-    
-    if (!data.success) {
-      showNotification('error', 'Token inválido', data.message)
-    }
   } catch (error) {
     console.error('Error validating token:', error)
     tokenValid.value = false
-    showNotification('error', 'Error de conexión', 'No se pudo validar el token')
+    showNotification('error', 'Token inválido', error.message || 'No se pudo validar el token')
   }
 }
 
@@ -186,28 +181,12 @@ const resetPassword = async () => {
   loading.value = true
 
   try {
-    const response = await fetch('http://localhost:3000/api/password/reset', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        token: token.value,
-        newPassword: newPassword.value
-      })
-    })
-
-    const data = await response.json()
-
-    if (data.success) {
-      passwordReset.value = true
-      showNotification('success', 'Éxito', data.message)
-    } else {
-      showNotification('error', 'Error', data.message || 'Error al cambiar la contraseña')
-    }
+    const data = await passwordResetService.resetPassword(token.value, newPassword.value)
+    passwordReset.value = true
+    showNotification('success', 'Éxito', data.message)
   } catch (error) {
     console.error('Error resetting password:', error)
-    showNotification('error', 'Error de conexión', 'No se pudo cambiar la contraseña')
+    showNotification('error', 'Error', error.message || 'No se pudo cambiar la contraseña')
   } finally {
     loading.value = false
   }
