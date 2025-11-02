@@ -1,7 +1,7 @@
-import axios from 'axios'
+import axios from 'axios';
 
-const API_URL = 'http://localhost:3000/api/teacher';
-const API_URL_D = 'http://localhost:3000/api/director';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher`;
+const API_URL_D = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/director`;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token')

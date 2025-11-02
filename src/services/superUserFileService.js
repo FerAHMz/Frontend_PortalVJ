@@ -2,7 +2,7 @@ import axios from 'axios';
 
 class SuperUserFileService {
   constructor() {
-    this.baseURL = 'http://localhost:3000/api/superuser/planifications';
+    this.baseURL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/superuser/planifications`;
   }
 
   /**
