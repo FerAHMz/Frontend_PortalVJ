@@ -49,4 +49,6 @@ export const PROTECTED_ROUTES = {
   [USER_ROLES.PARENT]: ['/parent']
 }
 
+console.log('DEBUG - VITE_API_URL:', import.meta.env.VITE_API_URL);
 export const API_BASE_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api`
+console.log('DEBUG - API_BASE_URL:', API_BASE_URL);

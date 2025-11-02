@@ -8,7 +8,12 @@ const authService = {
    */
   async login(email, password) {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/login`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      console.log('🔍 DEBUG - VITE_API_URL:', import.meta.env.VITE_API_URL);
+      console.log('🔍 DEBUG - Final API URL:', apiUrl);
+      console.log('🔍 DEBUG - Login URL:', `${apiUrl}/login`);
+      
+      const response = await axios.post(`${apiUrl}/login`, {
         email,
         password
       })
