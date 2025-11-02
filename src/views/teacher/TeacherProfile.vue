@@ -100,7 +100,7 @@ const fetchTeacherCourses = async () => {
   try {
     const user = getCurrentUser()
     if (user?.id) {
-      const response = await fetch(`http://localhost:3000/api/teacher/${user.id}/courses`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/${user.id}/courses`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

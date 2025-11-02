@@ -144,7 +144,7 @@ const fetchStudents = async () => {
   if (!token) return;
 
   try {
-    const response = await fetch('http://localhost:3000/api/payments/students-status')
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/payments/students-status`)
     students.value = await response.json()
   } catch (error) {
     console.error('Error fetching students:', error)
@@ -156,7 +156,7 @@ const fetchGrades = async () => {
   if (!token) return;
 
   try {
-    const response = await fetch('http://localhost:3000/api/payments/grades');
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/payments/grades`);
     if (!response.ok) {
       throw new Error('Failed to fetch grades');
     }

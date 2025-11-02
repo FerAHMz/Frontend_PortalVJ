@@ -229,7 +229,7 @@ const fetchPlanificationFiles = async () => {
     }
 
     const planificationId = route.params.planId
-    const response = await fetch(`http://localhost:3000/api/teacher/planning/${planificationId}/files`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/planning/${planificationId}/files`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

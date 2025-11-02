@@ -58,8 +58,8 @@
       if (!teacherId || !token) {
         throw new Error('No se encontró la información del usuario')
       }
-  
-      const response = await fetch(`http://localhost:3000/api/teacher/${teacherId}/courses`, {
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/${teacherId}/courses`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

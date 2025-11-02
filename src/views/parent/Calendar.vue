@@ -135,7 +135,7 @@ const fetchTasks = async () => {
     if (!token) throw new Error('No se encontró token de autenticación')
 
     // Ajustar endpoint según tu backend
-    const response = await fetch(`http://localhost:3000/api/parent/tasks/all`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/parent/tasks/all`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

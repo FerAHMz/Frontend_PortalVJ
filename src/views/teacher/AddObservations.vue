@@ -245,7 +245,7 @@
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/tasks`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()

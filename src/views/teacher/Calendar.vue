@@ -164,7 +164,7 @@ const fetchTasks = async () => {
       throw new Error('No se encontró token de autenticación');
     }
 
-    const response = await fetch(`http://localhost:3000/api/teacher/tasks/all`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/tasks/all`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

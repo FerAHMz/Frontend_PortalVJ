@@ -188,7 +188,7 @@ const formatDate = (date) => {
 const fetchTasks = async () => {
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/tasks`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await response.json()
@@ -201,7 +201,7 @@ const fetchTasks = async () => {
 const fetchStudents = async () => {
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/students`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/students`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     const data = await response.json()
@@ -218,7 +218,7 @@ const fetchStudents = async () => {
 const fetchTaskGrades = async (taskId) => {
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks/${taskId}/grades`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/tasks/${taskId}/grades`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!response.ok) return []
@@ -250,7 +250,7 @@ const selectTask = async (task) => {
 const handleGradeAction = async (student) => {
   try {
     const token = localStorage.getItem('token')
-    const baseUrl = `http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks/${selectedTask.value.id}/grades`
+    const baseUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/tasks/${selectedTask.value.id}/grades`
 
     if (student.hasExistingGrade) {
       const response = await fetch(`${baseUrl}/${student.carnet}`, {
@@ -302,7 +302,7 @@ const saveGrades = async () => {
         nota: parseFloat(student.grade)
       }))
 
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${route.params.courseId}/tasks/${selectedTask.value.id}/grades`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${route.params.courseId}/tasks/${selectedTask.value.id}/grades`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -591,8 +591,8 @@ const debugToken = async () => {
       console.log('No token found');
       return;
     }
-    
-    const response = await axios.get('http://localhost:3000/api/debug/token', {
+
+    const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/debug/token`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
