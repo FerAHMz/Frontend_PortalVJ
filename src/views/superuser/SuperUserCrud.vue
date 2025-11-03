@@ -52,14 +52,27 @@
                     {{ item[header.key] ? 'Activo' : 'Inactivo' }}
                   </span>
                 </template>
+                <template v-else-if="header.key === 'rol'">
+                  <span class="role-badge" :class="getRoleClass(item[header.key])">
+                    {{ getRoleDisplayName(item[header.key]) }}
+                  </span>
+                </template>
                 <template v-else>
                   {{ item[header.key] }}
                 </template>
               </td>
               <td class="actions">
                 <button
+                  @click="viewProfile(item)"
+                  class="action-btn view"
+                  title="Ver perfil"
+                >
+                  <Eye class="action-icon" />
+                </button>
+                <button
                   @click="editItem(item)"
                   class="action-btn edit"
+                  title="Editar"
                 >
                   <Edit class="action-icon" />
                 </button>
@@ -94,7 +107,7 @@
             <h3 class="user-name">
               {{ item.nombre }} {{ item.apellido }}
             </h3>
-            <span class="user-role">{{ item.rol }}</span>
+            <span class="role-badge" :class="getRoleClass(item.rol)">{{ getRoleDisplayName(item.rol) }}</span>
           </div>
 
           <div class="card-body">
@@ -115,6 +128,14 @@
           </div>
 
           <div class="card-actions">
+            <button
+              @click="viewProfile(item)"
+              class="action-btn view"
+            >
+              <Eye class="action-icon" />
+              <span>Ver Perfil</span>
+            </button>
+
             <button
               @click="editItem(item)"
               class="action-btn edit"
@@ -233,7 +254,7 @@
         </div>
       </div>
 
-      <!-- Confirmación -->
+      <!-- Confirmación -->
       <ModalConfirmacion
         v-if="showConfirmModal"
         :visible="showConfirmModal"
@@ -246,6 +267,68 @@
         @confirm="deleteItem"
         @cancel="showConfirmModal = false"
       />
+
+      <!-- Modal de Perfil -->
+      <div v-if="showProfileModal" class="modal-overlay" @click="showProfileModal = false">
+        <div class="modal-content profile-modal" @click.stop>
+          <div class="profile-header">
+            <h2>Perfil de Usuario</h2>
+            <button @click="showProfileModal = false" class="close-btn">
+              <X class="icon" />
+            </button>
+          </div>
+
+          <div v-if="selectedUser" class="profile-content">
+            <div class="profile-section">
+              <h3>Información Personal</h3>
+              <div class="profile-grid">
+                <div class="profile-item">
+                  <strong>Nombre:</strong>
+                  <span>{{ selectedUser.nombre }}</span>
+                </div>
+                <div class="profile-item">
+                  <strong>Apellido:</strong>
+                  <span>{{ selectedUser.apellido }}</span>
+                </div>
+                <div class="profile-item">
+                  <strong>Email:</strong>
+                  <span>{{ selectedUser.email }}</span>
+                </div>
+                <div class="profile-item">
+                  <strong>Teléfono:</strong>
+                  <span>{{ selectedUser.telefono || 'No especificado' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-section">
+              <h3>Información del Sistema</h3>
+              <div class="profile-grid">
+                <div class="profile-item">
+                  <strong>ID de Usuario:</strong>
+                  <span>{{ selectedUser.id }}</span>
+                </div>
+                <div class="profile-item">
+                  <strong>Rol:</strong>
+                  <span class="role-badge" :class="getRoleClass(selectedUser.rol)">
+                    {{ getRoleDisplayName(selectedUser.rol) }}
+                  </span>
+                </div>
+                <div class="profile-item">
+                  <strong>Estado:</strong>
+                  <span :class="selectedUser.activo ? 'status-active' : 'status-inactive'">
+                    {{ selectedUser.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+                <div class="profile-item">
+                  <strong>Fecha de Registro:</strong>
+                  <span>{{ formatDate(selectedUser.fecha_creacion) || 'No disponible' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Notificaciones -->
@@ -257,7 +340,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import NotificationDialog from '@/components/dialogs/NotificationDialog.vue'
-import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users, UserPlus, Info } from 'lucide-vue-next'
+import { Settings, Plus, Search, Edit, Trash, Eye, EyeOff, BookOpen, User, Check, FileText, Users, UserPlus, Info, X } from 'lucide-vue-next'
 import { downloadSuperUserInstructivePDF } from '@/composables/useSuperUserInstructivePDF'
 import ModalConfirmacion from '@/components/dialogs/ModalConfirmation.vue'
 import { userService } from '@/services/userService'
@@ -298,6 +381,8 @@ const itemToDelete = ref(null)
 const formData = ref({})
 const deleting = ref(false)
 const showPassword = ref(false)
+const showProfileModal = ref(false)
+const selectedUser = ref(null)
 
 const roles = [
   { value: 'SUP', label: 'Super Usuario' },
@@ -582,6 +667,51 @@ const confirmActivate = (item) => {
 const closeModal = () => {
   showModal.value = false
   showPassword.value = false
+}
+
+// Profile modal functions
+const viewProfile = (user) => {
+  selectedUser.value = user
+  showProfileModal.value = true
+}
+
+const getRoleClass = (role) => {
+  const roleClasses = {
+    'SUP': 'superuser',
+    'Director': 'director',
+    'Administrativo': 'administrative',
+    'Maestro': 'teacher',
+    'Padre': 'parent'
+  }
+  return roleClasses[role] || 'default'
+}
+
+const getRoleDisplayName = (role) => {
+  const roleNames = {
+    'SUP': 'Super Usuario',
+    'Director': 'Director',
+    'Administrativo': 'Administrativo',
+    'Maestro': 'Maestro',
+    'Padre': 'Padre'
+  }
+  return roleNames[role] || role
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'No disponible'
+  
+  try {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    return 'Fecha inválida'
+  }
 }
 
 const debugToken = async () => {
@@ -911,5 +1041,162 @@ const handleItemClick = (item) => {
   .form-input   { font-size: 16px; } 
   .user-card    { padding: 1rem; }
   .card-body p  { margin: 0.25rem 0; }
+}
+
+/* Role badge styles */
+.role-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.superuser {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.role-badge.director {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.role-badge.administrative {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+}
+
+.role-badge.teacher {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+}
+
+.role-badge.parent {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: white;
+}
+
+.role-badge.default {
+  background: #6c757d;
+  color: white;
+}
+
+/* Action button view style */
+.action-btn.view {
+  background: #17a2b8;
+  color: #fff;
+}
+
+.action-btn.view:hover {
+  background: #138496;
+}
+
+/* Profile modal styles */
+.profile-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.profile-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.close-btn .icon {
+  width: 20px;
+  height: 20px;
+  color: #666;
+}
+
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-section h3 {
+  margin: 0 0 1rem 0;
+  color: #444;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+}
+
+.profile-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profile-item strong {
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.profile-item span {
+  color: #333;
+  font-size: 1rem;
+}
+
+.status-active {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-inactive {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+/* Mobile profile modal responsiveness */
+@media (max-width: 768px) {
+  .profile-modal {
+    max-width: 95%;
+    margin: 1rem;
+  }
+  
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-header {
+    margin-bottom: 1rem;
+  }
 }
 </style>
