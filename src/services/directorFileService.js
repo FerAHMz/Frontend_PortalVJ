@@ -2,7 +2,7 @@ import axios from 'axios'
 
 class DirectorFileService {
   constructor() {
-    this.baseURL = 'http://localhost:3000/api/director'
+    this.baseURL = `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/director`
   }
 
   /**

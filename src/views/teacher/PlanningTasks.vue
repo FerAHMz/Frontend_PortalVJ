@@ -265,7 +265,7 @@ const fetchPlanificationObservations = async () => {
     const planificationId = route.params.planId
     const courseId = route.params.courseId
     
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${courseId}/planning/${planificationId}/observations`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${courseId}/planning/${planificationId}/observations`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -299,7 +299,7 @@ const fetchPlanificationData = async () => {
     const planificationId = route.params.planId
     const courseId = route.params.courseId
     
-    const response = await fetch(`http://localhost:3000/api/teacher/courses/${courseId}/planning/${planificationId}`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/courses/${courseId}/planning/${planificationId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -324,7 +324,7 @@ const downloadFile = async (file) => {
     }
 
     // Get the presigned download URL from the backend
-    const response = await fetch(`http://localhost:3000/api/teacher/planning/files/${file.id}/download`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/teacher/planning/files/${file.id}/download`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
